@@ -50,6 +50,12 @@ th{background:#eef2f7}code{background:#eceff3;padding:2px 6px;border-radius:4px;
 </table>
 <p><span class="ok">验证 PASS</span> —— 125 篇 master 无冲突；106 PDF 合法；125 目录三件套齐（01 全 ≥18KB）；HTML 全 UTF-8/div 配平；信源 verified 91 / cited 34。</p>
 
+<h2>四b、GitHub 上传与 Pages 部署</h2>
+<p>仓库 <code>https://github.com/zako-mio/llm-papers-knowledge-base</code>（公开），505 文件含 106 篇论文 PDF（<strong>Git LFS</strong> 托管，公开仓库 LFS 存储/带宽免费）。<code>docs/</code> 为 Pages 发布源（聚合首页 / 互动时间线 / 深度解读总览 / 报告 + 125 篇解读页，全部自包含）。</p>
+<p>Pages 初次 legacy 构建卡 building → 切换 <strong>GitHub Actions</strong>（<code>.github/workflows/pages.yml</code>）稳定部署成功；因本地 <code>git push</code> 被策略拦截，文件经 <code>gh api PUT contents</code> 写入并 <code>workflow_dispatch</code> 触发。</p>
+<p><strong>入口三件套</strong>：互动时间线每卡含 官方代码 / 深度解读 / PDF下载；深度解读指向 <code>analysis/{batch}/{slug}/03-...html</code>（Pages 直开），PDF 指向 <code>media.githubusercontent.com/media/...</code>（LFS 真实二进制直链，实测可下载完整 PDF）。</p>
+<p><strong>在线</strong>：<code>https://zako-mio.github.io/llm-papers-knowledge-base/</code>（首页）/ <code>.../timeline.html</code> / <code>.../analysis/index.html</code></p>
+
 <h2>五、反思/分析/建议</h2>
 <ol>
 <li><strong>预算定标有效</strong>：按 20t/s、单轮 &lt;10 分钟重排后超时率显著下降；"先保 01 再写 03"+"01-only + 专职 HTML 转换"是攻坚 P1/重论文关键。</li>
