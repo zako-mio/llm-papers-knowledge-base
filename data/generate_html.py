@@ -14,7 +14,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 DATA_DIR = Path(__file__).resolve().parent
 BASE_DIR = DATA_DIR.parent
-OUT_PATH = BASE_DIR / 'timeline.html'
+OUT_PATH = BASE_DIR / 'docs' / 'timeline.html'
 
 master = json.loads((DATA_DIR / 'papers_master.json').read_text(encoding='utf-8'))
 narratives = json.loads((DATA_DIR / 'era_narratives.json').read_text(encoding='utf-8'))
@@ -44,6 +44,23 @@ def pdf_rel(x):
     return None
 
 
+def pdf_github_url(x):
+    """返回指向 GitHub 仓库文件页的 blob URL（可预览/下载 LFS 对象）"""
+    name = f"{x['d']}_{x['p']}_{x['slug']}.pdf"
+    repo = 'zako-mio/llm-papers-knowledge-base'
+    path = quote(f"papers/{era_dirs[x['_era']]}/{name}", safe='/')
+    return f"https://github.com/{repo}/blob/main/{path}"
+
+
+def analysis_html(x):
+    """当前节点深度解读 HTML 是否存在；存在返回 build期相对路径（供 Timeline 页面锚定）"""
+    batch = {'P3': 'B1_P3', 'P2': 'B2_P2', 'P1': 'B3_P1'}[x['p']]
+    rel = f"analysis/{batch}/{x['slug']}/03-深度解读报告.html"
+    if (BASE_DIR / 'docs' / 'analysis' / batch / x['slug'] / '03-深度解读报告.html').exists():
+        return rel
+    return None
+
+
 def anchor(x):
     return 'paper-' + (x['id'] if x.get('id') else x['slug'])
 
@@ -52,13 +69,16 @@ def res_html(x):
     rel = pdf_rel(x)
     parts = []
     if rel:
-        parts.append(f'<a class="res-link pdf" href="{quote(rel, safe="/")}">本地PDF</a>')
+        parts.append(f'<a class="res-link pdf" href="{pdf_github_url(x)}" target="_blank" rel="noopener">PDF(仓库)</a>')
     elif x.get('ext_url'):
         parts.append(f'<a class="res-link ext" href="{esc(x["ext_url"])}" target="_blank" rel="noopener">※无公开PDF·外部链接</a>')
     else:
         parts.append('<span class="res-none">※无公开PDF</span>')
     if x.get('code'):
         parts.append(f'<a class="res-link code" href="{esc(x["code"])}" target="_blank" rel="noopener">官方代码</a>')
+    an = analysis_html(x)
+    if an:
+        parts.append(f'<a class="res-link analysis" href="{quote(an, safe="/")}">深度解读</a>')
     return '<div class="res">' + ' <span class="sep">|</span> '.join(parts) + '</div>'
 
 
@@ -223,6 +243,7 @@ table.archive tr:last-child td{border-bottom:none}
 .res-link.pdf{color:#7fd4a6;border-color:#2b4636}
 .res-link.ext{color:#f0b26a;border-color:#4d3c22}
 .res-link.code{color:#9db8e8;border-color:#2c3a52}
+.res-link.analysis{color:#c084fc;border-color:#4a2f6b;font-weight:600}
 .res-link:hover{text-decoration:none;filter:brightness(1.25)}
 .res-none{color:var(--mut)}
 .page-foot{margin-top:46px;padding:26px 16px 42px;text-align:center;color:var(--mut);font-size:12.5px;
