@@ -45,11 +45,11 @@ def pdf_rel(x):
 
 
 def pdf_github_url(x):
-    """返回指向 GitHub 仓库文件页的 blob URL（可预览/下载 LFS 对象）"""
+    """返回指向 GitHub 的 PDF 直链（media.githubusercontent.com 为 LFS 真实二进制下载地址）"""
     name = f"{x['d']}_{x['p']}_{x['slug']}.pdf"
     repo = 'zako-mio/llm-papers-knowledge-base'
     path = quote(f"papers/{era_dirs[x['_era']]}/{name}", safe='/')
-    return f"https://github.com/{repo}/blob/main/{path}"
+    return f"https://media.githubusercontent.com/media/{repo}/main/{path}"
 
 
 def analysis_html(x):
@@ -69,7 +69,7 @@ def res_html(x):
     rel = pdf_rel(x)
     parts = []
     if rel:
-        parts.append(f'<a class="res-link pdf" href="{pdf_github_url(x)}" target="_blank" rel="noopener">PDF(仓库)</a>')
+        parts.append(f'<a class="res-link pdf" href="{pdf_github_url(x)}" target="_blank" rel="noopener">PDF下载</a>')
     elif x.get('ext_url'):
         parts.append(f'<a class="res-link ext" href="{esc(x["ext_url"])}" target="_blank" rel="noopener">※无公开PDF·外部链接</a>')
     else:
