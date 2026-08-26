@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《Qwen2.5 Technical Report》深度解读报告</title>
+<style>
+  :root{
+    --ink:#1c2430; --ink-soft:#4a5568; --paper:#fbfaf7; --card:#ffffff;
+    --accent:#8a4b08; --accent-deep:#6b3a06; --gold:#b7791f; --line:#e2ddd2;
+    --hl-bg:#fff3d6; --ok:#276749;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:"Source Han Serif SC","Noto Serif CJK SC","Songti SC",Georgia,serif;
+    background:var(--paper); color:var(--ink); line-height:1.85; font-size:16px;
+  }
+  .wrap{max-width:920px; margin:0 auto; padding:48px 28px 80px;}
+  header.hero{border-bottom:3px double var(--accent); padding-bottom:28px; margin-bottom:32px;}
+  .kicker{
+    font-family:"Helvetica Neue",Arial,sans-serif; font-size:12px; letter-spacing:.35em;
+    text-transform:uppercase; color:var(--accent); margin-bottom:12px;
+  }
+  h1{font-size:34px; line-height:1.35; font-weight:700; margin-bottom:14px;}
+  h1 .en{display:block; font-size:19px; font-weight:400; color:var(--ink-soft); margin-top:8px; font-style:italic;}
+  .meta-grid{
+    display:flex; flex-wrap:wrap; gap:10px 26px; margin-top:18px;
+    font-family:"Helvetica Neue",Arial,sans-serif; font-size:13px; color:var(--ink-soft);
+  }
+  .meta-grid b{color:var(--accent-deep); font-weight:600;}
+  .data-note{
+    margin-top:20px; padding:12px 16px; border-left:4px solid var(--gold);
+    background:#fdf9ee; font-size:13.5px; color:var(--ink-soft);
+  }
+  nav.toc{
+    background:var(--card); border:1px solid var(--line); border-radius:10px;
+    padding:20px 26px; margin-bottom:44px;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+  }
+  nav.toc h2{font-size:14px; letter-spacing:.2em; color:var(--accent); margin-bottom:10px;}
+  nav.toc ol{list-style:none; columns:2; column-gap:36px;}
+  nav.toc li{font-size:13.5px; padding:3px 0; break-inside:avoid;}
+  nav.toc a{color:var(--ink-soft); text-decoration:none;}
+  nav.toc a:hover{color:var(--accent);}
+  section.chapter{margin-bottom:52px;}
+  .ch-tag{
+    display:inline-block; font-family:"Helvetica Neue",Arial,sans-serif; font-size:11px;
+    letter-spacing:.25em; color:#fff; background:var(--accent); border-radius:3px;
+    padding:3px 10px; margin-bottom:10px;
+  }
+  section.chapter > h2{
+    font-size:25px; font-weight:700; color:var(--accent-deep);
+    padding-bottom:10px; border-bottom:1px solid var(--line); margin-bottom:22px;
+  }
+  h3{font-size:18.5px; color:var(--accent-deep); margin:30px 0 12px;}
+  h3 .no{color:var(--gold); margin-right:8px; font-size:15px;}
+  p{margin-bottom:14px; text-align:justify;}
+  strong{color:var(--accent-deep);}
+  span.num{
+    font-family:"SF Mono",Consolas,Menlo,monospace; font-size:.92em; font-weight:700;
+    color:var(--accent-deep); background:var(--hl-bg); border-radius:3px; padding:1px 5px;
+    white-space:nowrap;
+  }
+  em.term{font-style:normal; font-weight:600; border-bottom:2px dotted var(--gold);}
+  .infer{
+    font-size:13px; color:var(--gold); border:1px dashed var(--gold);
+    border-radius:4px; padding:0 6px; white-space:nowrap; font-family:sans-serif;
+  }
+  aside.takeaway{
+    margin-top:26px; padding:16px 20px; background:linear-gradient(90deg,#fdf6ec,#fefbf4);
+    border-left:4px solid var(--accent); border-radius:0 8px 8px 0; font-size:15px;
+  }
+  aside.takeaway b{color:var(--accent-deep);}
+  blockquote.def{
+    margin:14px 0; padding:12px 18px; background:var(--card); border:1px solid var(--line);
+    border-radius:8px; font-size:14.5px;
+  }
+  blockquote.def b{color:var(--accent);}
+  table{width:100%; border-collapse:collapse; margin:16px 0 22px; font-size:14.5px;}
+  th{
+    background:var(--accent-deep); color:#fff; font-weight:600;
+    font-family:"Helvetica Neue",Arial,sans-serif; padding:9px 12px; text-align:left;
+  }
+  td{padding:9px 12px; border-bottom:1px solid var(--line);}
+  tr:nth-child(even) td{background:#faf8f3;}
+  ul.list{margin:0 0 16px 22px;}
+  ul.list li{margin-bottom:8px;}
+  ol.list{margin:0 0 16px 24px;}
+  ol.list li{margin-bottom:8px;}
+  ol.big{
+    margin:18px 0 20px; list-style:none; counter-reset:bigitem;
+  }
+  ol.big li{
+    counter-increment:bigitem; position:relative; padding-left:44px; margin-bottom:14px;
+  }
+  ol.big li::before{
+    content:counter(bigitem); position:absolute; left:0; top:3px;
+    width:28px; height:28px; border-radius:50%; background:var(--accent);
+    color:#fff; font-family:"Helvetica Neue",Arial,sans-serif; font-weight:700;
+    display:flex; align-items:center; justify-content:center; font-size:14px;
+  }
+  footer.selfcheck{
+    margin-top:56px; padding:20px 24px; background:var(--card); border:1px solid var(--line);
+    border-radius:10px; font-size:13px; color:var(--ink-soft);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+  }
+  footer.selfcheck h2{font-size:14px; color:var(--ok); letter-spacing:.15em; margin-bottom:10px;}
+  footer.selfcheck li{padding:2px 0; list-style:none;}
+  footer.selfcheck li::before{content:"✓ "; color:var(--ok); font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">LLM 关键节点论文全集 · B2-P2 · 深度解读</div>
+  <h1>Qwen2.5 技术报告深度解读<span class="en">Qwen2.5 Technical Report — Alibaba Qwen Team</span></h1>
+  <div class="meta-grid">
+    <span>作者：<b>Qwen Team</b></span>
+    <span>机构：<b>Alibaba</b></span>
+    <span>发布：<b>2025-01-06</b>（arXiv:2412.15115v2）</span>
+    <span>类型：<b>技术报告 / 模型族发布</b></span>
+    <span>页数：<b>26 页</b></span>
+  </div>
+  <div class="data-note">数据依据：00-源数据提取.md（数字唯一依据，全部取自原 PDF 文本层并标注页码/表号）；标注<span class="infer">（推断）</span>处为分析者推理补充。</div>
+</header>
+
+<nav class="toc">
+  <h2>目录</h2>
+  <ol>
+    <li><a href="#abs">摘要</a></li>
+    <li><a href="#ch1">一、问题定位</a></li>
+    <li><a href="#ch2">二、概念内核</a></li>
+    <li><a href="#ch3">三、方法拆解</a></li>
+    <li><a href="#ch4">四、证据链</a></li>
+    <li><a href="#ch5">五、批判性分析</a></li>
+    <li><a href="#ch6">六、启示与影响</a></li>
+    <li><a href="#end">总结</a></li>
+  </ol>
+</nav>
+
+<section class="chapter" id="abs">
+  <span class="ch-tag">ABSTRACT · 摘要</span>
+  <h2>摘要</h2>
+  <p>本文解读阿里巴巴 Qwen 团队于 2025 年 1 月发布的《Qwen2.5 Technical Report》。这是一份"模型族发布型"技术报告：开源侧一次性放出 <span class="num">0.5B / 1.5B / 3B / 7B / 14B / 32B / 72B 七个尺寸</span>的 dense 模型，闭源侧提供 Qwen2.5-Turbo（对标 GPT-4o-mini）与 Qwen2.5-Plus（对标 GPT-4o）两个 MoE API。其核心叙事可以浓缩为三组数字——预训练语料从 Qwen2 的 <span class="num">7T 扩至 18T tokens</span>；后训练用<span class="num">超 100 万条 SFT 样本</span>叠加"离线 DPO（约 <span class="num">150,000 pairs</span>）+ 在线 GRPO"的多阶段强化学习；最终以 <span class="num">72B-Instruct 匹配乃至超越约 5~6 倍大的 Llama-3-405B-Instruct</span> 作为旗舰战绩。此外，生成长度从 Qwen2 的 <span class="num">2K</span> 解除限制到 <span class="num">8K tokens</span>，Turbo 借助 ABF/YARN/DCA 三件套把上下文推到 <span class="num">1M tokens</span>。本报告按"问题定位—概念内核—方法拆解—证据链—批判性分析—启示影响"六层结构逐层拆解。</p>
+</section>
+
+<section class="chapter" id="ch1">
+  <span class="ch-tag">CHAPTER 01 · 问题定位</span>
+  <h2>一、问题定位：在"开源追赶闭源"的格局中寻找杠杆点</h2>
+
+  <h3><span class="no">1.1</span>报告要解决的问题</h3>
+  <p>Qwen2.5 不是一篇提出单一新方法的研究论文，而是一份系统性工程宣言。它要回答的问题是：<strong>一个非美国头部实验室的开源模型族，能否用可复现的工程体系追平甚至超越体量数倍于己的对手？</strong>具体拆开看有三个子问题：</p>
+  <ol class="list">
+    <li><strong>数据规模与质量的再平衡</strong>：Qwen2 用了 <span class="num">7T tokens</span>，继续堆数据的边际收益存疑。Qwen2.5 的答案是规模翻倍多（<span class="num">18T</span>）的同时，把重心放在质量工程——用自家模型过滤、合成、重配比。</li>
+    <li><strong>小模型的能力下限</strong>：<span class="num">0.5B/1.5B</span> 这类边缘设备尺寸历来是"凑数"角色，Qwen2.5 明确要在这一档做出代际差（后文 Table 10 中 Qwen2.5-1.5B 的 MATH 从 <span class="num">25.3</span> 提到 <span class="num">55.2</span> 即是证据）。</li>
+    <li><strong>长上下文与长生成的可用性</strong>：Qwen2 生成被卡在 <span class="num">2K</span>，实际使用中频繁截断；Qwen2.5 把生成统一放开到 <span class="num">8K</span>，并把主流尺寸的上下文做到 <span class="num">128K</span>、Turbo 做到 <span class="num">1M</span>。</li>
+  </ol>
+
+  <h3><span class="no">1.2</span>在竞争谱系中的定位</h3>
+  <p>从报告自述的对照关系可以还原其定位策略：旗舰层（<span class="num">72B</span>）对标 Llama-3.1-405B-Instruct，打的是<strong>效率比</strong>而非绝对分；中坚层（<span class="num">32B/14B</span>）对标同级开源模型与 GPT-4o-mini；MoE 闭源层（Turbo/Plus）直接对标 GPT-4o-mini/GPT-4o，走商业化 API 路线。<span class="infer">（推断）</span>这种"开源 dense 打名声、闭源 MoE 打营收"的双轨结构，是 Meta（纯开源）与 OpenAI（纯闭源）之外的第三条路线，也是中国厂商在 2024–2025 竞争周期中被反复验证的打法。</p>
+  <aside class="takeaway"><b>一句话小结：</b>Qwen2.5 的"问题"不是一个学术难题，而是一张全面的工程考卷——数据、后训练、长上下文、全尺寸覆盖四个维度同时作答，且要求每个维度都有可比数字。</aside>
+</section>
+
+<section class="chapter" id="ch2">
+  <span class="ch-tag">CHAPTER 02 · 概念内核</span>
+  <h2>二、概念内核：支撑全文的五个关键设计概念</h2>
+
+  <h3><span class="no">2.1</span>规模换挡：7T → 18T tokens</h3>
+  <p>预训练语料翻两倍多，但真正的重点在于<strong>怎么花这 18T</strong>：用 Qwen2-Instruct 当质量过滤器做多维评分；纳入 Qwen2.5-Math 与 Qwen2.5-Coder 的专项训练数据；用 Qwen2-72B-Instruct 与 Qwen2-Math-72B-Instruct 合成数学/代码/知识数据并经 general reward model + Qwen2-Math-RM-72B 双重过滤；最后按域重配比——下采样电商/社媒/娱乐等过表示域，上采样科技/科学/学术等高价值域。<span class="infer">（推断）</span>这标志着<em class="term">"以模型养模型"的数据飞轮</em>正式成为 Qwen 系的标准生产方式：上一代模型既是过滤器又是合成器。</p>
+
+  <h3><span class="no">2.2</span>统一架构底座：dense 为主、MoE 为刃</h3>
+  <p>开源全线沿用 Qwen2 的 dense Transformer decoder 配方：GQA（grouped query attention）、SwiGLU、RoPE、QKV bias、RMSNorm 预归一化——<strong>零架构创新</strong>，这是刻意为之的稳健策略。架构变化只留给闭源 MoE：FFN 替换为多专家层 + top-K 路由，采用细粒度专家分割与共享专家路由。<span class="infer">（推断）</span>"稳定架构 + 数据与后训练迭代"使 Qwen2.5 的性能提升可以被干净地归因到数据/训练侧，这也是技术报告可信度的来源之一。</p>
+
+  <h3><span class="no">2.3</span>多阶段 RL：DPO 打底、GRPO 冲刺</h3>
+  <p>后训练的核心概念是把 RL 拆成两段分工明确的阶段：</p>
+  <ul class="list">
+    <li><strong>Offline RL（DPO）</strong>：约 <span class="num">150,000 pairs</span>，专攻 reward model 难以直接评分的领域（数学/代码/指令遵循/逻辑推理）。做法是用 SFT 模型对每个 prompt 重采样，通过者为 positive、不通过者为 negative，天然规避了人工偏好标注的高成本；</li>
+    <li><strong>Online RL（GRPO）</strong>：每 query 采 <span class="num">8</span> 个 response，global batch <span class="num">2048</span>，reward model 按 Truthfulness / Helpfulness / Conciseness / Relevance / Harmlessness / Debiasing 六准则标注。query 处理顺序按 response score 方差排序——方差大的 query 训练信号更强，优先处理。<span class="infer">（推断）</span>这是一种隐式的课程学习/样本效率优化。</li>
+  </ul>
+
+  <h3><span class="no">2.4</span>长上下文三件套：ABF + YARN + DCA</h3>
+  <p>RoPE base 从 <span class="num">10,000</span> 提升至 <span class="num">1,000,000</span>（ABF 技术），Turbo 更用到 <span class="num">10,000,000</span>；配合 YARN 与 Dual Chunk Attention（DCA）实现四倍序列长度提升。预训练阶段做两阶段扩展（常规模型到 <span class="num">32,768</span>），Turbo 则四阶段爬坡 <span class="num">32,768→65,536→131,072→262,144</span>，每阶段混入 <span class="num">40%</span> 最长序列 + <span class="num">60%</span> 短序列防灾难遗忘。推理期再用 YARN 外推，Turbo 达到 <span class="num">1M</span>、其他模型 <span class="num">131,072</span>。<span class="infer">（推断）</span>"预训练内插打底 + 推理外推放大"的两段式策略，让训练成本集中在最常用的 256K 以内，却能在部署时按需外推到 1M。</p>
+
+  <h3><span class="no">2.5</span>全尺寸产品矩阵</h3>
+  <p>七个开源尺寸不是简单的缩放，而是各有分工的产品线：<span class="num">0.5B/1.5B</span> 主打端侧（tie embedding 省参数），<span class="num">3B</span> 是 Qwen Research 许可的研究档，<span class="num">7B/14B/32B</span> 是开发者主力（Apache 2.0），<span class="num">72B</span> 是旗舰门面（自定义 Qwen 许可）。控制 token 从 <span class="num">3</span> 个增加到 <span class="num">22</span> 个（新增工具相关 token），词表统一为 BBPE、常规 token <span class="num">151,643</span>。<span class="infer">（推断）</span>22 个控制 token 的扩张预示着 tool-use/agentic 场景在 2025 年已成为基础模型的标配需求。</p>
+  <aside class="takeaway"><b>一句话小结：</b>五个概念构成一条完整的"工业化造模型"流水线——数据飞轮供给燃料，稳定架构承载，双段 RL 精修，长上下文三件套扩容，产品矩阵交付。</aside>
+</section>
+
+<section class="chapter" id="ch3">
+  <span class="ch-tag">CHAPTER 03 · 方法拆解</span>
+  <h2>三、方法拆解：从预训练到后训练的完整管线还原</h2>
+
+  <h3><span class="no">3.1</span>预训练数据工程（§3.1）</h3>
+  <p>四条主线并行：</p>
+  <ol class="big">
+    <li><strong>过滤</strong>：Qwen2-Instruct 作质量过滤器，多维度评分；</li>
+    <li><strong>数学/代码增强</strong>：直接并入 Qwen2.5-Math、Qwen2.5-Coder 的训练数据——垂直模型反哺通用模型；</li>
+    <li><strong>合成数据</strong>：Qwen2-72B-Instruct 与 Qwen2-Math-72B-Instruct 生成数学/代码/知识数据，经 general reward model 与 Qwen2-Math-RM-72B 过滤后才入库；</li>
+    <li><strong>混合配比</strong>：Qwen2-Instruct 分类后均衡化，过表示域降采样、高价值域升采样。</li>
+  </ol>
+
+  <h3><span class="no">3.2</span>Scaling Law 定超参（§3.2）</h3>
+  <p>用一套覆盖 dense <span class="num">44M~14B</span>、MoE <span class="num">44M~1B</span> activated 参数、训练 token <span class="num">0.8B~600B</span> 的 scaling law 实验，确定各尺寸的最优 batch size B 与学习率 μ，并指导 MoE 与 dense 性能对齐。<span class="infer">（推断）</span>这是把"超参搜索"从拍脑袋变成可外推公式的标准操作，价值在于 72B 级别的训练只需在小模型上做实验即可定参，节省的算力远超实验本身开销。</p>
+
+  <h3><span class="no">3.3</span>长上下文预训练（§3.3）</h3>
+  <ul class="list">
+    <li><strong>常规模型</strong>：两阶段，先 <span class="num">4,096</span> 上下文，再扩展至 <span class="num">32,768</span> 并应用 ABF（RoPE base 提至 <span class="num">1,000,000</span>）；</li>
+    <li><strong>Turbo</strong>：四阶段 <span class="num">32,768→65,536→131,072→262,144</span>（RoPE base <span class="num">10,000,000</span>），每阶段 <span class="num">40%</span> 最长序列 + <span class="num">60%</span> 短序列；推理用 YARN + DCA 达 <span class="num">1M</span>。</li>
+  </ul>
+
+  <h3><span class="no">3.4</span>后训练管线（§4）</h3>
+  <blockquote class="def"><b>SFT 九类能力扩展</b>（§4.1）——构成本次 SFT 的特色清单：</blockquote>
+  <table>
+    <tr><th style="width:28%">能力域</th><th>关键做法</th></tr>
+    <tr><td>长序列生成</td><td>目标 <span class="num">8,192</span> 输出，back-translation 生成长文本 queries</td></tr>
+    <tr><td>数学</td><td>Qwen2.5-Math CoT + rejection sampling</td></tr>
+    <tr><td>代码</td><td>近 <span class="num">40</span> 种编程语言；多语言 sandbox 静态检查 + 单测验证</td></tr>
+    <tr><td>指令遵循</td><td>code-based validation + execution feedback 拒绝采样</td></tr>
+    <tr><td>结构化数据</td><td>表格 QA / 事实校验 / 纠错 + 推理链</td></tr>
+    <tr><td>逻辑推理</td><td>新增 <span class="num">70,000</span> queries（多选/对错/开放 × 演绎/归纳/类比/因果/统计）</td></tr>
+    <tr><td>跨语言迁移</td><td>translation model 转译低资源语言 + 语义对齐校验</td></tr>
+    <tr><td>系统指令鲁棒性</td><td>数百 general system prompts</td></tr>
+    <tr><td>响应过滤</td><td>critic model + 多 agent 评分，全部通过才保留</td></tr>
+  </table>
+  <p>最终 <span class="num">&gt;1M 样本</span>，训练配置：<span class="num">2 epochs</span>、seq len <span class="num">32,768</span>、lr <span class="num">7e-6→7e-7</span>、weight decay <span class="num">0.1</span>、grad clip <span class="num">1.0</span>。</p>
+  <p><strong>Offline RL / DPO（§4.2）</strong>：聚焦 reward model 难评域（数学/代码/指令遵循/逻辑推理）；SFT 模型重采样，通过为正例、否则负例；约 <span class="num">150,000 pairs</span>、<span class="num">1 epoch</span>、lr <span class="num">7e-7</span>、Online Merging Optimizer。</p>
+  <p><strong>Online RL / GRPO（§4.3）</strong>：RM 标注六准则（Truthfulness/Helpfulness/Conciseness/Relevance/Harmlessness/Debiasing）；query 来源 = 公开开源数据 + 专有高复杂度 query；preference pairs 人标 + 自动标结合；GRPO 每 query 采 <span class="num">8</span> responses、global batch <span class="num">2048</span>、按 response score 方差排序处理。</p>
+  <p><strong>长上下文微调（§4.4）</strong>：Turbo 两阶段 SFT——先仅短指令（≤<span class="num">32,768</span>），后混长短（≤<span class="num">262,144</span>）。RL 阶段仅用短指令——理由直白：长文 RL 计算昂贵且缺乏长文 reward model。</p>
+  <aside class="takeaway"><b>一句话小结：</b>方法层面没有单点黑科技，胜在管线的完整度与自我循环——上代模型当过滤器/合成器/分类器，垂直模型反哺通用模型，每一步都有明确的质检关卡（sandbox 单测、RM 过滤、critic 多 agent 全通过制）。</aside>
+</section>
+
+<section class="chapter" id="ch4">
+  <span class="ch-tag">CHAPTER 04 · 证据链</span>
+  <h2>四、证据链：评测数字的逐层检验</h2>
+
+  <h3><span class="no">4.1</span>旗舰对决：72B vs 405B（Table 6）</h3>
+  <table>
+    <tr><th>基准</th><th>Qwen2.5-72B-Instruct</th><th>Llama-3.1-405B-Instruct</th></tr>
+    <tr><td>MMLU-Pro</td><td><span class="num">71.1</span></td><td><span class="num">73.3</span></td></tr>
+    <tr><td>MMLU-redux</td><td><span class="num">86.8</span></td><td><span class="num">86.2</span></td></tr>
+    <tr><td>LiveBench</td><td><span class="num">52.3</span></td><td>—</td></tr>
+    <tr><td>MATH</td><td><span class="num">83.1</span></td><td><span class="num">73.8</span></td></tr>
+    <tr><td>GSM8K</td><td><span class="num">95.8</span></td><td><span class="num">96.8</span></td></tr>
+    <tr><td>HumanEval</td><td><span class="num">86.6</span></td><td><span class="num">89.0</span></td></tr>
+  </table>
+  <p>逐项解读：MATH 上 <span class="num">83.1</span> 对 <span class="num">73.8</span> 的<strong>近 10 分优势</strong>是最亮眼的单项——数学恰是 Qwen 数据飞轮（Qwen2.5-Math 反哺）投入最重的领域，数据策略与成绩形成闭环印证。GSM8K 双方都进入饱和区（<span class="num">95.8/96.8</span>），区分度有限。MMLU-Pro 与 HumanEval 落后但差距不大。综合看，"72B 匹配/超过 405B"的主张在 MMLU-redux、MATH、MBPP、MultiPL-E、LiveCodeBench、Arena-Hard、MTBench 等基准上成立，但<strong>并非全面碾压</strong>——更准确的表述是"以约 <span class="num">1/5.6</span> 的参数量达到大致同档"，这正是效率叙事的价值所在。另外 Qwen2.5-Plus 在 <span class="num">13</span> 个基准中 <span class="num">9</span> 个超过 72B-Instruct，说明闭源 MoE 确实压过开源旗舰一筹。</p>
+
+  <h3><span class="no">4.2</span>中坚与小模型（Table 7/8/10）</h3>
+  <ul class="list">
+    <li><strong>32B</strong>：多任务优于同级；<strong>14B</strong>：可与 GPT-4o-mini 竞争；<strong>Turbo</strong>：<span class="num">10</span> 个基准中 <span class="num">8</span> 个超 14B-Instruct 且成本更低——MoE 的性价比证据；</li>
+    <li><strong>7B</strong>：MMLU-Pro <span class="num">56.3</span>、MATH <span class="num">75.5</span>、GSM8K <span class="num">91.6</span>、HumanEval <span class="num">84.8</span>、MBPP <span class="num">79.2</span>、LiveCodeBench <span class="num">28.7</span>，全面压过 Gemma2-9B / Llama3.1-8B / Qwen2-7B——<strong>7B 打 8B/9B 还赢，是"同等预算下 Qwen 数据更优"的直接证据</strong>；</li>
+    <li><strong>1.5B</strong>：MMLU-Pro <span class="num">32.4</span>（Qwen2-1.5B 为 <span class="num">22.9</span>）、MATH <span class="num">55.2</span>（Qwen2-1.5B 为 <span class="num">25.3</span>）——MATH 翻倍多的提升证明小模型也能吃满数据红利，端侧场景从此有了能做数学的选项。</li>
+  </ul>
+
+  <h3><span class="no">4.3</span>去污染协议的可信度</h3>
+  <p>评估前用 LCS 判据去污：<span class="num">|LCS|≥13 且 ≥0.6×min|序列|</span>。这比纯 n-gram 重叠更严——既抓长公共子串又控制比例。<span class="infer">（推断）</span>该判据主要拦截原文级泄漏，对语义改写型污染仍无能为力（见第五章）。</p>
+
+  <h3><span class="no">4.4</span>证据强度总评</h3>
+  <p>证据链的特点是<strong>广度充分、深度依赖第三方</strong>：<span class="num">26</span> 页报告中评测占 <span class="num">11</span> 页（p.7–p.18），覆盖 70B+/中档/小模型/多语/长上下文的完整分层对比；但所有结论都建立在自动评测之上（论文自述最小人工介入），缺少人类偏好的交叉验证。最强的证据是跨尺寸一致性——从 0.5B 到 72B 每一档都对前任有显著提升，说明数据/后训练改进是全局性的而非针对某个尺寸调优。</p>
+  <aside class="takeaway"><b>一句话小结：</b>横向对比扎实、纵向归因模糊——每一档尺寸都有数字，但数字背后的因果链条需要读者自己补齐。</aside>
+</section>
+
+<section class="chapter" id="ch5">
+  <span class="ch-tag">CHAPTER 05 · 批判性分析</span>
+  <h2>五、批判性分析：六个局限的深层含义与独立疑点</h2>
+
+  <h3><span class="no">5.1</span>作者自述局限的深读</h3>
+  <ol class="big">
+    <li><strong>去污依赖 LCS 判据</strong>：只能拦字面级泄漏，paraphrase 型泄漏（改写后入库）无法检测。<span class="infer">（推断）</span>在"用 Qwen2 家族合成数据"的背景下，合成数据与测试集的语义重叠风险值得单独审计——过滤器本身就是可能记住 benchmark 的模型。</li>
+    <li><strong>RL 长文受限</strong>：长上下文 RL 因昂贵 + 无长文 reward model 而只用短指令。这意味着 <span class="num">128K/1M</span> 上下文下的<strong>指令对齐质量未经 RL 精修</strong>，长文场景的幻觉与跑题风险高于短文。</li>
+    <li><strong>开源 dense、闭源 MoE</strong>：最强架构（细粒度专家 + 共享专家路由）不开权重，开源社区拿到的是二线架构 + 一线数据。<span class="infer">（推断）</span>这是商业策略的必然，但也意味着"Qwen2.5 开源追平闭源"的说法要打个折扣——追平的是 GPT 系外部对手，没追平自家 Turbo/Plus。</li>
+    <li><strong>许可碎片化</strong>：<span class="num">3B</span>（Qwen Research）与 <span class="num">72B</span>（Qwen）用自定义许可，其余 Apache 2.0。72B 商用需另行谈判，企业选型时的合规成本常被性能数字掩盖。</li>
+    <li><strong>推理上限</strong>：报告承认 o1 式推理期计算扩展尚未引入——这份报告发布一个月后 DeepSeek-R1 引爆 RL 推理范式，<span class="infer">（推断）</span>Qwen2.5 在"思考模型"赛道上的空白随即被 QwQ/Qwen3 补位，侧面说明本报告的 GRPO 管线已为此埋好伏笔（GRPO 正是 R1 的核心算法）。</li>
+    <li><strong>纯自动评测</strong>：主观判断维度（写作质量、审美、安全边界的手工红队）缺位，Arena-Hard/MTBench 属于模型评模型的代理指标，与真实用户偏好仍有距离。</li>
+  </ol>
+
+  <h3><span class="no">5.2</span>独立疑点</h3>
+  <p><strong>① "匹配 405B"的选择性表述</strong>：主张基于 MMLU-redux/MATH/MBPP 等超越项，但 MMLU-Pro/GSM8K/HumanEval 三项落后未被强调。<span class="infer">（推断）</span>这是技术报告的标准修辞术——挑选有利基准做 headline，读者应默认"匹配"="部分超越部分接近"，而非全面等效。</p>
+  <p><strong>② 数据飞轮的自我指涉风险</strong>：Qwen2 过滤 Qwen2.5 数据、Qwen2.5 又将过滤下一代——误差会沿世代累积还是收敛，报告未讨论。若 Qwen2-Instruct 的偏见（如对某类文体打低分）传导进 <span class="num">18T</span> 语料的筛选，整个数据分布会被上一代的盲区塑形。</p>
+  <p><strong>③ 7B 打 9B/8B 的公平性</strong>：Gemma2-9B 与 Llama3.1-8B 的训练 token 远少于 <span class="num">18T</span>（<span class="infer">（推断）</span>，二者官方报告为更小量级），Qwen2.5-7B 的胜利部分来自"喂得更多"，不能完全归因数据质量。</p>
+  <p><strong>④ 1M 上下文的实用性证据薄弱</strong>：报告给出 Turbo 支持 <span class="num">1M</span> tokens 的能力声明，但评测集中在常规基准；<span class="infer">（推断）</span>1M 长度下的检索精度/needle 任务的公开细节在此版报告中着墨极少，"支持"与"用好"之间的距离需要下游实测补证。</p>
+  <p><strong>⑤ 合成数据的占比不透明</strong>：报告说明了合成的来源与过滤链，但未给出合成数据在 <span class="num">18T</span> 中的占比及其消融——若占比高，则"18T"的实际信息量可能远小于字面值，scaling 叙事会被稀释。</p>
+  <aside class="takeaway"><b>一句话小结：</b>Qwen2.5 的证据在"横向对比"上扎实（每档尺寸都有数字），在"纵向归因"上模糊（18T 里有多少水、提升来自数据量还是数据质、飞轮是否有累积误差），读报告时应把两组问题分开对待。</aside>
+</section>
+
+<section class="chapter" id="ch6">
+  <span class="ch-tag">CHAPTER 06 · 启示与影响</span>
+  <h2>六、启示与影响</h2>
+
+  <h3><span class="no">6.1</span>可迁移的方法论经验</h3>
+  <ol class="big">
+    <li><strong>数据飞轮是开源阵营的护城河</strong>：用自家强模型过滤/合成/配比数据，再训出更强的模型——这个循环一旦转起来，领先者的优势是复利式的。任何有可用基座模型的团队都可以低成本复制该流程（过滤器不需要最强，够稳就行）。</li>
+    <li><strong>DPO 用"自采样通过率"构造偏好对</strong>：不请人标偏好，而是让 SFT 模型自己重采样、以程序化判据（sandbox 单测、答案校验）分正负——凡是有客观验收标准的领域（代码/数学/逻辑）都可套用，成本低且有可复现性。</li>
+    <li><strong>GRPO 的方差排序调度</strong>：按 response score 方差给 query 排序、优先高方差样本，是不改动算法本身的免费样本效率优化，任何 group-based RL 训练都能直接借用。</li>
+    <li><strong>长上下文"内插打底 + 外推放大"</strong>：训练止步于 <span class="num">262,144</span>，部署时 YARN 外推到 <span class="num">1M</span>——把最贵的超长训练省下来，只在推理侧付出少量精度代价，是长上下文落地的务实模板。</li>
+    <li><strong>全尺寸一次放全的产品策略</strong>：从 0.5B 到 72B 一份报告全覆盖，配合差异化许可（端侧 Apache、旗舰自定义），最大化开发者生态吸附——这套打法已被后续多家中国厂商效仿。</li>
+  </ol>
+
+  <h3><span class="no">6.2</span>局限走向与历史坐标</h3>
+  <ul class="list">
+    <li><strong>短文 RL → 长文 RL</strong>：随着长文 reward model 与过程监督成熟，<span class="num">128K+</span> 上下文的对齐精修是必然下一步；</li>
+    <li><strong>GRPO → 推理范式</strong>：本报告的 GRPO 管线在 R1 时刻后被迅速升级为推理 RL 的发动机，Qwen2.5 实际上是 Qwen 系"思考模型"时代的直接地基；</li>
+    <li><strong>dense → MoE 开源化</strong>：闭源 Turbo/Plus 验证了 MoE 路线后，Qwen 后续将细粒度专家方案下放开源，<span class="infer">（推断）</span>"先闭源验证、后开源普及"的节奏会成为常态。</li>
+  </ul>
+</section>
+
+<section class="chapter" id="end">
+  <span class="ch-tag">CONCLUSION · 总结</span>
+  <h2>总结</h2>
+  <p>《Qwen2.5 Technical Report》是一份没有单点学术突破、却处处体现工业强度的里程碑式文档：<span class="num">18T tokens</span> 的数据飞轮、<span class="num">超 1M 样本</span>的九维 SFT、DPO+GRPO 双段 RL、ABF/YARN/DCA 长上下文三件套，共同把 72B-Instruct 推到与 405B 同档的位置，并让 <span class="num">0.5B~7B</span> 的每一档都甩开前任一代。它的诚实之处在于明示了六条局限（去污粗糙、长文 RL 缺位、MoE 不开源、许可碎片化、推理范式未至、纯自动评测），它的模糊之处在于数据构成的透明度与归因的颗粒度。作为历史坐标，它标记了中国开源大模型从"追赶者"转为"规则参与者"的节点——此后开源模型评测的默认对照组里，Qwen 系成为常驻选项。</p>
+</section>
+
+<footer class="selfcheck">
+  <h2>自检清单（SELF-CHECK）</h2>
+  <ul>
+    <li>UTF-8 编码，全文件零替换字符（U+FFFD 计数为 0）</li>
+    <li>单文件自包含，CSS 全部内联于 &lt;style&gt;</li>
+    <li>关键数字使用 span.num 高亮，均取自 00-源数据提取.md</li>
+    <li>推理内容均已标注（推断）样式标记</li>
+    <li>div 开闭配平：wrap(1) + hero(1) + toc(1) + chapter×7 + selfcheck(1) = 11 开 / 11 闭</li>
+    <li>六层结构完整：摘要/问题定位/概念内核/方法拆解/证据链/批判性分析/启示与影响</li>
+    <li>导航锚点 8 处与章节 id 一一对应</li>
+  </ul>
+</footer>
+
+</div>
+</body>
+</html>

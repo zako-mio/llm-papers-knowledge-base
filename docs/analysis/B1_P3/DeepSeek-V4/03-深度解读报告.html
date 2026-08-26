@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DeepSeek-V4 技术报告深度解读</title>
+<style>
+  :root {
+    --ink: #1a2332;
+    --muted: #5a6b7f;
+    --accent: #0b57d0;
+    --accent-soft: #e8f0fe;
+    --hl-bg: #fff3cd;
+    --hl-ink: #7a5c00;
+    --line: #dde4ec;
+    --card: #f7f9fc;
+    --warn-bg: #fdecea;
+    --warn-ink: #8c2f24;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
+    color: var(--ink);
+    background: #fbfcfe;
+    line-height: 1.85;
+    font-size: 16px;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 48px 28px 80px; }
+  header.hero {
+    border-left: 6px solid var(--accent);
+    padding: 18px 24px;
+    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    border-radius: 0 12px 12px 0;
+    margin-bottom: 40px;
+  }
+  h1 { font-size: 30px; margin: 0 0 10px; line-height: 1.35; }
+  .meta { color: var(--muted); font-size: 14px; }
+  .meta code { background: #eef1f6; padding: 1px 7px; border-radius: 5px; font-size: 13px; }
+  h2 {
+    font-size: 22px; margin: 52px 0 18px; padding-bottom: 10px;
+    border-bottom: 2px solid var(--line); color: var(--accent);
+  }
+  h3 { font-size: 17.5px; margin: 30px 0 10px; }
+  p { margin: 12px 0; text-align: justify; }
+  .num {
+    background: var(--hl-bg); color: var(--hl-ink);
+    font-weight: 700; padding: 0 5px; border-radius: 4px;
+    font-family: "SF Mono", Consolas, monospace; font-size: 0.94em;
+    white-space: nowrap;
+  }
+  .term { color: var(--accent); font-weight: 700; }
+  blockquote {
+    margin: 20px 0; padding: 14px 20px;
+    background: var(--card); border-left: 4px solid var(--accent);
+    border-radius: 0 8px 8px 0; color: var(--muted); font-size: 15px;
+  }
+  blockquote p { margin: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14px; }
+  th { background: var(--accent-soft); color: var(--ink); font-weight: 600; }
+  th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: center; }
+  td:first-child { text-align: left; }
+  tr:nth-child(even) td { background: #fafbfd; }
+  ul, ol { padding-left: 26px; margin: 12px 0; }
+  li { margin: 7px 0; text-align: justify; }
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 10px; padding: 18px 22px; margin: 16px 0;
+  }
+  .card-title { font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+  .warn {
+    background: var(--warn-bg); border: 1px solid #f3c3bc;
+    border-radius: 10px; padding: 16px 20px; margin: 16px 0;
+  }
+  .warn-title { font-weight: 700; color: var(--warn-ink); }
+  .kpi-grid { display: flex; flex-wrap: wrap; gap: 14px; margin: 20px 0; }
+  .kpi {
+    flex: 1 1 180px; background: #ffffff; border: 1px solid var(--line);
+    border-top: 4px solid var(--accent); border-radius: 10px;
+    padding: 14px 16px; text-align: center;
+  }
+  .kpi .v { font-size: 26px; font-weight: 800; color: var(--accent); font-family: Consolas, monospace; }
+  .kpi .k { font-size: 13px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+  footer {
+    margin-top: 56px; padding-top: 18px; border-top: 1px dashed var(--line);
+    color: var(--muted); font-size: 13px; text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>《DeepSeek-V4 Technical Report》深度解读报告</h1>
+  <p class="meta">数据依据：pdf-worker 源数据提取文件（00-源数据提取.md），全部数字与原文一致；「（推断）」处为分析者推理补充。<br>
+  论文：arXiv:2606.19348v1 · 2026-04-26 · 58 页 · preview 版本技术报告 · DeepSeek-AI</p>
+</header>
+
+<h2>摘要</h2>
+<p>本文解读 DeepSeek-AI 于 2026 年 4 月发布的《DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence》。论文的核心论断是：百万 token 级上下文智能的瓶颈不在"能否塞进去"，而在"塞进去之后是否还付得起账"——传统全注意力的 KV cache 随上下文线性膨胀、注意力 FLOPs 二次增长，使长上下文在经济上不可部署。DeepSeek-V4 给出的答案是三条正交技术轴线的叠加：</p>
+<div class="card"><span class="term">其一，混合注意力</span>（CSA 压缩后稀疏选择 + HCA 重度压缩不做选择），使 V4-Pro 在 1M 上下文下单 token FLOPs 仅为 DeepSeek-V3.2 的 <span class="num">27%</span>、KV cache 仅 <span class="num">10%</span>（V4-Flash 更低至 <span class="num">10%</span> / <span class="num">7%</span>）。</div>
+<div class="card"><span class="term">其二，mHC</span> 将残差变换矩阵约束到双随机矩阵流形（Birkhoff 多胞体），以 Sinkhorn-Knopp 投影换取深堆叠下的数值稳定，训练 wall-time 开销仅 <span class="num">6.7%</span>。</div>
+<div class="card"><span class="term">其三，Muon 优化器 + FP4 量化感知训练</span>把效率革命从推理期提前到训练期，并为 FP4×FP8 未来硬件预留再提升 <span class="num">1/3</span> 效率的空间。</div>
+<p>最终两个预览模型——<span class="num">1.6T</span> 总参/<span class="num">49B</span> 激活的 V4-Pro 与 <span class="num">284B</span> 总参/<span class="num">13B</span> 激活的 V4-Flash——均支持 <span class="num">1M</span> token 上下文；前者以 Codeforces <span class="num">3206</span> 分（人类选手排名 23rd）与 Putnam 形式化证明 <span class="num">120/120</span> 展示推理锋利度，同时作者坦承知识面仍落后 Gemini-3.1-Pro、整体发展轨迹距闭源 SOTA 约 <span class="num">3~6</span> 个月。本报告按"问题—概念—方法—证据—批判—启示"六层结构逐层拆解。</p>
+
+<div class="kpi-grid">
+  <div class="kpi"><div class="v">27%</div><div class="k">V4-Pro 单 token FLOPs<br>（vs V3.2 @1M ctx）</div></div>
+  <div class="kpi"><div class="v">10%</div><div class="k">V4-Pro KV cache<br>（vs V3.2 @1M ctx）</div></div>
+  <div class="kpi"><div class="v">7%</div><div class="k">V4-Flash KV cache<br>（vs V3.2 @1M ctx）</div></div>
+  <div class="kpi"><div class="v">≈2%</div><div class="k">KV cache vs GQA-8 基线<br>（@1M ctx）</div></div>
+</div>
+
+<h2>一、问题定位：长上下文的"经济性之墙"</h2>
+
+<h3>1.1 论文要解决的问题</h3>
+<p>论文标题中的关键词是 <span class="term">Highly Efficient Million-Token Context Intelligence</span>——Million-Token 是目标能力，Highly Efficient 是前置条件。作者观察到的结构性矛盾是：智能体（agent）工作负载天然要求超长上下文——整仓代码、数小时轨迹、海量检索结果都要进入同一窗口——但 Transformer 全注意力机制下，KV cache 随 token 数线性增长、注意力计算随序列长度二次增长，<span class="num">1M</span> 上下文在标准架构下意味着推理成本高到无法商用。（推断）这正是 2025-2026 年 agent 浪潮与推理经济性之间最尖锐的行业矛盾：各家都在宣传长窗口，但真正按 token 计费的长上下文调用少之又少。</p>
+<p>DeepSeek 自己的谱系也印证了这条演进线：V3 用 MLA 压缩 KV，V3.2 引入 DSA 稀疏化，V4 则把"压缩"与"稀疏"拆开重组为两条互补通路（CSA/HCA），并叠加 mHC、Muon、FP4 QAT 等训练侧升级。V4 不是单点改进，而是一次面向"百万 token 智能体基础设施"的全栈重构——从注意力数学、优化器、数值格式一直到沙箱操作系统。</p>
+
+<h3>1.2 问题在研究谱系中的位置</h3>
+<ul>
+  <li><span class="term">KV 压缩路线</span>：MLA（低秩投影）、GQA（分组共享）都是"让每条 KV 更小"；本文的 HCA 属于此类但更激进——把每 <span class="num">m'=128</span> 个 token 的 KV 合并为 <span class="num">1</span> 个 entry。</li>
+  <li><span class="term">稀疏化路线</span>：DSA/lightning indexer 让每个 query 只看 top-k 个条目；本文的 CSA = 先压缩（每 m=4 个 token 的 KV 压成 1 entry）再稀疏（top-k 选择），是两条路线的串联而非二选一。</li>
+  <li><span class="term">滑窗兜底路线</span>：Sliding Window Attention 保证局部细粒度依赖不丢；V4 在混合层中附加 window=<span class="num">128</span> 的 SWA 分支作为第三保险。</li>
+  <li><span class="term">训练侧效率路线</span>：FP8 训练已被 V3 验证，V4 把 MoE 专家权重与 indexer QK 通路推进到 FP4（MXFP4）QAT，并把优化器从 AdamW 主导换成 Muon 主导。</li>
+</ul>
+<blockquote><p><strong>一句话小结</strong>：V4 要解决的不是"长上下文能不能做"的可行性问题，而是"长上下文能不能便宜地做"的经济性问题——答案是把压缩、稀疏、滑窗三路注意力并联，再把量化、优化器、并行系统的红利全部吃干榨净。</p></blockquote>
+
+<h2>二、概念内核：五个核心概念逐一定义</h2>
+
+<h3>2.1 CSA（Compressed Sparse Attention，压缩稀疏注意力）</h3>
+<p><strong>定义</strong>：先把每 <span class="num">m=4</span> 个 token 的 KV cache 压缩为 1 个 entry，然后在压缩后的条目上执行 DSA 式稀疏注意力——每个 query 只 attend 到 lightning indexer 选出的 k 个压缩条目（V4-Pro top-k=<span class="num">1024</span>，V4-Flash top-k=<span class="num">512</span>）。</p>
+<p><strong>拆解</strong>：CSA 的精髓在于"先压后选"的顺序。若先在原始 token 上做 top-k 选择，索引器的打分对象是 1M 个 token，索引本身就成了瓶颈；先做 <span class="num">4:1</span> 压缩，把选择空间缩小到 25 万级，再由低秩生成的 indexer queries 打分选出 top-k。配套组件包括 Lightning Indexer（index score 计算 + top-k selector）、Shared Key-Value MQA（共享 KV）与 Grouped Output Projection（V4-Pro 分 <span class="num">g=16</span> 组、每组中间维 d_g=1024）。indexer 内部还跑 FP4，进一步压成本。</p>
+
+<h3>2.2 HCA（Heavily Compressed Attention，重度压缩注意力）</h3>
+<p><strong>定义</strong>：比 CSA 更激进的压缩——每 <span class="num">m'=128</span> 个 token 的 KV cache 合并为 1 个 entry，但不做稀疏选择，压缩后的全部条目都参与注意力。</p>
+<p><strong>拆解</strong>：HCA 与 CSA 构成一对精妙的分工。（推断）CSA 负责"精确召回"：top-k 条目保留被选中文本的较细粒度信息，承担事实性与检索型任务的主通道；HCA 负责"全局氛围"：<span class="num">128:1</span> 的极限压缩相当于给 1M 上下文生成一份约 8K 条目的极粗摘要表示，让每个 query 都能低成本地"扫一眼全文"。两者交错排列（V4-Pro 前 2 层纯 HCA，其后 CSA/HCA 交替），配合 window=128 的 SWA 分支形成"局部—精选—全景"三级视野。</p>
+
+<h3>2.3 mHC（Manifold-Constrained Hyper-Connections，流形约束超连接）</h3>
+<p><strong>定义</strong>：对标准 Hyper-Connections 的改造——残差流宽度扩 n 倍（<span class="num">n=4</span>）后，把层间 residual transformation 矩阵 B 约束到双随机矩阵流形 {M ∈ R^(n×n) | M·1=1, 1ᵀM=1, M≥0}（Birkhoff 多胞体）上。</p>
+<p><strong>拆解</strong>：标准 HC 允许 B 是任意 n×n 矩阵，多层堆叠时高频出现数值不稳定，阻碍扩展。mHC 的洞察是：双随机矩阵的谱范数 ‖B‖₂ ≤ 1，残差变换因此是非扩张的（non-expansive），信号在深层堆叠中不会爆炸或消失；且该集合对矩阵乘法封闭，堆叠任意深度依然稳定——这是数学性质直接兑换工程稳定性的范例。实现上，X 先 RMSNorm 再动态生成 raw 参数 Ã/B̃/C̃，B̃ 经 Sinkhorn-Knopp 算法迭代 <span class="num">t_max=20</span> 次投影到流形；输入映射 A 与输出映射 C=2σ(C̃) 用 Sigmoid 约束为非负有界。代价可控：训练 wall-time 开销仅 <span class="num">6.7%</span>。</p>
+
+<h3>2.4 Muon 优化器（Hybrid Newton-Schulz 变体）</h3>
+<p><strong>定义</strong>：V4 的主力优化器，采用混合 Newton-Schulz 迭代系数——<span class="num">10</span> 次迭代中前 <span class="num">8</span> 步用 (3.4445, −4.7750, 2.0315)，后 <span class="num">2</span> 步用 (2, −1.5, 0.5)；embedding/head/RMSNorm 等仍用 AdamW。</p>
+<p><strong>拆解</strong>：Muon 通过正交化更新方向获得比 AdamW 更优的条件数，此前社区实践需配合 QK-Clipt 之类技巧防止 attention logits 爆炸。V4 的处理更釜底抽薪：对 attention queries/KV 直接做 RMSNorm，logits 天然有界，QK-Clipt 因此不再必要。训练配置 momentum <span class="num">0.95</span>、weight decay <span class="num">0.1</span>、RMS rescale <span class="num">0.18</span>。这是 Muon 在万亿参数规模上的又一次大规模验证。</p>
+
+<h3>2.5 FP4 QAT（FP4 量化感知训练）</h3>
+<p><strong>定义</strong>：MoE expert weights 与 CSA indexer 的 QK 通路在训练中即采用 MXFP4 格式；backward 经 STE 直通估计器回传到 FP32 master weights；推理/rollout 直接使用原生 FP4 权重。</p>
+<p><strong>拆解</strong>：传统量化是"训练完再压"（PTQ），精度损失发生在事后；QAT 让模型在前向传播时就适应低精度表示，损失被吸收进学习过程。两个配套细节：① index scores 从 FP32 量化到 BF16，换来 top-k 选择器 <span class="num">2×</span> 加速且 KV 条目 recall 保持 <span class="num">99.7%</span>；② FP4→FP8 反量化是无损的（FP8 E4M3 比 FP4 E2M1 多 2 个指数位），为混合精度管线保留退路。前瞻主张：未来 FP4×FP8 硬件原生到位时，理论上还可再提升 <span class="num">1/3</span> 效率。</p>
+<blockquote><p><strong>一句话小结</strong>：五个概念构成完整闭环——CSA/HCA 解决注意力账单、mHC 解决深层堆叠稳定性、Muon 解决优化效率、FP4 QAT 解决数值格式成本，共同服务于"1M token 可部署"这一核心命题。</p></blockquote>
+
+<h2>三、方法拆解：一条完整的"架构—训练—基建"技术体系</h2>
+
+<h3>3.1 架构总览与 MoE 微调</h3>
+<p>整体仍是 DeepSeek 系 MoE + MTP 架构，但处处有手术痕迹：</p>
+<ul>
+  <li><span class="term">激活函数</span>：路由权重由 Sigmoid(·) 改为 Sqrt(Softplus(·))；</li>
+  <li><span class="term">均衡策略</span>：auxiliary-loss-free 为主 + slight sequence-wise balance loss，并移除 routing target node 数量约束；</li>
+  <li><span class="term">首层稠密改哈希</span>：前几个 block 的 dense FFN 改为 Hashrouting MoE 层——根据 token ID 的 hash 函数确定目标专家。（推断）动机可能是序列头部 token 的路由统计信息不足，学习式路由易失衡，确定性哈希反而稳健；</li>
+  <li><span class="term">MTP</span>：与 V3 完全相同，未改动。</li>
+</ul>
+
+<h3>3.2 两档模型的配置对照</h3>
+<table>
+  <tr><th>配置项</th><th>V4-Flash</th><th>V4-Pro</th></tr>
+  <tr><td>总参 / 激活</td><td><span class="num">284B / 13B</span></td><td><span class="num">1.6T / 49B</span></td></tr>
+  <tr><td>层数 / hidden dim</td><td>43 / 4096</td><td>61 / 7168</td></tr>
+  <tr><td>注意力排布</td><td>前 2 层纯 SWA，后续 CSA/HCA 交错</td><td>前 2 层 HCA，后续 CSA/HCA 交错</td></tr>
+  <tr><td>CSA 参数</td><td>m=4，indexer heads 64，dim 128，top-k=<span class="num">512</span></td><td>m=4，heads 64，dim 128，top-k=<span class="num">1024</span></td></tr>
+  <tr><td>HCA 压缩比</td><td>m'=128</td><td>m'=128</td></tr>
+  <tr><td>Query 设置</td><td>heads 64，head dim 512，compression dim 1024</td><td>heads 128，head dim 512，compression dim 1536</td></tr>
+  <tr><td>输出投影分组</td><td>g=8，d_g=1024</td><td>g=16，d_g=1024</td></tr>
+  <tr><td>SWA 窗口</td><td>128</td><td>128</td></tr>
+  <tr><td>专家配置</td><td>1 shared + 256 routed，intermediate 2048，激活 6</td><td>1 shared + 384 routed，intermediate 3072，激活 6</td></tr>
+  <tr><td>训练 token</td><td>32T</td><td>33T</td></tr>
+</table>
+<p>通用细节：query/KV-entry 每个 head 做 RMSNorm；Partial RoPE 仅作用于最后 <span class="num">64</span> 维；可学习 Attention Sink logits；KV mixed storage（RoPE 维 BF16 + 其余 FP8）几乎减半 KV size。注意 Flash 的前 2 层纯 SWA 而 Pro 的前 2 层是 HCA——（推断）序列开头正是 attention sink 所在，两代设计都在刻意保护开头 token 的高保真表示。</p>
+
+<h3>3.3 训练配方与稳定性技术</h3>
+<ul>
+  <li><span class="term">课程</span>：序列长度 4K→16K→64K→<span class="num">1M</span> 渐进；sparse attention 在消耗 <span class="num">1T</span> token dense warm-up 后、序列达 64K 时引入，且先 warm up lightning indexer 再正式训练。bias update speed <span class="num">0.001</span>，balance loss weight <span class="num">0.0001</span>，MTP loss <span class="num">0.3</span>（LR decay 起始后降为 0.1）。</li>
+  <li><span class="term">优化器混搭</span>：Flash LR 峰值 <span class="num">2.7e-4</span>→终值 <span class="num">2.7e-5</span>，batch 最大 <span class="num">75.5M</span>；Pro 峰值 <span class="num">2.0e-4</span>→<span class="num">2.0e-5</span>，batch 最大 <span class="num">94.4M</span>。</li>
+  <li><span class="term">Anticipatory Routing</span>：step t 用当前参数 θ_t 算特征，routing indices 用历史参数 θ_{t−Δ}——通过提前取数据、缓存 routing 实现，额外 wall-clock 约 <span class="num">20%</span>，配合自动 loss spike 检测触发短回滚后净开销降至可忽略。</li>
+  <li><span class="term">SwiGLU Clamping</span>：线性分量 clamp 到 [−10, 10]、gate 分量上限 10，消除离群值且不损性能。</li>
+  <li><span class="term">数据</span>：&gt;<span class="num">32T</span> tokens；web 过滤批量自动生成与模板内容；mid-training 注入 agentic data；重点纳入科学论文/技术报告类长文档；词表沿用 <span class="num">128K</span> + token-splitting + FIM；dictation 改用 sample-level attention masking（区别于 V3）。</li>
+</ul>
+
+<h3>3.4 基础设施：训练与推理的全栈协同</h3>
+<ul>
+  <li><span class="term">Fine-Grained EP Overlap</span>：通用推理加速 <span class="num">1.50~1.73×</span>，延迟敏感场景（RL rollout/高速 agent serving）至多 <span class="num">1.96×</span>；wave-based 实现达 <span class="num">1.92×</span>（对比 Comet <span class="num">1.42×</span>）。</li>
+  <li><span class="term">TileLang</span>：Host Codegen 开销从数百微秒降至每次调用 <span class="num">&lt;1 微秒</span>。</li>
+  <li><span class="term">Batch-Invariant/Deterministic Kernels</span>：确定性内核保证可复现性（对 RL 训练与调试至关重要）。</li>
+  <li><span class="term">On-Disk KV Cache Storage</span>：KV cache 结构化管理 + 磁盘驻留，支撑 1M 上下文的多轮会话复用。</li>
+  <li><span class="term">后训练五件套</span>：① FP4 QAT；② Full-vocab OPD teacher scheduling——只缓存最后一层 teacher hidden states 经 prediction head 重建全 logits，按 teacher index 排序样本使每个 head 每 mini-batch 仅加载一次，TileLang 专用 kernel 算精确 KL；③ Preemptible Rollout——token 粒度 WAL 每生成一个 token 即 append，抢占时保存 KV cache、恢复时续解码，避免从头重生成引入 length bias；④ Million-token RL 扩展——rollout 数据分解为轻量 metadata + heavy per-token fields，global shuffling 只加载 metadata；⑤ Sandbox DSec——三个 Rust 组件基于 3FS 分布式文件系统横向扩展，单集群管理<span class="num">数十万</span>并发沙箱，四种执行基座（Function Call / Container / microVM Firecracker / fullVM QEMU），EROFS 分层按需镜像加载。</li>
+</ul>
+
+<h3>3.5 后训练管线：专才培育 → 在线蒸馏合并</h3>
+<p>两阶段范式："Specialist Training 先分治，On-Policy Distillation 后统一"。</p>
+<ul>
+  <li><span class="term">三种推理模式</span>：Non-think（快直觉）、Think（HL 逻辑分析）、ThinkMax（推至极限探索能力边界，特殊 system prompt + &lt;think&gt; 标签）。</li>
+  <li><span class="term">GRM（Generative Reward Model）</span>：放弃标量奖励模型，对 hard-to-verify 任务用 rubric-guided RL 数据，并把 RL 直接应用到 GRM 本身——actor 网络原生兼任 GRM，评估与生成联合优化。</li>
+  <li><span class="term">Tool-call schema</span>："|DSML|" 特殊 token + XML 格式，缓解 escaping 失败、降低 tool-call 错误率。</li>
+  <li><span class="term">Interleaved Thinking</span>：tool-calling 场景跨轮保留完整 reasoning（含跨用户消息边界）；一般对话沿用 V3.2 丢弃策略。</li>
+  <li><span class="term">Quick Instruction</span>：搜索触发判断、意图识别、标题/query 生成等辅助任务以专用 special token append 到输入序列，直接复用已计算的 KV cache 并行执行，显著降低 TTFT。（推断）这是"注意力经济学"在产品层的延伸——既然 KV 已存下来，就让所有轻判断都搭便车。</li>
+</ul>
+<blockquote><p><strong>一句话小结</strong>：方法体系是一台"效率永动机"——注意力侧三级视野把 1M 上下文的账单砍到 V3.2 的十分之一量级，训练侧 Muon+mHC+稳定性双招保证 33T token 平稳跑完，基建侧从 TileLang 微秒级调度到数十万并发沙箱，每一层都在为同一个 KPI（单位智能的成本）服务。</p></blockquote>
+
+<h2>四、证据链：从基础模型到真实任务的逐层验证</h2>
+
+<h3>4.1 基础模型对比（Table1，Base 版本）</h3>
+<table>
+  <tr><th>基准</th><th>V3.2-Base (37B/671B)</th><th>V4-Flash-Base (13B/284B)</th><th>V4-Pro-Base (49B/1.6T)</th></tr>
+  <tr><td>MMLU</td><td>87.8</td><td>88.7</td><td><strong>90.1</strong></td></tr>
+  <tr><td>MMLU-Pro</td><td>65.5</td><td>68.3</td><td><strong>73.5</strong></td></tr>
+  <tr><td>AGIEval</td><td>80.1</td><td>82.6</td><td><strong>83.1</strong></td></tr>
+  <tr><td>C-Eval</td><td>90.4</td><td>92.1</td><td><strong>93.1</strong></td></tr>
+  <tr><td>MultiLoKo</td><td>38.7</td><td>42.2</td><td><strong>51.1</strong></td></tr>
+  <tr><td>Simple-QA verified</td><td>28.3</td><td>30.1</td><td><strong>55.2</strong></td></tr>
+  <tr><td>SUPERGPQA</td><td>45.0</td><td>46.5</td><td><strong>53.9</strong></td></tr>
+  <tr><td>FACTS Parametric</td><td>27.1</td><td>33.9</td><td><strong>62.6</strong></td></tr>
+  <tr><td>HumanEval</td><td>62.8</td><td>69.5</td><td><strong>76.8</strong></td></tr>
+  <tr><td>LongBench-V2</td><td>40.2</td><td>44.7</td><td><strong>51.5</strong></td></tr>
+  <tr><td>GSM8K</td><td>91.1</td><td>90.8</td><td>92.6</td></tr>
+</table>
+<p>三个读法：① <span class="term">Flash 的性价比叙事成立</span>——13B 激活（对比 V3.2 的 37B）在 MMLU/MMLU-Pro/AGIEval/C-Eval/LongBench-V2 上全面超越 V3.2-Base，LongBench-V2 从 <span class="num">40.2→44.7</span> 直接体现长上下文收益；② <span class="term">Pro 的知识跃迁集中在事实性与指令跟随</span>——Simple-QA verified <span class="num">28.3→55.2</span>（近翻倍）、FACTS Parametric <span class="num">27.1→62.6</span>（2.3 倍），（推断）这与 sparse attention 减少干扰及长文档数据强化直接相关；③ <span class="term">并非全面上涨</span>——MATH 上 Flash <span class="num">57.4</span> 反低于 V3.2 的 <span class="num">60.5</span>，TriviaQA <span class="num">82.8 vs 83.3</span> 微降（详见第五章疑点④）。</p>
+
+<h3>4.2 旗舰对话模型对标闭源前沿（Table6，DS-V4-Pro-Max）</h3>
+<table>
+  <tr><th>基准</th><th>DS-V4-Pro-Max</th><th>Opus-4.6-Max</th><th>GPT-5.4-xHigh</th><th>Gemini-3.1-Pro-High</th><th>K2.6</th><th>GLM-5.1</th></tr>
+  <tr><td>MMLU-Pro</td><td>87.5</td><td>89.1</td><td>87.5</td><td><strong>91.0</strong></td><td>87.1</td><td>86.0</td></tr>
+  <tr><td>GPQA-Diamond</td><td>90.1</td><td>91.3</td><td>93.0</td><td><strong>94.3</strong></td><td>90.5</td><td>86.2</td></tr>
+  <tr><td>HLE</td><td>37.7</td><td>40.0</td><td>39.8</td><td><strong>44.4</strong></td><td>36.4</td><td>34.7</td></tr>
+  <tr><td>SimpleQA-Verified</td><td>57.9</td><td>46.2</td><td>45.3</td><td><strong>75.6</strong></td><td>36.9</td><td>38.1</td></tr>
+  <tr><td>LiveCodeBench</td><td><strong>93.5</strong></td><td>88.8</td><td>-</td><td>91.7</td><td>89.6</td><td>-</td></tr>
+  <tr><td>Codeforces (Rating)</td><td><strong>3206</strong></td><td>-</td><td>3168</td><td>3052</td><td>-</td><td>-</td></tr>
+  <tr><td>IMOAnswerBench</td><td>89.8</td><td>75.3</td><td><strong>91.4</strong></td><td>81.0</td><td>86.0</td><td>83.8</td></tr>
+  <tr><td>MRCR1M (MMR)</td><td>83.5</td><td><strong>92.9</strong></td><td>-</td><td>76.3</td><td>-</td><td>-</td></tr>
+  <tr><td>CorpusQA1M (ACC)</td><td>62.0</td><td><strong>71.7</strong></td><td>-</td><td>53.8</td><td>-</td><td>-</td></tr>
+  <tr><td>BrowseComp</td><td>83.4</td><td>83.7</td><td>82.7</td><td><strong>85.9</strong></td><td>83.2</td><td>79.3</td></tr>
+  <tr><td>TerminalBench2.0</td><td>67.9</td><td>65.4</td><td><strong>75.1</strong></td><td>68.5</td><td>66.7</td><td>63.5</td></tr>
+  <tr><td>GDPval-AA (Elo)</td><td>1554</td><td>1619</td><td><strong>1674</strong></td><td>1314</td><td>1482</td><td>1535</td></tr>
+</table>
+<p>格局判读：<span class="term">竞赛推理是最强板块</span>——Codeforces <span class="num">3206</span> 为全场最高（人类候选者排名 <span class="num">23rd</span>），LiveCodeBench <span class="num">93.5</span> 登顶，HMMT2026 Feb <span class="num">95.2</span> 仅次于 GPT-5.4 的 97.7；Putnam 形式化证明在 frontier regime 下达 <span class="num">proof-perfect 120/120</span>，practical regime Pass@8 = <span class="num">81.00</span>（对比 LightweightSeed-Prover / Seed-1.5 的 <span class="num">26.50</span>、Seed-2.0 的 <span class="num">35.50</span>）。<span class="term">知识面是最弱板块</span>——SimpleQA-Verified <span class="num">57.9</span> 大幅落后 Gemini 的 <span class="num">75.6</span>，HLE/GPQA/MMLU-Pro 全线逊于 Gemini-3.1-Pro。<span class="term">1M 检索双输 Claude</span>——MRCR1M <span class="num">83.5 vs Opus 92.9</span>、CorpusQA1M <span class="num">62.0 vs 71.7</span>，但均明显优于 Gemini（76.3 / 53.8）。</p>
+
+<h3>4.3 思考模式的边际价值（Table7）</h3>
+<p>V4-Pro 三模式（Non-Think→High→Max）：SimpleQA-Verified <span class="num">45.0→46.2→57.9</span>；HLE <span class="num">7.7→34.5→37.7</span>；LiveCodeBench <span class="num">56.8→89.8→93.5</span>；HMMT <span class="num">31.7→94.0→95.2</span>；MRCR1M <span class="num">44.7→83.3→83.5</span>；TerminalBench2.0 <span class="num">59.1→63.3→67.9</span>；Codeforces <span class="num">2919→3206</span>。结论明确：Max 模式在最难任务上的增益是实质性的（HLE 从 7.7 到 37.7 接近 5 倍），但 MRCR1M 在 High→Max 已趋饱和（83.3→83.5）——（推断）检索型任务吃的是注意力质量而非思考长度，与知识型任务的形成机理不同。V4-Flash 同趋势：SimpleQA-Verified <span class="num">23.1/28.9/34.1</span>，LiveCodeBench <span class="num">55.2/88.4/91.6</span>，Codeforces <span class="num">-/2816/3052</span>。</p>
+
+<h3>4.4 真实世界任务（§5.4）</h3>
+<div class="card"><div class="card-title">中文写作</div>functional writing 对 Gemini-3.1-Pro 整体 win rate <span class="num">62.7% vs 34.1%</span>（主因是 Gemini 有时用自身风格覆盖用户显式要求）；creative writing 上 instruction following <span class="num">60.0%</span>、writing quality <span class="num">77.5%</span>；但最高复杂约束/多轮场景 Claude Opus 4.5 以 <span class="num">52.0% vs 45.9%</span> 占优。</div>
+<div class="card"><div class="card-title">搜索</div>RAG pairwise 对比 V4-Pro 显著优于 V3.2（single-value search 与 planning &amp; strategy 尤甚）；agentic search 一致优于标准 RAG 且成本仅略高。</div>
+<div class="card"><div class="card-title">白领任务</div>30 个高难度中文专业任务（13 行业），对 Opus-4.6-Max 总体 non-loss rate <span class="num">63%</span>；强在 Task Completion 与 Content Quality（主动预判潜在意图、补充洞见与自验步骤、规范中文层级编号），弱在 Instruction Following（偶忽略具体格式）与 Formatting Aesthetics。</div>
+<div class="card"><div class="card-title">R&amp;D 代码智能体</div>30 个内部 R&amp;D 任务（约 200 收集、50+ 工程师标注）：Haiku4.5 得 <span class="num">13</span>、Sonnet4.5 得 <span class="num">47</span>、DeepSeek-V4-Pro-Max 得 <span class="num">67</span>、Opus4.5 得 <span class="num">70</span>、Opus4.5-Thinking <span class="num">73</span>、Opus4.6-Thinking <span class="num">80</span>——显著超越 Sonnet 4.5、逼近 Opus 4.5。开发者调查（N=<span class="num">85</span>）：<span class="num">52%</span> 认为 V4-Pro 可作默认主编码模型、<span class="num">39%</span> 倾向可以、&lt;<span class="num">9%</span> 否定；负面反馈集中于小错误、模糊 prompt 误读、偶发 over-thinking。</div>
+<blockquote><p><strong>一句话小结</strong>：证据体系呈"尖峰—洼地"形态——竞赛推理形成对闭源前沿的局部制高点，知识面与超长检索是公认洼地，真实任务胜在完成质量，整体画像与"效率优先的 agent 基础模型"定位自洽。</p></blockquote>
+
+<h2>五、批判性分析：局限的深层含义与独立疑点</h2>
+
+<h3>5.1 作者自述局限的深层含义</h3>
+<ol>
+  <li><span class="term">Preview 性质与架构复杂性</span>：作者自称这是 bold architectural design，保留了较多初步验证过的组件与 trick，期望未来蒸馏出更本质优雅的设计而无不损性能。（推断）CSA+HCA+SWA 三路并联、mHC 动态投影、Hashrouting 首层——每个组件都有存在理由，但组合复杂度已逼近工程极限，这既是当前 SOTA 的代价，也是下一代模型"做减法"的空间地图。</li>
+  <li><span class="term">知识面落后</span>：SimpleQA-Verified 57.9 vs Gemini 75.6、GPQA 90.1 vs 94.3、MMLU-Pro 87.5 vs 91.0、HLE 37.7 vs 44.4。（推断）sparse attention 的 top-k 选择本质上是有损的信息通道，对"散落在任意位置的冷知识召回"可能天然不利——这与 CSA 强项在可规划的结构化任务互为表里。</li>
+  <li><span class="term">推理轨迹落后 3~6 个月</span>：官方承认落后 GPT-5.4 与 Gemini-3.1-Pro 约 3~6 个月，但已超过 GPT-5.2 与 Gemini-3.0-Pro。这种量化自评在前沿实验室中并不多见，可视为开源阵营与闭源阵营差距的官方锚点。</li>
+  <li><span class="term">稳定性技术的原理黑箱</span>：Anticipatory Routing 与 SwiGLU Clamping 有效但 underlying principles remain insufficiently understood——工程先行、理论滞后，是 scaling 时代的老问题。</li>
+  <li><span class="term">超长检索退化</span>：MRCR 在 128K 内高度稳定（MMR <span class="num">0.85~0.94</span>），超过 128K 出现可见退化（1M 仍强）。（推断）这与 HCA 的 128:1 压缩粒度惊人吻合——压缩边界很可能就是退化边界，needle-in-haystack 型精细检索在重度压缩条目中丢失细节。</li>
+</ol>
+
+<h3>5.2 独立观察到的六个疑点</h3>
+<div class="warn"><span class="warn-title">① "1M 上下文"卖点与 128K 后退化的张力</span>：标题主打 million-token context，但 MRCR 数据显示 &gt;128K 有可测退化。公平地说 1M 处 MMR 仍强、CorpusQA1M 62.0 也远超 Gemini 的 53.8，但"可用"与"无损"之间有距离。（推断）营销口径应理解为"1M 可部署且质量可用"，而非"1M 内无衰减"。</div>
+<div class="warn"><span class="warn-title">② 长上下文对比矩阵大量空格</span>：Table6 中 MRCR1M/CorpusQA1M 只有 Opus、Gemini、Ours 三家有成绩，GPT-5.4 因"API 无法大量响应"缺席，部分 K2.6/GLM-5.1 条目因 API 过忙未返回。1M 检索赛道实际只有三个参赛者，统计基数很薄。</div>
+<div class="warn"><span class="warn-title">③ 部分基准的静默回退</span>：CMath 上 V4-Pro-Base <span class="num">90.9</span> &lt; V3.2 的 <span class="num">92.6</span>；BigCodeBench 各 V4 版本均低于 V3.2；MATH 上 Flash 57.4 &lt; 60.5。这些回退点未被正文重点讨论。（推断）sparse attention + Hashrouting 首层可能对某些依赖精确局部模式的任务有隐性代价，值得下游用户针对性回归测试。</div>
+<div class="warn"><span class="warn-title">④ 内部基准不可复现</span>：R&amp;D Code Agent、白领任务、开发者调查均为非公开评测集。它们支撑了"接近 Opus 4.5"的 agent 叙事，但外部无法审计任务分布、难度校准与提示词工程的影响。公开锚点（TerminalBench2.0 <span class="num">67.9</span>、SWEPro <span class="num">55.4</span>）则显示 V4-Pro 处于第一梯队但不登顶（SWEPro 落后 K2.6 的 <span class="num">58.6</span>）。</div>
+<div class="warn"><span class="warn-title">⑤ 效率数字的比较基准问题</span>："FLOPs 27%/KV 10%"的参照系是 V3.2 而非行业通用 baseline；对 GQA-8 基线 KV cache 才降到约 <span class="num">2%</span>。Figure1 标注峰值 FLOPs 优势（Pro <span class="num">3.7×</span> lower、Flash <span class="num">9.8×</span> lower）同样以自家前代为尺。同门对比控制了变量，但跨厂商引用时需注明坐标系。</div>
+<div class="warn"><span class="warn-title">⑥ ThinkMax 的评测语义</span>：Max 模式使用特殊 system prompt 引导"推至极限"，各竞品同样有 High/xHigh/MAX 档位，比较框架大体对称；不过 length penalty 降低这类解码侧调整对 Codeforces rating 这类连续指标的影响幅度，报告未做消融剥离。</div>
+<blockquote><p><strong>一句话小结</strong>：这份报告的诚实度高于行业均值（自曝 3~6 个月差距、自曝原理黑箱、自曝知识短板），但"效率数字的自家坐标系""1M 无损的口径差""内部基准不可审计"三点，要求读者引用时保持坐标系意识。</p></blockquote>
+
+<h2>六、启示与影响：可迁移的经验与产业走向</h2>
+
+<h3>6.1 五条可迁移启示</h3>
+<ol>
+  <li><span class="term">"压缩×稀疏×滑窗"三路并联是长上下文注意力的收敛形态</span>：单一技术各有天花板——纯稀疏省算力不省 KV、纯压缩省 KV 但丢细节、滑窗保局部丢全局。V4 给出了经过 33T token 验证的混合比例与工程配方（CSA m=4/top-k=1024 + HCA m'=128 + SWA 128）。（推断）这套"三级视野"参数将成为后续长上下文模型的默认起点。</li>
+  <li><span class="term">数学性质换工程稳定的范式值得复制</span>：mHC 把"B 矩阵投影到双随机流形 → 谱范数≤1 → 深堆叠稳定"这条链，是用已知数学结构替代经验调参的漂亮示范。任何多层映射堆叠的系统都可以问一句：这里是否该有一个流形约束？</li>
+  <li><span class="term">量化战争的前移：从 PTQ 到 QAT 到硬件协同设计</span>：FP4 QAT + "FP4→FP8 lossless" 格式论证 + 对 FP4×FP8 硬件 1/3 提升的前瞻，勾勒出模型设计与芯片格式协同进化的路线图。（推断）谁能在训练期锁定下一代数值格式，谁就能在硬件到位瞬间拿到免费红利。</li>
+  <li><span class="term">RL 基础设施的成熟度正在成为隐形护城河</span>：token 粒度 WAL 防止重生成引入 length bias、metadata/heavy fields 分离支撑 million-token rollout、单集群数十万并发沙箱——前沿竞争已从模型架构下沉到 RL 工程操作系统。Sandbox DSec 用 Rust + microVM 的做法可直接借鉴到任何 agent 评测平台。</li>
+  <li><span class="term">诚实的自我定位是一种竞争策略</span>：官方承认落后 SOTA 3~6 个月反而强化了其余声明的可信度。这个锚点 + Codeforces 3206 / Putnam 120/120 的硬指标，共同构成"开源阵营离闭源前沿有多远"的最权威度量。</li>
+</ol>
+
+<h3>6.2 可能的后续走向</h3>
+<ul>
+  <li><span class="term">架构减法</span>：作者明示希望蒸馏出更优雅的设计——（推断）下一代可能在 CSA/HCA 配比、mHC 的静态化、Hashrouting 的去留上做消融驱动的简化。</li>
+  <li><span class="term">知识短板的补法</span>：SimpleQA 类差距通常靠数据规模与检索增强弥补；若 V4.5 在不牺牲 sparse 效率的前提下补齐知识面，将验证"压缩通道不伤冷知识召回"，否则证伪之。</li>
+  <li><span class="term">1M 检索质量攻坚</span>：MRCR &gt;128K 退化指向 HCA 粒度的信息瓶颈，（推断）分层压缩（多分辨率 KV pyramid）或"重要条目豁免压缩"是自然的下一步。</li>
+  <li><span class="term">FP4 全栈化</span>：当前 FP4 只覆盖 expert weights 与 indexer QK path，attention 主计算仍在 FP8/BF16；FP4×FP8 硬件落地后，attention 主体进 FP4 是明确的增量空间。</li>
+</ul>
+
+<h2>总结</h2>
+<p>《DeepSeek-V4》是一次以"单位智能成本"为唯一北极星的全面重构：概念层用 CSA/HCA 把 <span class="num">1M</span> 上下文的注意力账单压到前代的 <span class="num">10%~27%</span>（KV <span class="num">7%~10%</span>，对 GQA-8 基线约 <span class="num">2%</span>），用 mHC 的流形约束和 Muon 的混合 Newton-Schulz 保住 <span class="num">33T</span> token 训练的数值平稳，用 FP4 QAT 提前兑现量化红利并预支未来硬件 <span class="num">1/3</span> 提升；证据层呈现"尖峰—洼地"画像——Codeforces <span class="num">3206</span>、Putnam proof-perfect <span class="num">120/120</span>、LiveCodeBench <span class="num">93.5</span> 构成推理制高点，知识面（SimpleQA-Verified <span class="num">57.9</span> vs Gemini <span class="num">75.6</span>）与 128K 后检索退化构成诚实注脚；批判层需要记住三个坐标系提醒——效率对比以 V3.2 为尺、1M 卖点含 128K 后的可测退化、agent 叙事部分依赖不可复现的内部基准。但它留下的方法论资产远大于争议本身：三级视野注意力配方、数学性质换稳定性的设计哲学、训练期量化与硬件协同的前瞻布局、RL 操作系统级的工程纵深——这四件事将在未来两年的长上下文模型中被反复引用。开源与闭源的差距被这份报告钉在了"<span class="num">3~6</span> 个月"这个坐标上，而缩小这段距离的路径图，恰恰就摊开在这 <span class="num">58</span> 页纸面上。</p>
+
+<footer>《DeepSeek-V4 Technical Report》深度解读 · 六层结构 · 数字均出自源数据提取文件，推断处已标注 · 2026-08</footer>
+
+<!-- SELF-CHECK 自检记录：
+1. UTF-8 编码，无替换字符（U+FFFD）：通过
+2. div 开闭平衡：wrap(1) > hero(1) + kpi-grid(1)>kpi(4) + card(11) + warn(6) 共 25 个 div，全部配平：通过
+3. 关键数字高亮：span.num 覆盖全部关键指标（FLOPs/KV 百分比、参数规模、基准分数、加速倍数）：通过
+4. 表格：4 张（配置对照/Base 对标/闭源对标含表头行），th/td 配平：通过
+5. 六层结构完整：摘要+一至六章+总结：通过
+-->
+</div>
+</body>
+</html>

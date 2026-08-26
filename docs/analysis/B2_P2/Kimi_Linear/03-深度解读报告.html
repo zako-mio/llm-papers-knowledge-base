@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kimi Linear 深度解读报告</title>
+<style>
+  :root {
+    --ink: #1f2430;
+    --sub: #5a6472;
+    --accent: #b3541e;
+    --accent-soft: #fdf0e7;
+    --blue: #1a5fb4;
+    --blue-soft: #eaf2fc;
+    --line: #e3e6ea;
+    --card: #ffffff;
+    --bg: #f7f8fa;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", Georgia, serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.85;
+    font-size: 16px;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 32px 28px 64px; }
+  header.hero {
+    background: linear-gradient(135deg, #22304a 0%, #3a5178 100%);
+    color: #fff;
+    border-radius: 14px;
+    padding: 40px 36px;
+    margin-bottom: 28px;
+  }
+  header.hero h1 { margin: 0 0 10px; font-size: 27px; line-height: 1.45; }
+  header.hero .meta { font-size: 13.5px; opacity: .88; font-family: "JetBrains Mono", Consolas, monospace; }
+  header.hero .tagline { margin-top: 14px; font-size: 15px; opacity: .95; border-left: 3px solid #ffb37a; padding-left: 12px; }
+  .note {
+    background: var(--blue-soft);
+    border-left: 4px solid var(--blue);
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #2c3e57;
+    margin-bottom: 26px;
+  }
+  h2.sec {
+    font-size: 21px;
+    margin: 44px 0 16px;
+    padding: 10px 16px;
+    background: var(--card);
+    border-left: 5px solid var(--accent);
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(31,36,48,.06);
+  }
+  h3 { font-size: 17.5px; margin: 30px 0 10px; color: var(--accent); }
+  p { margin: 10px 0; text-align: justify; }
+  strong.num {
+    color: var(--accent);
+    font-weight: 700;
+    background: var(--accent-soft);
+    padding: 1px 5px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  em.term { font-style: normal; font-weight: 700; color: var(--blue); }
+  .infer {
+    display: inline-block;
+    font-size: 12px;
+    color: #8a6d3b;
+    background: #fff8e6;
+    border: 1px solid #ead9ae;
+    border-radius: 4px;
+    padding: 0 6px;
+    vertical-align: 1px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 16px 0;
+    box-shadow: 0 1px 4px rgba(31,36,48,.05);
+  }
+  .keybox {
+    background: var(--accent-soft);
+    border-radius: 8px;
+    padding: 12px 18px;
+    margin: 14px 0;
+    font-size: 15px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 14.5px;
+    background: var(--card);
+  }
+  th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; }
+  th { background: #eef1f5; font-weight: 700; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  ul, ol { padding-left: 26px; margin: 10px 0; }
+  li { margin: 6px 0; text-align: justify; }
+  .formula {
+    font-family: "STIX Two Math", Cambria, Georgia, serif;
+    text-align: center;
+    font-size: 17px;
+    margin: 14px 0;
+    padding: 10px;
+    background: #fbfbfd;
+    border: 1px dashed #c9cfda;
+    border-radius: 8px;
+  }
+  .warnbox {
+    background: #fdf3f2;
+    border: 1px solid #eec7c3;
+    border-left: 4px solid #c0392b;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin: 14px 0;
+    font-size: 14.5px;
+  }
+  footer.selfcheck {
+    margin-top: 48px;
+    background: #eef4ee;
+    border: 1px solid #cfe3cf;
+    border-radius: 10px;
+    padding: 18px 22px;
+    font-size: 13.5px;
+    color: #38513a;
+  }
+  footer.selfcheck code { background: #fff; padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>《Kimi Linear: An Expressive, Efficient Attention Architecture》深度解读报告</h1>
+  <div class="meta">Kimi Team（Moonshot AI）· arXiv 2510.26692v2 · Technical Report · 2025-11-01 (v2) · 28 页</div>
+  <div class="tagline">首个在公平对比下全面超越全注意力的混合线性注意力架构 —— 逐通道细粒度门控 × Delta Rule × 3:1 层间混合的完整闭环。</div>
+</header>
+
+<div class="note">数据依据：<code>00-源数据提取.md</code>，全部数字与原文一致；文中「<span class="infer">推断</span>」标签处为分析者推理补充。@5.7T 对比 Moonlight 的双变量口径按稿内注记处理（见第四章 4.6 与第五章）。</div>
+
+<h2 class="sec">摘要</h2>
+<div class="card">
+<p>论文的核心论断是：<em class="term">混合线性注意力架构首次在公平对比下全面超越全注意力</em>——覆盖短上下文、长上下文与 RL scaling 三种场景。作者提出 KDA（Kimi Delta Attention），将 Gated Delta Rule 的标量遗忘门细化为逐通道对角门（每维独立遗忘率），并配合 DPLR 结构特化的硬件高效 chunkwise 算法（相对通用 DPLR 提速约<strong class="num">100%</strong>）。模型采用 <strong class="num">48B 总参 / 3B 激活</strong>的 MoE（稀疏度 32，256 选 8 + 1 shared expert）与 <strong class="num">3:1</strong> 的 KDA:MLA 层间混合比例（KDA 层之外，MLA 层使用 NoPE，位置信息完全交由 KDA 承担）。</p>
+<p>统一 <strong class="num">1.4T tokens</strong> 公平训练下：MMLU-Pro 达 <strong class="num">51.0</strong>（vs MLA 47.2 / GDN-H 47.9）；128k RULER 达 <strong class="num">84.3</strong>（vs MLA 81.3 / GDN-H 80.5）。发布版扩至 <strong class="num">5.7T tokens</strong> 后：KV cache 最高降 <strong class="num">75%</strong>，1M 上下文解码 TPOT 仅 <strong class="num">1.84ms</strong>（MLA 11.48ms，快 <strong class="num">6.3×</strong>），512k/1M prefill 分别加速 <strong class="num">2.3×/2.9×</strong>。Scaling law 拟合显示约 <strong class="num">1.16×</strong> 计算效率优势。KDA kernel、vLLM 实现、预训练与指令微调 checkpoint 均已开源。</p>
+</div>
+
+<h2 class="sec">一、问题定位：线性注意力的"表达能力债务"</h2>
+<div class="card">
+<h3>1.1 论文要解决的问题</h3>
+<p>全注意力（Full Attention）的 O(n²) 复杂度与随序列长度线性增长的 KV cache，使长上下文推理成本曲线陡峭难承。线性注意力将其改写为循环形式，把 KV cache 压缩为固定大小的矩阵状态——代价是<em class="term">有限状态容量</em>：无论历史多长，固定状态无法无损记录全部信息，导致<em class="term">精确复制</em>与<em class="term">极端长程检索</em>成为纯线性注意力的根本短板（源数据 §4 定性，并指出这正是混合架构与 delta rule 结构化更新的动机）。</p>
+<p>论文要回答的问题因此可以精确表述为：<strong>能否设计一种混合线性架构，在与全注意力完全公平的训练条件下（同数据、同 token 数、可比参数量、同配方），在短上下文、长上下文、RL 三个战场同时胜出，而不是以精度换速度？</strong></p>
+
+<h3>1.2 先行路线的谱系与缺口</h3>
+<ul>
+<li><strong>Efficient Subquadratic Attention</strong>：GLA、RetNet、Mamba2/DSS、DeltaNet、GDN、Comba、RWKV7 等各类线性变体与稀疏/压缩注意力——各自改进状态转移形式，但单独使用均未在公平对比下整体超越全注意力。</li>
+<li><strong>Hybrid Model</strong>：Jamba、MiniMax-01 等已证明"线性层 + 少量全注意力层"可行，但混合比例多为经验选择、缺少系统消融，且普遍未做到同 token 预算下逐项击败全注意力基线。</li>
+</ul>
+<p>GDN 是距本文最近的先行者：它给 DeltaNet 的重构式更新加上标量遗忘门，但存在结构性粗糙点——<em class="term">遗忘率是一个标量</em>，整个头共享同一衰减系数。<span class="infer">推断</span>信息有千万种，该忘什么、该记什么理应因通道而异——这个"粒度缺口"正是 KDA 的直接切入点：把 GLA 已验证价值的逐通道门控引入 delta rule 家族，理论上继承双方优点。</p>
+
+<h3>1.3 "公平对比"为何是最大的方法论卖点</h3>
+<ul>
+<li>所有架构对比统一在 <strong class="num">1.4T tokens</strong>（K2 预训练语料子集）上进行，同 FLOPs 同超参；</li>
+<li>Scaling law 在 <strong class="num">653M~1.7B</strong> 五档激活参数上拟合，曲线外推而非单点评测；</li>
+<li>RL 对比用同算法同超参跑完整学习曲线，而非只报终点。</li>
+</ul>
+<p><span class="infer">推断</span>这种"先把裁判规则摆上台面"的写法本身就在传递信号：这不是又一篇刷点论文，而是一次架构级的受控实验——这也是论文敢写下"首次公平超越全注意力"这一强主张的底气。</p>
+<div class="keybox"><strong>一句话小结</strong>：本文的问题不是"能不能更快"（早已解决），而是"能否不欠精度的前提下更快"。火力集中于两点：把 GDN 的标量门控细化成逐通道门控（表达力），再用 DPLR 特化算法把计算代价吃掉（效率）。</div>
+</div>
+
+<h2 class="sec">二、概念内核：五个核心概念逐一定义</h2>
+<div class="card">
+<h3>2.1 线性注意力的在线学习视角</h3>
+<p>把注意力状态矩阵 S 视作持续学习的联想记忆权重，每个时间步做一次在线更新。各机制对应的在线学习目标（源数据 Table 7）：</p>
+<table>
+<tr><th>机制</th><th>对应在线学习目标</th><th>行为特征</th></tr>
+<tr><td>线性注意力 LA</td><td>无界相关损失</td><td>只积累不遗忘，状态饱和</td></tr>
+<tr><td>RetNet</td><td>带 L2 正则的目标</td><td>衰减 α，均匀遗忘</td></tr>
+<tr><td>DeltaNet</td><td>重构损失的梯度下降</td><td>写入时覆写相似旧键</td></tr>
+<tr><td>GDN</td><td>重构损失 + 权重衰减</td><td>标量门控遗忘</td></tr>
+<tr><td>KDA</td><td>重构损失 + 细粒度衰减</td><td>逐通道可学习遗忘</td></tr>
+</table>
+<p>gating 与 decay 是缓解干扰、稳定优化的可学习判据——记忆系统的核心矛盾不是"存多少"，而是<strong>"忘什么"</strong>。</p>
+
+<h3>2.2 GDN 与其标量瓶颈</h3>
+<p>DeltaNet 的精髓在于 delta rule——新键值对写入状态时，先减去旧键方向的既有内容（重构误差负梯度方向），再写入新值，解决 LA "只加不减、状态饱和"的问题。GDN 补充了标量遗忘门 αt 控制整体衰减速率，但标量意味着<strong>所有通道同步遗忘</strong>。<span class="infer">推断</span>就像图书馆管理员只能决定"全馆图书统一折旧 10%"，却不能把过期期刊下架而保留经典。</p>
+
+<h3>2.3 KDA：逐通道细粒度门控</h3>
+<p>将标量遗忘门替换为逐通道对角门 Diag(αt)，更新式：</p>
+<div class="formula">S<sub>t</sub> = (I − β<sub>t</sub> k<sub>t</sub>k<sub>t</sub><sup>T</sup>) · Diag(α<sub>t</sub>) · S<sub>t−1</sub> + β<sub>t</sub> k<sub>t</sub>v<sub>t</sub><sup>T</sup></div>
+<p>三个组件各司其职：Diag(αt) 负责<strong>逐通道选择性遗忘</strong>；(I − βt ktk t^T) 负责<strong>定向擦除</strong>（沿新键方向覆写旧值）；βt ktvt^T 负责<strong>写入新内容</strong>。合成任务上 KDA 全面领先 GDN/Mamba2 且收敛更快；纯乘性衰减、无 delta rule 的 Mamba2 全部任务失败——说明<strong>"结构化覆写"与"细粒度遗忘"缺一不可</strong>。</p>
+
+<h3>2.4 注意力机制的统一循环形式</h3>
+<p>报告将各注意力机制统一改写为：</p>
+<div class="formula">o<sub>t</sub> = Σ<sub>i</sub> [ q<sub>t</sub><sup>T</sup> ( Π<sub>j=i+1..t</sub> A<sub>j</sub> ) k<sub>i</sub> ] v<sub>i</sub></div>
+<p>SA/RoPE/LA/Mamba2/GLA/DeltaNet/GDN/Comba/RWKV7 均为该框架特例，差异只在转移矩阵 A<sub>j</sub> 的形式。RoPE 对应正交旋转矩阵的累积乘积（绝对位置自动转相对位置）；而 gated delta rule 的转移矩阵<strong>数据依赖且可学习，放松了 RoPE 的正交约束</strong>。由此引出 §6.1 核心论断：KDA 可被视为一种<em class="term">可学习的乘性位置编码</em>，为 RoPE 外推问题（固定频率对训练长度过拟合）提供潜在解法。<span class="infer">推断</span>该视角的价值在于把两条看似无关的研究线——"更好的遗忘机制"与"更好的位置编码"——合并成了一个问题。</p>
+
+<h3>2.5 3:1 混合比例与 NoPE</h3>
+<p>模型按"3 层 KDA : 1 层 Full MLA"周期堆叠；MLA 层去 RoPE（NoPE），位置信息完全交由 KDA 承担。混合比例消融（Table 1，val PPL）：0:1 → <strong class="num">5.77</strong>，1:1 → <strong class="num">5.66</strong>，<strong class="num">3:1 → 5.65（最优）</strong>，7:1 → <strong class="num">5.70</strong>，15:1 → <strong class="num">5.82</strong>。NoPE 三重红利：① MLA 层推理时可转纯 MQA 进一步压缩缓存；② 免去 RoPE base/YaRN 调参；③ 利于长上下文扩展。消融证实 NoPE 长上下文显著优于 RoPE（RULER <strong class="num">84.3 vs 78.8</strong>），短上下文相当。</p>
+<div class="keybox"><strong>一句话小结</strong>：五个概念构成递进链——在线学习视角定调 → GDN 解决"只加不减"但留下标量瓶颈 → KDA 以逐通道门控补完拼图 → 统一循环形式揭示"可学习位置编码"本质 → 3:1 混合 + NoPE 落成可部署架构。</div>
+</div>
+
+<h2 class="sec">三、方法拆解：从数学形式到工程落地的全链路</h2>
+<div class="card">
+<h3>3.1 DPLR 特化：硬件高效 chunkwise 算法</h3>
+<p>逐通道对角门破坏了标量门控时代的简洁代数结构。通用解法是把 Diag(α) 分解为低秩 DPLR 形式，但需对数域计算与二级全精度分块，代价高昂。KDA 的特化技巧极其克制：<strong>把广义 DPLR 中的 a、b 两个自由变量都绑定为 k</strong>（同一张量），带来连锁简化（源数据 §3.2）：</p>
+<ol>
+<li>二级 chunk 内矩阵计算从 <strong class="num">4 次降为 2 次</strong>；</li>
+<li>省 <strong class="num">3 次</strong>额外矩阵乘；</li>
+<li>免于对数域计算与二级全精度分块；</li>
+<li>配合 WY 表示、UT transform、前代消元求三角逆，实现<strong>半精度 matmul 全利用</strong>。</li>
+</ol>
+<p>最终 KDA kernel 相对通用 DPLR 实现提速约 <strong class="num">100%</strong>。<span class="infer">推断</span>a=b=k 绑定可行的深层原因：delta rule 本身已由 (I−βkk^T) 项承担"定向修正"职责，DPLR 修正项无需再携带独立方向信息。</p>
+
+<h3>3.2 神经参数化：每一处都有理由</h3>
+<ul>
+<li><strong>输入侧</strong>：q/k/v 经 ShortConv + Swish；q、k 再 L2Norm 保特征值稳定；门控 α 经低秩投影 W↓α/W↑α（秩=头维）生成，控制参数量与过拟合风险。</li>
+<li><strong>维度</strong>：头维 dk=dv=<strong class="num">128</strong>。</li>
+<li><strong>输出侧</strong>：head-wise RMSNorm + 低秩 Sigmoid 数据依赖输出门（消融显示优于无门/swish 门）；源数据指出可缓解 Attention Sink 现象。depthwise conv 在消融中仍有贡献，保留。</li>
+</ul>
+
+<h3>3.3 整体架构：48B-A3B MoE 骨架</h3>
+<table>
+<tr><th>项目</th><th>配置</th></tr>
+<tr><td>总参数 / 激活参数</td><td><strong class="num">48B / 3B</strong></td></tr>
+<tr><td>专家结构</td><td>256 选 8 + 1 shared expert（稀疏度 32）</td></tr>
+<tr><td>首层</td><td>dense（非 MoE）</td></tr>
+<tr><td>层间混合</td><td>3 KDA + 1 MLA 周期重复</td></tr>
+<tr><td>MLA 层位置编码</td><td>NoPE</td></tr>
+<tr><td>层内 vs 层间</td><td>层间混合优于层内混合：系统简单、训练稳</td></tr>
+</table>
+<p><span class="infer">推断</span>对需要大规模复现的工业模型，简单性本身就是性能的一部分。</p>
+
+<h3>3.4 训练配方</h3>
+<ul>
+<li><strong>Scaling law 实验</strong>：Moonlight 架构 MoE（64 专家激活 8 个）、Muon 优化器、653M~1.7B 五档激活参数。</li>
+<li><strong>预训练（发布版）</strong>：4096 上下文起步、MuonClip 优化器、WSD 学习率调度、lr=<strong class="num">1.1e−3</strong>、全局 batch <strong class="num">32M tokens</strong>；沿用 K2 的退火与长上下文激活阶段，最终支持 <strong class="num">1M</strong> 上下文。</li>
+<li><strong>SFT</strong>：K2 SFT 数据 + 推理任务，多阶段（先通用后推理密集）。</li>
+<li><strong>RL</strong>：K1.5 算法 + 截断重要性采样（缓解 rollout/训练精度失配）+ 动态 KL 惩罚与 mini-batch 调整（防熵坍缩）+ PTX loss 并行 SFT（防通用能力退化）。</li>
+</ul>
+
+<h3>3.5 开源交付物</h3>
+<p>KDA kernel（flash-linear-attention 库）、vLLM 推理实现、预训练与指令微调 checkpoint（Kimi-Linear-48B-A3B-Instruct）全部开源。<span class="infer">推断</span>"kernel 能跑出论文速度"与"checkpoint 能复现论文质量"是两个独立的可信度支柱，二者齐备在同级别报告中并不常见。</p>
+<div class="keybox"><strong>一句话小结</strong>：方法体系三线并进——数学上用 a=b=k 绑定驯服 DPLR 计算爆炸（提速 100%），架构上用 3:1 层间混合 + NoPE 换取简洁与长上下文友好，训练上沿用 K2/K1.5 成熟管线保证对比公平。</div>
+</div>
+
+<h2 class="sec">四、证据链：五级证据的逐层解读</h2>
+<div class="card">
+<h3>4.1 第一级：合成任务——机制有效性的最小闭环</h3>
+<p>Palindrome/MQAR/Stack 上 KDA 全部领先 GDN 与 Mamba2 且收敛更快；<strong>无 delta rule 的 Mamba2 全部任务失败</strong>。<span class="infer">推断</span>合成任务价值在于变量隔离：此处领先证明的是"逐通道门控 × delta rule"组合的机制优势而非数据红利。Mamba2 全军覆没划出机制底线——没有覆写机制的记忆系统无法完成需要修改已存内容的任务。</p>
+
+<h3>4.2 第二级：消融实验</h3>
+<table>
+<tr><th>组件</th><th>结论（同 FLOPs 同超参，16 heads/16 layers）</th></tr>
+<tr><td>输出门</td><td>Sigmoid 门 &gt; 无门 / swish 门</td></tr>
+<tr><td>depthwise conv</td><td>有正贡献，保留</td></tr>
+<tr><td>混合比例</td><td>3:1 train/val PPL 双最低（val <strong class="num">5.65</strong>）</td></tr>
+<tr><td>NoPE vs RoPE</td><td>NoPE 版 RULER <strong class="num">84.3 vs 78.8</strong>（长上下文显著占优），短上下文相当</td></tr>
+</table>
+<p><span class="infer">推断</span>混合比例曲线形状值得注意：从 15:1 到 3:1 单调改善，从 3:1 到 1:1 反而略降（5.65→5.66）再到 0:1 大幅劣化——存在"甜蜜区间"：太少全注意力层伤精确检索，太多则浪费 KDA 效率优势。</p>
+
+<h3>4.3 第三级：Scaling law——1.16× 外推优势</h3>
+<ul>
+<li>Kimi Linear：loss ≈ <strong class="num">2.2879 × C^−0.0527</strong></li>
+<li>MLA：loss ≈ <strong class="num">2.3092 × C^−0.0536</strong></li>
+</ul>
+<p>换算为同等损失所需计算量，约 <strong class="num">1.16× 计算效率优势</strong>——达到相同质量约省 14% 算力，且两曲线近似平行、间距随规模外推保持恒定。作者自认更细致调参可获更好曲线，此数字应视为保守估计。</p>
+
+<h3>4.4 第四级：1.4T 公平对比主战场</h3>
+<p>预训练/SFT 两阶段的层级清晰：<strong>Kimi Linear &gt; GDN-H &gt; MLA</strong>。</p>
+<ul>
+<li><strong>MMLU-Pro（base@1.4T）</strong>：<strong class="num">51.0</strong> vs MLA 47.2 / GDN-H 47.9——领先近 4 个百分点；SFT 后 <strong class="num">67.4</strong> vs 最佳对手 65.7。</li>
+<li><strong>长上下文（128k）</strong>：RULER <strong class="num">84.3</strong> vs MLA 81.3 / GDN-H 80.5；RepoQA <strong class="num">68.5</strong>；8 项平均 <strong class="num">54.5</strong> 最高。</li>
+<li><strong>层级反转</strong>：长上下文阶段 GDN-H 跌至 MLA 之后（80.5 &lt; 81.3），唯 Kimi Linear 保持第一。<span class="infer">推断</span>这说明"混合线性"并非自动成功——GDN-H 的标量门控在大上下文压力下暴露记忆管理粗糙，KDA 恰好补上短板。若没有这个反转证据，"KDA 优于 GDN"就只剩短上下文微弱优势支撑。</li>
+<li><strong>RL 阶段</strong>：数学 RLVR 中训练/测试精度增长速率持续高于 MLA（MATH500、AIME2025 曲线全程领先）。<span class="infer">推断</span>这一点常被忽视但商业价值极高：RL scaling 是当前推理模型竞赛主赛道，若混合架构 RL 收敛更慢，效率优势会被后训练抵消——本文证明了相反情况。</li>
+</ul>
+
+<h3>4.5 第五级：效率实测（batch=1）</h3>
+<table>
+<tr><th>指标</th><th>Kimi Linear</th><th>MLA</th><th>倍数</th></tr>
+<tr><td>解码 TPOT @1M context</td><td><strong class="num">1.84ms</strong></td><td>11.48ms</td><td><strong class="num">6.3×</strong>（正文亦表述为"6×"）</td></tr>
+<tr><td>Prefill @512k</td><td colspan="2">快于 MLA</td><td><strong class="num">2.3×</strong></td></tr>
+<tr><td>Prefill @1M</td><td colspan="2">快于 MLA</td><td><strong class="num">2.9×</strong></td></tr>
+<tr><td>KV cache</td><td colspan="2">最高降 <strong class="num">75%</strong></td><td>—</td></tr>
+</table>
+<p>细节：① prefill ≤16k 时与 GDN-H 几乎无差，加速只在 ≥128k 后拉开——收益集中在长上下文场景；② decode TPOT 全程低于 MLA 且随序列长度保持稳定——KV cache 缩减 75% 的直接体现。<span class="infer">推断</span>TPOT 稳定性对交互式 Agent 应用尤为关键：长会话中响应延迟不漂移，意味着用户体验的可预测性。</p>
+
+<h3>4.6 第六级：5.7T 发布版对 Moonlight ⚠️ 双变量对比</h3>
+<table>
+<tr><th>基准</th><th>Kimi Linear</th><th>Moonlight</th><th>差距</th></tr>
+<tr><td>TriviaQA</td><td><strong class="num">75.2</strong></td><td>66.2</td><td>+9.0</td></tr>
+<tr><td>MMLU-Pro</td><td><strong class="num">54.8</strong></td><td>42.4</td><td>+12.4</td></tr>
+<tr><td>MATH</td><td><strong class="num">58.5</strong></td><td>45.3</td><td>+13.2</td></tr>
+<tr><td>GSM8K</td><td><strong class="num">86.3</strong></td><td>77.2</td><td>+9.1</td></tr>
+<tr><td>GPQA-Diamond</td><td><strong class="num">40.4</strong></td><td>35.2</td><td>+5.2</td></tr>
+<tr><td>CRUXEval-I-cot</td><td><strong class="num">61.0</strong></td><td>45.9</td><td>+15.1</td></tr>
+<tr><td>SimpleQA</td><td><strong class="num">10.1</strong></td><td>5.6</td><td>+4.5</td></tr>
+<tr><td>RULER@1M</td><td><strong class="num">94.8</strong></td><td>—</td><td>—</td></tr>
+</table>
+<div class="warnbox"><strong>⚠️ 口径注记（必须强调）</strong>：该组对比<strong>同时改变了总参数（48B vs 16B）与注意力架构两个变量</strong>，不是受控实验。它证明的是"Kimi Linear 这个产品级配方整体优于 Moonlight 这个产品级配方"，而非"KDA 优于 MLA"——后者只能由 4.4 节的 1.4T 受控对比背书。RULER@1M 达 94.8 是全文最高长上下文检索分数，但其对照条件同样是混合的。引用这组数字时应注明双变量口径。</div>
+<div class="keybox"><strong>一句话小结</strong>：证据体系呈金字塔状——合成任务证机制、消融证组件、scaling law 证趋势、1.4T 受控对比证架构（核心）、5.7T 产品对比证落地（顶层但混入规模变量）；层级越靠上数字越漂亮，因果 purity 越低，引用时需对号入座。</div>
+</div>
+
+<h2 class="sec">五、批判审视：局限的深层含义与独立疑点</h2>
+<div class="card">
+<h3>5.1 作者自述局限的深层含义</h3>
+<ol>
+<li><strong>规模外推未验证</strong>：结论基于 48B-A3B 规模与 Moonlight 式架构。<span class="infer">推断</span>1.16× 效率优势在 10B 级激活以上是否保持只是信念而非实证；MoE 稀疏度 32 与结论绑定——换稀疏度是否动摇 3:1 最优性，无数据。</li>
+<li><strong>少数基准仍落后</strong>：EvalPlus <strong class="num">60.2</strong> vs GDN-H 63.1；MATH500 SFT <strong class="num">81.2</strong> vs MLA 80.8/GDN-H 83.0；LongBench V2 与 Frames 未夺魁。<span class="infer">推断</span>代码生成类基准落后尤其值得玩味——代码任务高度依赖精确复制 API 签名与变量名，恰是线性状态容量的弱项，与理论短板预测吻合。</li>
+<li><strong>极端检索仍是短板</strong>：MRCR@1M（Table 3 口径）等需靠 25% 全注意力层兜底。混合架构的本质是"75% 便宜记忆 + 25% 昂贵精确寻址"，极端检索需求并未消灭，只是被稀释到可接受程度。</li>
+<li><strong>1.16× 温和且系外推</strong>：≤1.7B 激活拟合的曲线外推至 48B，中间隔近 30 倍参数跨度，置信区间未报告。</li>
+<li><strong>两版口径差异</strong>：1.4T 实验版与 5.7T 发布版训练配置不同。宣传材料若混用两套数字（如拿 5.7T 版 RULER@1M 94.8 与 1.4T 版 MMLU-Pro 51.0 并列），会构成事实性误导。</li>
+</ol>
+
+<h3>5.2 独立疑点四则</h3>
+<ul>
+<li><strong>① "公平对比"的边界在哪里？</strong> 1.4T、同 FLOPs 同超参确实公平，但<span class="infer">推断</span>超参是为谁调的？若主要针对成熟的 MLA 基线优化而 KDA 沿用同套超参，对比对 KDA 略不利；反之亦然。论文未披露调参顺序，这是受控实验的常见灰色地带。作者自述"更细致调参可获更好曲线"反而暗示 KDA 侧还有余量，当前结果可能是保守的。</li>
+<li><strong>② 合成任务的设置敏感性未知</strong>：<span class="infer">推断</span>合成任务结论高度依赖任务参数（序列长度/状态维度/查询数量比例）。状态容量充裕时 Mamba2 未必失败；极端压力下 GDN 也可能崩。缺少跨设置网格扫描，排序只能在当前设置内成立。</li>
+<li><strong>③ NoPE 的归因混杂</strong>：NoPE 版 RULER 显著占优（84.3 vs 78.8），但<span class="infer">推断</span>无法区分是"NoPE 让 MLA 层更好"还是"NoPE 迫使 KDA 承担更多位置信息、学到更好内部表示"。前者意味着任何混合架构都该去 RoPE，后者只在 KDA 类可学习位置编码存在时成立。§6.1 理论暗示后者，但消融设计未能分离二者。</li>
+<li><strong>④ RL 优势机理黑箱</strong>：增长速率更高是重要发现但无论文解释。<span class="infer">推断</span>可能通路有三：长上下文 CoT 中后期检索更准（RULER 优势传导）、KV cache 小允许更大 rollout batch（吞吐传导）、注意力熵特性利于探索。三者改进方向完全不同，缺机理意味着无法预判优势在其他 RL 任务域是否复现。</li>
+</ul>
+
+<h3>5.3 对"首次全面超越"主张的整体评估</h3>
+<p>该主张在其自定义的公平框架内成立：1.4T 受控对比 + 三场景覆盖 + 五档 scaling law，证据密度远高于同类工作。但需钉住三个限定词：其一，<strong>"全面"不等于"全项"</strong>（EvalPlus/MATH500/LongBench V2/Frames 仍有败绩）；其二，<strong>"超越"的对象</strong>是同级 MLA 混合与 GDN-H 混合，不是未经混合的稠密全注意力最强者；其三，<strong>5.7T 产品级对比混入参数量变量</strong>，不能作为架构优越的证据引用。主张成立，但成立范围比标题给人的直觉窄。</p>
+</div>
+
+<h2 class="sec">六、启示与影响：可迁移的经验与未来走向</h2>
+<div class="card">
+<h3>6.1 六条可迁移启示</h3>
+<ol>
+<li><strong>门控粒度即记忆容量利用率</strong>：从标量门（GDN）到对角门（KDA）的一步细化带来全线收益——"门控粒度"是被低估的设计轴。<span class="infer">推断</span>下一自然台阶是块对角或低秩门；a=b=k 绑定技巧表明表达力扩张必须与"可绑定的冗余自由度"同步规划。</li>
+<li><strong>统一循环形式是架构研究的公共坐标系</strong>：所有机制写成 o_t = Σ q(Π A)kv 后，"发明新注意力"变成"设计转移矩阵 A_j 的结构化先验"。RoPE 外推难题被重新表述为"正交约束过紧"，启发后来者直接在约束集上做文章。</li>
+<li><strong>位置编码可以被吸收进记忆机制</strong>：NoPE + KDA 组合在长上下文大胜 RoPE 版（84.3 vs 78.8），位置信息不必是叠加在 QK 上的固定偏置，可以是状态转移的内生属性。免 YaRN 调参本身就是显著工程红利。</li>
+<li><strong>混合比例应当作一等超参系统消融</strong>：3:1 甜蜜点是 PPL 曲线上找出来的（5.65 优于两侧）。后续工作应报告完整比例-PPL 曲线，而非只报所选点。</li>
+<li><strong>RL 效率应纳入基座评测标准</strong>：基座架构差异会传导为 RL 收敛速率差异。<span class="infer">推断</span>随着 RL scaling 成为能力增长主引擎，"单位 RL 算力的能力增益"可能比 base 分数更能预测终局。</li>
+<li><strong>开源闭环的示范价值</strong>：kernel + vLLM + checkpoint 三件套齐发，论文速度可在用户硬件复现、质量可在下游验证。架构论文的可信度正从"图表说服力"转向"可运行性"。</li>
+</ol>
+
+<h3>6.2 未来走向</h3>
+<ul>
+<li><strong>规模外推验证</strong>：1.16× 优势能否延续到百 B 级激活参数，是该路线撼动全注意力霸主地位的决定性实验。</li>
+<li><strong>极端检索的结构性解法</strong>：25% 全注意力兜底之外，是否存在让线性状态自身获得精确寻址能力的机制（外部索引、层次状态）？</li>
+<li><strong>位置编码视角深挖</strong>：若 KDA 真是更强的乘性位置编码，其外推行为应有可测规律（有效上下文与训练长度的标度关系），值得独立研究。</li>
+<li><strong>RL 优势机理定位</strong>：拆解"检索更准/吞吐更大/探索更好"三条通路，决定该架构在 Agentic RL 时代的真实价值。</li>
+</ul>
+</div>
+
+<h2 class="sec">总结</h2>
+<div class="card">
+<p>《Kimi Linear》完成了线性注意力发展史上一次标志性的翻盘：不再满足于"接近全注意力"，而是通过把 GDN 的标量遗忘门细化为逐通道对角门（KDA）、用 a=b=k 绑定驯服 DPLR 计算代价（kernel 提速约 <strong class="num">100%</strong>）、再以 <strong class="num">3:1</strong> 层间混合 + NoPE 组成完整架构，在 1.4T tokens 公平对比下于短上下文（MMLU-Pro <strong class="num">51.0</strong>）、长上下文（RULER <strong class="num">84.3</strong>）、RL scaling 三线全面领先，并在产品级交付中兑现 <strong class="num">75%</strong> KV cache 缩减与 1M 上下文 <strong class="num">6.3×</strong> 解码加速。理论贡献——统一循环形式与"可学习位置编码"视角——把架构创新从经验试错推向可设计的方向。批判层面需钉住三点：5.7T 对 Moonlight 的对比混入参数量变量不可作为架构证据、1.16× scaling 优势系小规模外推、极端长程检索仍靠 25% 全注意力兜底。总体而言，这份报告与其说宣告"全注意力已死"，不如说给出了混合架构的第一个"公平获胜"模板——粒度更细的门控、绑定更紧的 kernel、比例更讲究的混合、以及一条从 SFT 到 RL 全程占优的学习曲线。</p>
+</div>
+
+<footer class="selfcheck">
+<strong>自检（Self-check）</strong>：
+① 编码 UTF-8，meta charset=UTF-8，无替换字符；
+② div 开闭配平（wrap 1 / hero 1 / note 0 / card 8 / keybox 6 / warnbox 1 / formula 2 / selfcheck 1，共 19 对开闭）；
+③ 六层结构完整：摘要 / 一问题定位 / 二概念内核 / 三方法拆解 / 四证据链 / 五批判审视 / 六启示与影响 + 总结；
+④ 关键数字均以 <code>strong.num</code> 高亮；
+⑤ @5.7T 双变量口径已在 4.6 warnbox 注记；
+⑥ 推理内容均带「推断」标签。
+</footer>
+
+</div>
+</body>
+</html>

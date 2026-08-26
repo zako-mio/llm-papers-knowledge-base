@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《Attention Is All You Need》深度解读报告</title>
+<style>
+:root{
+  --ink:#1f2937; --paper:#faf9f6; --card:#ffffff; --primary:#1a365d;
+  --accent:#b45309; --hl:#b91c1c; --line:#e5e1d8; --soft:#6b7280;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:"Source Han Serif SC","Noto Serif CJK SC","Songti SC",Georgia,"Microsoft YaHei",serif;
+  background:var(--paper); color:var(--ink); line-height:1.85; font-size:16px;
+}
+.wrap{max-width:920px;margin:0 auto;padding:0 24px;}
+.page-header{
+  background:linear-gradient(135deg,#12263f 0%,#1a365d 55%,#234e70 100%);
+  color:#fff; padding:56px 0 40px; border-bottom:4px solid var(--accent);
+}
+.page-header .kicker{
+  font-family:"SF Mono",Consolas,monospace; font-size:.8rem; letter-spacing:.35em;
+  text-transform:uppercase; color:#d9b26a; margin-bottom:14px;
+}
+.page-header h1{font-size:2.15rem;line-height:1.4;font-weight:700;}
+.page-header .sub{margin-top:16px;font-size:.92rem;color:#cbd5e1;line-height:1.7;}
+.meta-chips{margin-top:20px;display:flex;flex-wrap:wrap;gap:10px;}
+.chip{
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+  border-radius:999px;padding:3px 14px;font-size:.78rem;color:#e2e8f0;
+}
+nav.toc{
+  background:var(--card);border:1px solid var(--line);border-radius:12px;
+  margin:-22px auto 34px;padding:18px 26px;box-shadow:0 6px 24px rgba(17,38,68,.08);
+}
+nav.toc .toc-title{font-weight:700;color:var(--primary);font-size:.95rem;margin-bottom:8px;}
+nav.toc ol{list-style:none;display:flex;flex-wrap:wrap;gap:6px 22px;font-size:.88rem;}
+nav.toc a{color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent);}
+nav.toc a:hover{color:var(--hl);}
+section{
+  background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:30px 36px;margin-bottom:26px;box-shadow:0 2px 10px rgba(17,38,68,.04);
+}
+section h2{
+  color:var(--primary);font-size:1.42rem;font-weight:700;
+  padding-bottom:10px;border-bottom:2px solid var(--line);margin-bottom:20px;
+}
+section h2 .no{color:var(--accent);margin-right:10px;font-family:Georgia,serif;}
+section h3{
+  color:#234e70;font-size:1.06rem;font-weight:700;margin:24px 0 10px;
+  padding-left:12px;border-left:4px solid var(--accent);
+}
+section p{margin:10px 0;text-align:justify;}
+strong{color:var(--hl);font-weight:700;}
+em.term{font-style:normal;color:var(--primary);font-weight:700;}
+.formula{
+  display:block;background:#f4f1ea;border-left:3px solid var(--primary);
+  border-radius:6px;padding:10px 18px;margin:12px 0;
+  font-family:"STIX Two Math",Cambria,"Times New Roman",monospace;
+  font-size:.98rem;color:#111827;overflow-x:auto;white-space:nowrap;
+}
+blockquote{
+  background:#fdf8ef;border:1px dashed #d9b26a;border-radius:10px;
+  padding:14px 20px;margin:18px 0;color:#78350f;
+}
+blockquote .tag{
+  display:inline-block;background:var(--accent);color:#fff;border-radius:5px;
+  padding:1px 10px;font-size:.78rem;margin-right:8px;vertical-align:2px;
+}
+table{
+  width:100%;border-collapse:collapse;margin:16px 0;font-size:.9rem;
+  box-shadow:0 1px 6px rgba(17,38,68,.05);
+}
+caption{caption-side:top;text-align:left;font-weight:700;color:var(--primary);padding:6px 2px;font-size:.92rem;}
+th{background:var(--primary);color:#fff;font-weight:600;padding:9px 12px;text-align:left;white-space:nowrap;}
+td{padding:8px 12px;border-bottom:1px solid var(--line);}
+tbody tr:nth-child(even){background:#f6f4ee;}
+tbody tr:hover{background:#fbf3df;}
+tbody tr.row-best{background:#fdf3e3;font-weight:600;}
+.num{font-family:Georgia,"Times New Roman",serif;font-variant-numeric:tabular-nums;}
+ul.plain{margin:8px 0 8px 24px;}
+ul.plain li{margin:7px 0;text-align:justify;}
+.note{font-size:.85rem;color:var(--soft);margin-top:6px;}
+footer{
+  background:#12263f;color:#94a3b8;padding:30px 0 40px;margin-top:44px;
+  font-size:.85rem;line-height:1.8;
+}
+footer .brand{color:#d9b26a;font-weight:700;letter-spacing:.2em;margin-bottom:8px;}
+#selfcheck{
+  margin-top:14px;padding:10px 16px;background:rgba(255,255,255,.07);
+  border-left:3px solid var(--accent);border-radius:6px;color:#cbd5e1;
+  font-family:"SF Mono",Consolas,monospace;font-size:.78rem;
+}
+@media(max-width:640px){
+  section{padding:22px 18px;}
+  .page-header h1{font-size:1.6rem;}
+  table{font-size:.82rem;}
+}
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="wrap">
+    <div class="kicker">Paper Deep-Dive · Transformer Origin</div>
+    <h1>《Attention Is All You Need》深度解读报告</h1>
+    <p class="sub">Vaswani, Shazeer, Parmar, Uszkoreit, Jones, Gomez, Kaiser, Polosukhin — Google Brain / Google Research / University of Toronto · NIPS 2017 · arXiv 1706.03762（常引 v7，正文为 v1 内容）· PDF 15 页</p>
+    <div class="meta-chips">
+      <span class="chip">序列转导</span><span class="chip">机器翻译</span><span class="chip">Self-Attention</span><span class="chip">架构奠基</span><span class="chip">代码开源 tensor2tensor</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<nav class="toc">
+  <div class="toc-title">目录</div>
+  <ol>
+    <li><a href="#abstract">摘要</a></li>
+    <li><a href="#s1">一、问题定位</a></li>
+    <li><a href="#s2">二、概念内核</a></li>
+    <li><a href="#s3">三、方法拆解</a></li>
+    <li><a href="#s4">四、证据链</a></li>
+    <li><a href="#s5">五、批判性分析</a></li>
+    <li><a href="#s6">六、启示与影响</a></li>
+    <li><a href="#conclusion">总结</a></li>
+  </ol>
+</nav>
+
+<section id="abstract">
+  <h2><span class="no">◈</span>摘要</h2>
+  <p>本文解读 Transformer 架构的奠基之作《Attention Is All You Need》。论文的核心论断是：序列转导模型可以<strong>完全抛弃循环（recurrence）与卷积（convolution）</strong>，仅靠注意力机制构建——这是首个此类模型。其立论支点是三个效率维度：self-attention 连接任意两个位置只需常数级 <span class="num"><strong>O(1)</strong></span> 串行操作（RNN 为 O(n)）、层内计算高度并行、任意位置间最大路径长度为 O(1)（长程依赖更易学习）。证据端，模型在 WMT 2014 英德翻译取得 <span class="num"><strong>28.4 BLEU</strong></span> 新 SOTA，超过此前最优（含集成）<span class="num"><strong>2+ BLEU</strong></span>；英法 <span class="num"><strong>41.8 BLEU</strong></span> 为单模型新 SOTA，而 big 模型仅需 8 块 P100 训练 <span class="num"><strong>3.5 天</strong></span>，成本不及此前 SOTA 的四分之一。消融实验（Table 3）系统辩护了多头数量、头维度、前馈宽度与位置编码选择；句法分析实验（F1 92.7）证明架构可零调优迁移到其他序列任务。本报告按"问题—概念—方法—证据—批判—启示"六层结构逐层拆解这篇定义了此后十年序列建模路线的论文。</p>
+  <p class="note">数据依据：pdf-worker 源数据提取文件（00-源数据提取.md），全部数字与原文一致并标注出处；标注「（推断）」处为分析者推理补充。</p>
+</section>
+
+<section id="s1">
+  <h2><span class="no">一</span>问题定位：循环与卷积的效率天花板</h2>
+
+  <h3>1.1 论文要解决的问题</h3>
+  <p>2017 年，序列转导（尤其是机器翻译）的主流范式是 RNN/LSTM 编码器-解码器配合注意力机制（GNMT），或纯卷积路线（ConvS2S、ByteNet）。论文瞄准的是这套范式的两个结构性缺陷：</p>
+  <ul class="plain">
+    <li><em class="term">循环结构的串行枷锁</em>：RNN 的隐藏状态沿时间步顺序传递，第 t 步必须等第 t−1 步完成。这导致训练无法在序列内部并行，且任意两个远距离位置之间的信息交互必须穿越 <span class="num"><strong>O(n)</strong></span> 步计算路径——梯度要一路传过去，信号要一路绕回来，长程依赖因此难学。</li>
+    <li><em class="term">卷积路线的不彻底性</em>：ByteNet 与 ConvS2S 用卷积换来了并行能力，但卷积核只能看到局部窗口，远距离位置的关联仍需堆叠多层才能建立，最大路径长度随距离增长。</li>
+  </ul>
+  <p>论文的提问方式极具颠覆性：既然注意力本来就是 RNN/CNN 模型里承担"跨位置对齐"的那块积木，<strong>为什么不把它从插件提拔为全部？</strong>——于是有了标题那句宣言：你需要的就只有注意力。</p>
+
+  <h3>1.2 评价框架：一张表的三个维度</h3>
+  <p>论文在 §4 用 Table 1 建立了一个三维评价框架，这是全文论证的地基：</p>
+  <table>
+    <thead><tr><th>维度</th><th>含义</th><th>为什么重要</th></tr></thead>
+    <tbody>
+      <tr><td>每层计算复杂度</td><td>单层处理整个序列的计算量</td><td>决定单位算力下的层数与宽度</td></tr>
+      <tr><td>最小串行操作数</td><td>序列内部有多少计算必须先后进行</td><td>决定可并行性，即训练吞吐</td></tr>
+      <tr><td>最大路径长度</td><td>任意两位置间信号需穿越的最短计算步数</td><td>决定长程依赖的学习难度</td></tr>
+    </tbody>
+  </table>
+  <p>在这个框架下：RNN 串行操作为 O(n)、路径长度 O(n)；卷积模型串行操作 O(1) 但路径长度仍随距离增长；而 self-attention 三项全部占优——串行操作常数级、任意两位置一步直达。（推断）这张表的价值常被低估：它不只是对比工具，更是一种"把架构选择翻译成可比较的复杂度量纲"的方法论示范，此后几乎所有架构论文都在沿用这种叙事。</p>
+
+  <h3>1.3 注意力的身份反转</h3>
+  <p>在既有文献中，注意力长期是配角：给 RNN 编码器-解码器加上对齐权重，或给 CNN 加上全局上下文。本文完成了身份反转——不是给循环模型加注意力，而是证明注意力可以独立承载全部序列建模职责。（推断）这种"把辅助组件反客为主"的减法式创新，与后来学界"注意力不是 RNN 的补充而是替代"的普遍认知转向，正是以本文为分水岭。</p>
+  <blockquote><span class="tag">小结</span>论文的问题是"循环与卷积是否必要"，答案是"不必要"——凭借一个三维复杂度框架和一句宣言式的标题，把序列建模的主语从"循环"换成了"注意力"。</blockquote>
+</section>
+
+<section id="s2">
+  <h2><span class="no">二</span>概念内核：五个核心概念逐一定义</h2>
+
+  <h3>2.1 Self-Attention（自注意力）</h3>
+  <p><em class="term">术语表定义</em>：将同一序列中不同位置关联起来，以计算该序列表示的注意力机制。</p>
+  <p>与传统 encoder-decoder attention 的区别在于 query/key/value 的来源——传统注意力连接两个不同序列（如译文对源文），自注意力让序列"自我审视"。理解它的关键是：每个位置同时扮演"提问者"（query）、"被检索者"（key）与"内容提供者"（value），通过点积相似度动态决定信息流动的方向与强度。</p>
+
+  <h3>2.2 Scaled Dot-Product Attention（缩放点积注意力）</h3>
+  <p><em class="term">术语表定义</em>（式 1）：</p>
+  <span class="formula">Attention(Q, K, V) = softmax( QKᵀ / √dₖ ) · V</span>
+  <p>这是全文最核心的一行公式，三个组成部分各有讲究：</p>
+  <ul class="plain">
+    <li><em class="term">点积相似度</em>：QKᵀ 一次矩阵乘法算出所有 query-key 对的兼容分数。相比 additive attention（前馈网络计算兼容函数），dot-product 更快、更省空间——可直接落进高度优化的矩阵乘法硬件路径。</li>
+    <li><em class="term">√dₖ 缩放</em>：论文脚注给出精确理由——当 q、k 各分量为独立、均值 0、方差 1 的随机变量时，点积方差为 <span class="num"><strong>d_k</strong></span>。若不缩放，d_k 较大时点积幅值增大，把 softmax 推入梯度极小的饱和区；缩放恰好把方差归一回 1，保住梯度。</li>
+    <li><em class="term">softmax 加权求和</em>：输出是 value 向量按兼容权重的凸组合，"软寻址"由此得名。</li>
+  </ul>
+
+  <h3>2.3 Multi-Head Attention（多头注意力）</h3>
+  <p><em class="term">术语表定义</em>：</p>
+  <span class="formula">MultiHead(Q,K,V) = Concat(head₁ … head_h)·Wᴏ ，head_i = Attention(QWᵢQ, KWᵢK, VWᵢV)</span>
+  <p>多头解决单头注意力的隐含缺陷——平均化。单头对所有位置求加权平均，等于强迫一套权重兼顾所有类型的关联；多头先把 Q/K/V 投影到 <span class="num"><strong>h=8</strong></span> 个低维子空间（<span class="num"><strong>d_k = d_v = d_model/h = 64</strong></span>），独立做注意力后再拼接投影回去，不同头得以在不同表示子空间、关注不同位置的语义。精妙之处在于总成本核算：8 个 64 维头的总计算量与单个全维注意力相当，<strong>多头是免费的表征增强</strong>。Table 3 消融（A 组）证实单头比最优差 <span class="num"><strong>0.9 BLEU</strong></span>。</p>
+
+  <h3>2.4 位置编码（Positional Encoding）</h3>
+  <p><em class="term">术语表定义</em>：因 self-attention 本身不含位置信息，向输入注入正弦余弦位置信号：</p>
+  <span class="formula">PE(pos,2i) = sin(pos/10000^(2i/d_model))　　PE(pos,2i+1) = cos(···)</span>
+  <p>波长从 <span class="num"><strong>2π 到 10000·2π</strong></span> 呈几何级数铺开，形成类似二进制计数的连续化位置指纹。选正弦版而非学习向量有两条理由：其一，对任意固定偏移 k，PE(pos+k) 可写成 PE(pos) 的线性函数——模型易学"相对位移"；其二，可自然外推到更长序列。Table 3 行(E)显示学习式位置编码与正弦版几乎一致（<span class="num">25.7 vs 25.8 BLEU</span>），说明真正重要的是"有位置信号"而非具体形式。（推断）这一结论为后续研究留下空间——位置编码正是 Transformer 家族日后反复改造的部位之一。</p>
+
+  <h3>2.5 残差连接、LayerNorm 与全栈维度对齐</h3>
+  <p><em class="term">术语表定义</em>：每个子层外包 <span class="formula" style="display:inline;padding:2px 10px;">LayerNorm(x + Sublayer(x))</span>，所有子层及 embedding 输出统一为 d_model 维。</p>
+  <p>这是工程上极克制的设计决策：encoder 与 decoder 的每个子层（注意力、FFN）都套同一个残差壳，全网络接口对齐到 d_model（512/1024）。好处是任何子层可插拔、可增删、可加深而不破坏形状契约；embedding 层乘以 √d_model 平衡量级；两个 embedding 层与输出 softmax 前的线性变换<strong>共享同一权重矩阵</strong>。（推断）这套"统一维度 + 残差骨架"的纪律，是 Transformer 后来能被无限堆深、无限变体的隐性前提。</p>
+  <blockquote><span class="tag">小结</span>五个概念构成一台精密机器——Self-Attention 定义信息流，Scaled Dot-Product 定义匹配与门控，Multi-Head 提供免费的多视角，位置编码补上顺序盲区，残差与维度对齐保证整台机器可扩展。</blockquote>
+</section>
+
+<section id="s3">
+  <h2><span class="no">三</span>方法拆解：架构、训练与推理全链路</h2>
+
+  <h3>3.1 总体架构：对称的双塔</h3>
+  <ul class="plain">
+    <li><em class="term">编码器</em>：<span class="num"><strong>N=6</strong></span> 个相同层堆叠，每层两个子层：multi-head self-attention + position-wise FFN。</li>
+    <li><em class="term">解码器</em>：<span class="num"><strong>N=6</strong></span> 个相同层，每层三个子层：masked self-attention + 对编码器输出的 cross attention + position-wise FFN。</li>
+    <li><em class="term">因果掩码</em>：解码器 self-attention 将非法后继位置在 softmax 输入置 −∞，保证位置 i 只能看见 ≤ i 的位置，维持自回归合法性。</li>
+  </ul>
+  <p>三种注意力用法在此归位（§3.2.3）：编码器自注意力（同源 QKV，全可见）、解码器掩码自注意力（同源 QKV，只见过去）、编码器-解码器注意力（query 来自解码器上一层，key/value 来自编码器最终输出——解码器每个位置都能检索整个源句）。</p>
+
+  <h3>3.2 逐位置前馈网络（FFN）</h3>
+  <span class="formula">FFN(x) = max(0, xW₁+b₁)W₂ + b₂　（式 2，内层维度 d_ff）</span>
+  <p>两层线性变换夹 ReLU，等价于两个 kernel size 为 1 的卷积——Transformer 并非彻底拒绝卷积的形式，而是把它退化到"逐位置"的最简形态，把跨位置交流的职责全部移交注意力。（推断）FFN 与注意力交替堆叠的节奏——"跨位置混合信息"与"逐位置变换特征"——构成了此后所有 Transformer 变体的基本呼吸节律。</p>
+
+  <h3>3.3 复杂度账本：何时划算</h3>
+  <p>论文诚实标注了适用边界：当序列长度 n 小于表示维度 d 时（翻译任务的典型情况），self-attention 每层成本低于 RNN；反之当 n &gt; d 会反超。对策 restricted self-attention——把注意力限制在大小 r 的邻域内，路径长度退化为 <span class="num">O(n/r)</span>——被列为未来工作而非本文内容。（推断）这段边界声明在十年后被反复引用：n² 注意力的长序列困境与各类稀疏/局部/线性注意力方案，都能在论文 §4 找到最初的伏笔。</p>
+
+  <h3>3.4 数据、词表与批量</h3>
+  <table>
+    <thead><tr><th>项目</th><th>英→德</th><th>英→法</th></tr></thead>
+    <tbody>
+      <tr><td>数据规模</td><td>约 <span class="num"><strong>4.5M</strong></span> 句子对</td><td><span class="num"><strong>36M</strong></span> 句子</td></tr>
+      <tr><td>词表</td><td>共享 BPE 约 <span class="num"><strong>37,000</strong></span> tokens</td><td><span class="num"><strong>32,000</strong></span> word-piece</td></tr>
+      <tr><td>批量</td><td colspan="2">每批约 <span class="num"><strong>25,000</strong></span> 源 + <span class="num"><strong>25,000</strong></span> 目标 token，按句长就近分桶省 padding</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3.5 训练配方</h3>
+  <ul class="plain">
+    <li><em class="term">硬件与时长</em>：单机 8 块 NVIDIA P100。base：<span class="num"><strong>100,000 步 ≈ 12 小时</strong></span>（每步约 0.4 秒）；big：<span class="num"><strong>300,000 步 = 3.5 天</strong></span>（每步 1.0 秒）。</li>
+    <li><em class="term">优化器</em>：Adam，β₁=<span class="num">0.9</span>、β₂=<span class="num">0.98</span>、ε=<span class="num">1e-9</span>；学习率经 <span class="num"><strong>warmup_steps=4000</strong></span> 先升后按步数平方根衰减调度。</li>
+    <li><em class="term">正则化</em>：residual dropout <span class="num"><strong>P_drop=0.1</strong></span>（base 英法任务用 0.3，big 用 0.1）；标签平滑 <span class="num"><strong>ε_ls=0.1</strong></span>。</li>
+  </ul>
+
+  <h3>3.6 推理配置</h3>
+  <p>beam size=<span class="num"><strong>4</strong></span>，长度惩罚 α=<span class="num"><strong>0.6</strong></span>，最大输出长度 = 输入长度 +50 并尽早终止。检查点平均：base 取最后 <span class="num"><strong>5</strong></span> 个检查点（10 分钟间隔），big 取最后 <span class="num"><strong>20</strong></span> 个。（推断）这套"平均检查点 + 温和 beam + 长度惩罚"的组合拳后来成为神经机器翻译推理的标准默认值。</p>
+  <blockquote><span class="tag">小结</span>方法体系的精髓是"对称双塔 + 三种注意力 + 统一残差壳"的极简架构，配上在当时极为克制的训练预算（8 卡、半天到三天半）——用架构红利而非算力蛮力赢得 SOTA。</blockquote>
+</section>
+
+<section id="s4">
+  <h2><span class="no">四</span>证据链：两张主表、一张消融表与一份附录</h2>
+
+  <h3>4.1 Table 2：主战场的全面胜利（WMT 2014，成本单位 FLOPs）</h3>
+  <table>
+    <thead><tr><th>模型</th><th>EN-DE</th><th>EN-FR</th><th>Training Cost</th></tr></thead>
+    <tbody>
+      <tr><td>ByteNet [18]</td><td class="num">23.75</td><td>—</td><td>—</td></tr>
+      <tr><td>Deep-Att + PosUnk [39]</td><td>—</td><td class="num">39.2</td><td class="num">1.0e20</td></tr>
+      <tr><td>GNMT + RL [38]</td><td class="num">24.6</td><td class="num">39.9</td><td class="num">2.3e18</td></tr>
+      <tr><td>ConvS2S [9]</td><td class="num">25.1</td><td class="num">40.4</td><td class="num">9.6e18</td></tr>
+      <tr><td>MoE [32]</td><td class="num">26.0</td><td class="num">40.5</td><td class="num">2.0e19</td></tr>
+      <tr><td>Deep-Att+PosUnk Ensemble</td><td>—</td><td class="num">40.4</td><td class="num">8.0e20</td></tr>
+      <tr><td>GNMT+RL Ensemble</td><td class="num">26.30</td><td class="num">41.16</td><td class="num">1.8e19</td></tr>
+      <tr><td>ConvS2S Ensemble</td><td class="num">26.36</td><td class="num">41.29</td><td class="num">7.7e19</td></tr>
+      <tr><td>Transformer (base)</td><td class="num">27.3</td><td class="num">38.1</td><td class="num">3.3e18</td></tr>
+      <tr class="row-best"><td><strong>Transformer (big)</strong></td><td class="num"><strong>28.4</strong></td><td class="num"><strong>41.8</strong></td><td class="num">2.3e19</td></tr>
+    </tbody>
+  </table>
+  <p class="note">表注：base 英→法用 P_drop=0.3，big 用 0.1。GPU 峰值算力取 K80=2.8、K40=3.7、M40=6.0、P100=9.5 TFLOPS。</p>
+  <p>三层解读：</p>
+  <ol style="margin:8px 0 8px 24px;">
+    <li><em class="term">绝对优势</em>：英德 28.4 BLEU，超过此前最优（包括一切集成模型）<span class="num"><strong>2+ BLEU</strong></span>——成熟赛道上单年 2 BLEU 的跃迁极为罕见。</li>
+    <li><em class="term">性价比优势</em>：base 模型 27.3 已超所有已发表单模型乃至集成模型，而其训练成本（3.3e18）仅为多数对手的一部分；big 的 2.3e19 显著低于集成的 7.7e19–8.0e20。英法任务上训练成本不及此前 SOTA 模型的<span class="num"><strong>四分之一</strong></span>。</li>
+    <li><em class="term">口径透明</em>：GPU 峰值算力口径明确列出，是"训练成本"列可信度的锚点（也是第五章批判的入口）。</li>
+  </ol>
+
+  <h3>4.2 Table 3：消融驱动的自我辩护（英德开发集 newstest2013）</h3>
+  <table>
+    <thead><tr><th>配置</th><th>N</th><th>d_model</th><th>h</th><th>d_ff</th><th>train PPL</th><th>BLEU(dev)</th><th>params(×10⁶)</th></tr></thead>
+    <tbody>
+      <tr><td>base</td><td class="num">6</td><td class="num">512</td><td class="num">8</td><td class="num">2048</td><td class="num">4.92</td><td class="num">25.8</td><td class="num">65</td></tr>
+      <tr><td>(A) heads=1</td><td class="num">6</td><td class="num">512</td><td class="num">1</td><td class="num">2048</td><td class="num">5.29</td><td class="num">24.9</td><td>—</td></tr>
+      <tr><td>(A) heads=16</td><td class="num">6</td><td class="num">512</td><td class="num">16</td><td class="num">2048</td><td class="num">5.00</td><td class="num">25.5</td><td>—</td></tr>
+      <tr><td>(B) d_k=16</td><td class="num">6</td><td class="num">512</td><td class="num">8</td><td class="num">2048</td><td class="num">5.16</td><td class="num">25.1</td><td class="num">58</td></tr>
+      <tr><td>(B) d_k=32</td><td class="num">6</td><td class="num">512</td><td class="num">8</td><td class="num">2048</td><td class="num">5.01</td><td class="num">25.4</td><td class="num">60</td></tr>
+      <tr><td>(C) d_ff=256</td><td class="num">6</td><td class="num">512</td><td class="num">8</td><td class="num">256</td><td class="num">5.75</td><td class="num">24.5</td><td class="num">28</td></tr>
+      <tr><td>(C) d_ff=1024</td><td class="num">6</td><td class="num">512</td><td class="num">8</td><td class="num">1024</td><td class="num">4.66</td><td class="num">26.0</td><td class="num">168</td></tr>
+      <tr><td>(C) d_ff=4096</td><td class="num">6</td><td class="num">512</td><td class="num">8</td><td class="num">4096</td><td class="num">4.75</td><td class="num">26.2</td><td class="num">90</td></tr>
+      <tr><td>(E) 学习式位置编码</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="num">4.92</td><td class="num">25.7</td><td>—</td></tr>
+      <tr class="row-best"><td><strong>big</strong></td><td class="num">6</td><td class="num">1024</td><td class="num">16</td><td class="num">4096</td><td class="num">4.33</td><td class="num">26.4</td><td class="num">213</td></tr>
+    </tbody>
+  </table>
+  <p>五组结论各有分量：</p>
+  <ul class="plain">
+    <li><em class="term">(A) 头数</em>：单头比最优差 0.9 BLEU，印证多头必要性；16 头反略逊于 8 头——头数并非越多越好，存在甜点位。</li>
+    <li><em class="term">(B) 头维度</em>：缩小 d_k 损害质量。论文据此推断：判定"哪些位置相关"并不容易，可能需要比点积更复杂的兼容函数才有更锐利的分辨率。（推断）这是对注意力表达能力边界的清醒自查。</li>
+    <li><em class="term">(C)(D) 规模与正则</em>：更大的 d_ff 一致更好（26.0→26.2），big 全面最优（26.4）；dropout 对避免过拟合非常有效（base 英法甚至要用 0.3）。</li>
+    <li><em class="term">(E) 位置编码</em>：正弦版与学习式几乎打平（25.8 vs 25.7），支撑 §3.5 的理论选择。</li>
+  </ul>
+
+  <h3>4.3 Table 4：零调优的任务迁移（英语选区句法分析，WSJ §23 F1）</h3>
+  <table>
+    <thead><tr><th>模型</th><th>训练方式</th><th>F1</th></tr></thead>
+    <tbody>
+      <tr class="row-best"><td><strong>Transformer (4层)</strong></td><td>WSJ only, discriminative</td><td class="num"><strong>91.3</strong></td></tr>
+      <tr><td>Vinyals &amp; Kaiser et al. (2014)</td><td>WSJ only, discriminative</td><td class="num">88.3</td></tr>
+      <tr><td>Petrov et al. (2006)</td><td>WSJ only, discriminative</td><td class="num">90.4</td></tr>
+      <tr><td>Dyer et al. (2016)</td><td>WSJ only, discriminative</td><td class="num">91.7</td></tr>
+      <tr class="row-best"><td><strong>Transformer (4层)</strong></td><td>semi-supervised</td><td class="num"><strong>92.7</strong></td></tr>
+      <tr><td>Vinyals &amp; Kaiser et al. (2014)</td><td>semi-supervised</td><td class="num">92.1</td></tr>
+      <tr><td>Luong et al. (2015)</td><td>multi-task</td><td class="num">93.0</td></tr>
+      <tr><td>Dyer et al. (2016)</td><td>generative</td><td class="num">93.3</td></tr>
+    </tbody>
+  </table>
+  <p>仅训 4 层 Transformer（d_model=1024，WSJ only 词表 16K / semi-supervised 32K，beam=<span class="num">21</span>、α=<span class="num">0.3</span>、最大输出=输入+300），在仅 <span class="num"><strong>40K 句</strong></span>的训练集上拿到 91.3 / 92.7，除生成式 RNN Grammar（93.3）外超过此前所有报告模型，也超过即便只用 40K 句的 Berkeley-Parser。意义在于：一个从未针对句法调优的机器翻译架构直接迁移即接近最强专用模型——通用序列建模底座的第一次亮相。</p>
+
+  <h3>4.4 附录可视化：定性证词</h3>
+  <p>附录用三页注意力热图展示长距离依赖、指代消解与句法结构追踪的头级行为。（推断）这类可视化为"多头在不同子空间学不同关系"提供了直观证词，但属于定性展示而非量化评测——说服力面向人，而非指标体系。</p>
+  <blockquote><span class="tag">小结</span>证据链呈"三线合围"——主表证明 SOTA 与性价比，消融表证明每个设计决策都有数据背书，句法表证明架构可迁移；附录以定性可视化补足人类直觉。</blockquote>
+</section>
+
+<section id="s5">
+  <h2><span class="no">五</span>批判性分析：局限的深层含义与独立疑点</h2>
+
+  <h3>5.1 论文自述局限的五层含义</h3>
+  <ol style="margin:8px 0 8px 24px;">
+    <li><em class="term">有效分辨率下降</em>：self-attention 以平均化权重换取常数路径长度，代价是对单一位置分辨率的稀释；论文用 Multi-Head 抵消。深层含义：<strong>O(1) 路径长度不是免费的</strong>，它以"模糊的全局视野"交换而来。</li>
+    <li><em class="term">n &gt; d 时的成本反转</em>：长序列下 self-attention 每层成本高于 RNN。restricted self-attention 只是构想而非实验。（推断）这等于承认纯注意力并非普适终点，长序列问题在奠基之日就已挂号。</li>
+    <li><em class="term">可视化非量化</em>：附录证据属解释性示例，不能作为性能证据使用。</li>
+    <li><em class="term">指标口径依赖</em>：BLEU 与词表大小、BPE 方案相关；per-wordpiece 困惑度不可与 per-word 直接比较，跨论文比较存在系统性风险。</li>
+    <li><em class="term">训练成本为估算值</em>：FLOPs 由"训练时间 × GPU 数 × 单精度持续峰值算力"推得，非精确测量。</li>
+  </ol>
+
+  <h3>5.2 独立观察到的六个疑点</h3>
+  <ul class="plain">
+    <li><em class="term">① 英法成绩的双口径</em>：摘要与 Table 2 记 <span class="num"><strong>41.8</strong></span>，正文 §6.1 却写 <span class="num"><strong>41.0</strong></span>——差异源于检查点/实验版本口径。虽可解释，但客观上造成后世引用混乱，严谨读者应知悉两种口径并存。</li>
+    <li><em class="term">② 消融仅在开发集上进行</em>：Table 3 全部基于 newstest2013 开发集而非测试集。（推断）开发集上调出的结论存在轻微过拟合风险，验证强度弱于测试集证据。</li>
+    <li><em class="term">③ 单指标、无显著性检验</em>：全文以 BLEU 为唯一翻译主指标，未报方差或显著性检验。（推断）2+ BLEU 领先幅度较大、方向大概率稳健，但"单次运行、单指标"在今天的方法论标准下会被要求补充。</li>
+    <li><em class="term">④ 标签平滑的内在张力</em>：ε_ls=0.1 提升 BLEU 但刻意压制正确答案置信度。（推断）Table 3 中 d_ff=1024 的 PPL（4.66）低于 d_ff=4096（4.75）而 BLEU 反而更低，正是这种张力的间接体现——PPL 不应作独立的优劣判据。</li>
+    <li><em class="term">⑤ base 英法的重 dropout</em>：表注披露 base 英法用 P_drop=0.3，远高于其他配置的 0.1。（推断）暗示 36M 句规模下 base 尺寸过拟合压力陡增，也说明论文超参按任务反复手调——"极简架构"背后仍是人工调参的隐性成本。</li>
+    <li><em class="term">⑥ 任务谱系的窄口径</em>：除翻译外仅一项句法泛化实验且只有一组配置。（推断）"通用底座"的宏大结论在当时由相当有限的下游证据支撑——其普适性更多是被后续社区数年应用史证明的，而非论文自身证据链。</li>
+  </ul>
+  <blockquote><span class="tag">小结</span>论文的自我诚实值得肯定（成本估算、口径依赖、长序列短板均有明示），但双口径数字、开发集消融与单指标叙事提醒我们：即便是史上被引最多的架构论文，其证据形态也带有 2017 年的时代烙印。</blockquote>
+</section>
+
+<section id="s6">
+  <h2><span class="no">六</span>启示与影响：一条被验证十年的技术路线</h2>
+
+  <h3>6.1 直接影响：从一篇论文到一个纪元</h3>
+  <ul class="plain">
+    <li><em class="term">架构统一</em>：（推断，属公认事实）此后短短数年，GPT 系的自回归解码器塔、BERT 系的双向编码器塔与视觉领域的 ViT 均直接采用 Transformer 块作为唯一构件——"完全基于注意力"从一个激进主张变成整个领域的默认假设。</li>
+    <li><em class="term">开源生态</em>：模型随 tensorflow/tensor2tensor 开源，该库成为早期 Transformer 复现与变体研究的孵化器。</li>
+    <li><em class="term">训练配方公共品化</em>：warmup 学习率调度、检查点平均、标签平滑、BPE 词表——这些细节随论文广泛传播，成为多年间序列模型训练的事实标准件。</li>
+  </ul>
+
+  <h3>6.2 方法论层面的四条可迁移经验</h3>
+  <ol style="margin:8px 0 8px 24px;">
+    <li><em class="term">减法创新的杠杆</em>：成功不在发明注意力，而在证明其余部件皆可去除。"识别出系统中真正的承重墙，然后拆掉一切装饰"，适用于任何过度工程的系统设计。</li>
+    <li><em class="term">三维复杂度框架的自觉</em>：每层复杂度、串行操作数、路径长度的三角权衡是评估任何序列架构的通用透镜；（推断）后来的线性注意力、状态空间模型之争仍在沿用同一套话语。</li>
+    <li><em class="term">消融驱动的自我辩护</em>：Table 3 用受控变体回答"为什么是 8 头、为什么是这个 d_k"，让设计选择全部落在数据上——实验论文写作的高标准模板。</li>
+    <li><em class="term">诚实标注边界</em>：主动写明"n &gt; d 时不划算""成本是估算值""可视化非量化证据"反而增强整体可信度。（推断）坦白边界条件是强论文的共性而非弱点。</li>
+  </ol>
+
+  <h3>6.3 局限的后续演进：被预言的研究议程</h3>
+  <ul class="plain">
+    <li><em class="term">n² 注意力之困</em>：§4 的边界声明预言了此后十年的长序列战争——稀疏注意力、局部窗口、线性注意力本质上都是 restricted self-attention 构想的工业化展开。</li>
+    <li><em class="term">有效分辨率之困</em>：平均化权重的稀释效应催生了对注意力稀疏化与硬选择的持续探索；（推断）多头作为第一代解药，其多子空间冗余性质至今仍是可解释性研究的富矿。</li>
+    <li><em class="term">位置编码之变</em>：Table 3 (E)"形式不重要"的结论后来被打破——位置编码的外推能力成为长上下文模型的核心议题，正弦编码的相对位置线性性质被反复重新发现与改良。</li>
+  </ul>
+</section>
+
+<section id="conclusion">
+  <h2><span class="no">◆</span>总结</h2>
+  <p>《Attention Is All You Need》用一个近乎挑衅的标题完成了一次架构革命：它把三维复杂度框架（每层计算、并行性、路径长度）作为手术刀，证明循环与卷积在序列转导中并非必需，并以 <span class="num"><strong>28.4 BLEU</strong></span> 英德新 SOTA（超最优含集成 <span class="num"><strong>2+ BLEU</strong></span>）、<span class="num"><strong>41.8 BLEU</strong></span> 英法单模型新 SOTA、以及不到对手<span class="num"><strong>四分之一</strong></span>的训练成本完成实证闭环；消融表为每个设计决策提供受控证据，句法分析（<span class="num"><strong>F1 92.7</strong></span>）首次展示了零调优迁移的通用性。它的自述局限（有效分辨率、长序列成本反转）与其说是瑕疵，不如说是一份提前写好的未来研究议程——此后十年的注意力效率化、位置编码演化与架构变体竞赛，均可视为对这份议程的执行。作为深度解读的对象，它是"提出正确问题 + 极简优雅方案 + 诚实边界声明"三位一体的典范样本。</p>
+</section>
+
+</div><!-- /wrap -->
+
+<footer>
+  <div class="wrap">
+    <div class="brand">ATTENTION IS ALL YOU NEED · DEEP DIVE REPORT</div>
+    <p>六层结构：问题定位 → 概念内核 → 方法拆解 → 证据链 → 批判性分析 → 启示与影响。<br>
+    全部关键数字溯源至 00-源数据提取.md；分析者推理均标注（推断）。本页为单文件交付，无外部依赖。</p>
+    <div id="selfcheck">自检脚本加载中…</div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  try{
+    var html = document.documentElement.outerHTML;
+    var bytes = new Blob([html]).size;
+    var hasReplacement = html.indexOf("\uFFFD") !== -1;
+    var reOpen = new RegExp("<" + "div\\b", "g");
+    var reClose = new RegExp("</" + "div>", "g");
+    var opens = (html.match(reOpen)||[]).length;
+    var closes = (html.match(reClose)||[]).length;
+    var msg = "SELF-CHECK | 文档字节数 ≈ " + bytes.toLocaleString() + " bytes"
+      + " | U+FFFD 替换字符: " + (hasReplacement ? "检出（异常）" : "无")
+      + " | div 标签 开/闭: " + opens + "/" + closes + (opens===closes ? " 配平" : " 不配平（异常）");
+    document.getElementById("selfcheck").textContent = msg + " | 渲染时间: " + new Date().toLocaleString("zh-CN");
+  }catch(e){
+    document.getElementById("selfcheck").textContent = "SELF-CHECK FAILED: " + e.message;
+  }
+})();
+</script>
+
+</body>
+</html>

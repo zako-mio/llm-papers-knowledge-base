@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>0825 LLM 关键节点论文全集 + 全量深度解读 · 任务报告</title>
+<style>
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#24292f;line-height:1.75;margin:0}
+.wrap{max-width:900px;margin:0 auto;padding:32px 20px 72px}
+h1{font-size:26px;border-bottom:3px solid #2b6cb0;padding-bottom:12px}
+h2{font-size:19px;margin-top:40px;color:#2b6cb0;border-left:5px solid #2b6cb0;padding-left:10px}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px}
+th,td{border:1px solid #d0d7de;padding:8px 10px;text-align:left;vertical-align:top}
+th{background:#eef2f7}code{background:#eceff3;padding:2px 6px;border-radius:4px;font-size:13px}
+.badge{display:inline-block;background:#2b6cb0;color:#fff;border-radius:10px;padding:1px 10px;font-size:13px;margin-right:6px}
+.ok{color:#1a7f37;font-weight:700}li{margin:4px 0}.meta{color:#57606a;font-size:13px}
+.selfcheck{font-size:11px;color:#90a0b5;margin-top:40px;border-top:1px solid #dde3ea;padding-top:12px}
+</style></head><body><div class="wrap">
+<h1>0825 LLM 关键节点论文全集 + 全量深度解读 · 任务报告</h1>
+<p class="meta">生成 2026-08-25 · 双版本留档（本 HTML 为人类入口，report.md 为 AI 镜像；权威数据源 analysis/data/papers_master.json）</p>
+
+<h2>一、当时情况</h2>
+<p>计划全面学习现代大语言模型发展知识体系，需<strong>全量收集关键节点论文 PDF</strong>（2017-06《Attention Is All You Need》→ 最新 DeepSeek 视觉原语、GLM 系后训练、Kimi/Qwen/MiniMax 2026 前沿）并<strong>逐篇做参照级深度解读</strong>。需求三轮升级：①收集+三级优先级标注；②每个节点挖历史语境（当时主流→痛点→概念→为何胜出→影响）；③全量深度解读（对标参照《Thinking with Visual Primitives》六层报告+高可读 HTML），分批量推进。</p>
+
+<h2>二、制定计划</h2>
+<ul>
+<li><strong>收集层</strong>：双路多源补漏（Google 国际线走代理 + 国内线直连各官方渠道），从近到远全时期交叉复查，每篇标题联网核实。</li>
+<li><strong>分析层</strong>：<code>pdf-worker 提取 00 → 分析员写 01 六层报告(≥18KB) → 03 HTML</code>，每篇一目录。</li>
+<li><strong>批次</strong>：B1=P3(25)→B2=P2(60)→B3=P1(38)，主 Agent 统一终裁优先级、门控、重生成索引。</li>
+<li><strong>质量</strong>：独立门控脚本（UTF-8/div 配平/规模）+ 全库 PDF 标题比对防错配。复杂度 14/20 Deep；子 Agent 预算按 20t/s、单轮&lt;10 分钟定标，并发≤2。</li>
+</ul>
+
+<h2>三、执行情况</h2>
+<ol>
+<li><strong>补漏</strong>：首轮 98 篇后双路补漏再获 25 个节点（GLM-5 系、DeepSeek-V4、视觉原语、K3、Qwen3.8 等），总量 123 篇。核实 <span class="badge">GLM-5.x 无 5.3</span>；视觉原语官方仓库已删凭本地原件收录。</li>
+<li><strong>权重</strong>：P3×25 / P2×60 / P1×38；E5 扩容 42 篇反映 2025-2026 爆发。</li>
+<li><strong>深度解读</strong>：B1 25/25、B2 61/61、B3 39/39 全完成，共 <strong>125 篇</strong>三件套；01 均 ≥18KB（超时 23 次，靠续跑/拆半步/效率模式攻克）。</li>
+<li><strong>追加上新节点</strong>：应要求核实收录 <strong>GLM-5.3</strong>（2026-08-19 文本旗舰）与 <strong>GLM-5.3-Flash</strong>（2026-08-25，ox-alpha/牛来，320B/18B 首个稀疏+线性混合注意力开源多模态 flash），总量 123→125。</li>
+<li><strong>多源一手取证</strong>：Qwen/Kimi/GLM 官网 SPA 靠 JS bundle 反提取、官方 API 端点、HF 模型卡、GitHub eval README 交叉核验；mHC 挖出专文 arXiv:2512.24880。</li>
+<li><strong>纠错</strong>：REALM 正确号 2002.08909、GLM-130B=2210.02414、Forge 发 2026-02、Qwen3.8-Max 开源 Max 本尊非"27B 版"、Alpaca"175"为种子指令数。</li>
+<li><strong>门控</strong>：三道批次门控全 PASS；106 PDF 标题比对（2 处仅命名差异）；final_gate PASS。</li>
+</ol>
+
+<h2>四、完成情况</h2>
+<table>
+<tr><th>层</th><th>内容</th></tr>
+<tr><td>论文库</td><td><code>papers/E1..E5</code> 五时代 <strong>106 个有效 PDF</strong>，全部 %PDF- 魔数+≥40KB+标题比对通过</td></tr>
+<tr><td>索引</td><td><code>timeline.html</code>（互动时间线：时代/优先级筛选、P3 先行 25 篇路线、背景档案）+ <code>README.md</code>（123 篇论文表+五时代综述+信源口径）</td></tr>
+<tr><td>深度解读</td><td><code>analysis/{B1_P3,B2_P2,B3_P1}/</code> <strong>125 篇目录</strong>，每篇 00 提取 + 01 六层报告 + 03 高可读 HTML</td></tr>
+<tr><td>总览页</td><td><code>analysis/index.html</code> 串联 123 篇可点击进入</td></tr>
+<tr><td>脚本链</td><td><code>data/*.json</code> + <code>data/*.py</code>，改数据后一键重生成</td></tr>
+<tr><td>报告</td><td><code>report.md</code> / <code>report.html</code></td></tr>
+</table>
+<p><span class="ok">验证 PASS</span> —— 125 篇 master 无冲突；106 PDF 合法；125 目录三件套齐（01 全 ≥18KB）；HTML 全 UTF-8/div 配平；信源 verified 91 / cited 34。</p>
+
+<h2>五、反思/分析/建议</h2>
+<ol>
+<li><strong>预算定标有效</strong>：按 20t/s、单轮 &lt;10 分钟重排后超时率显著下降；"先保 01 再写 03"+"01-only + 专职 HTML 转换"是攻坚 P1/重论文关键。</li>
+<li><strong>多源一手取证必要</strong>：国产官网 SPA 迫使 bundle 反提取/API/HF 卡，多次纠正分片转引错题。结论：<strong>arXiv 号必须过标题验证，转引数字必须回源</strong>。</li>
+<li><strong>可续跑产物形态</strong>：每篇独立目录+生成脚本幂等，任一批次中断可无缝续跑（本轮 23 次超时均零返工恢复）。</li>
+<li><strong>改进建议</strong>：①"官方仓库已删"节点加 lost-media 标记；②把 123 篇解读压缩成一张知识演进地图综述；③提供季度增量脚本自动 append+重跑。</li>
+</ol>
+<div class="selfcheck">数据依据：本页数字均取自 data/papers_master.json 与各篇 00-源数据提取.md | 推断处标注</div>
+</div></body></html>

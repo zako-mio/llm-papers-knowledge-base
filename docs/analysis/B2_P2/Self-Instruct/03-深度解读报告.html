@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Self-Instruct 深度解读报告</title>
+<style>
+:root{--ink:#1a2332;--sub:#5a6b82;--accent:#0f6b5c;--accent2:#b45309;--hl:#fef3c7;--line:#e3e9f0;--bg:#f7f9fb;--card:#ffffff;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Source Han Serif SC","Noto Serif CJK SC","Songti SC",Georgia,serif;color:var(--ink);background:var(--bg);line-height:1.85;font-size:16px;}
+.wrap{max-width:880px;margin:0 auto;padding:0 24px 80px;}
+header.hero{background:linear-gradient(135deg,#0d3b34 0%,#14544a 55%,#1d6e60 100%);color:#fff;padding:64px 24px 48px;text-align:center;}
+header.hero .tag{display:inline-block;font-size:13px;letter-spacing:.22em;border:1px solid rgba(255,255,255,.45);border-radius:999px;padding:4px 18px;margin-bottom:20px;font-family:"Helvetica Neue",Arial,sans-serif;}
+header.hero h1{font-size:30px;font-weight:700;line-height:1.45;letter-spacing:.02em;}
+header.hero .en{font-size:15px;opacity:.85;margin-top:12px;font-family:Georgia,serif;font-style:italic;}
+header.hero .meta{margin-top:22px;font-size:13.5px;opacity:.88;font-family:"Helvetica Neue",Arial,sans-serif;}
+main{margin-top:-28px;}
+.card{background:var(--card);border-radius:14px;box-shadow:0 2px 14px rgba(20,40,60,.07);padding:36px 42px;margin-bottom:26px;}
+h2.sec{font-size:21px;color:var(--accent);border-left:5px solid var(--accent);padding-left:14px;margin-bottom:20px;font-weight:700;}
+h3{font-size:17px;margin:26px 0 10px;color:#123f38;}
+p{margin:10px 0;text-align:justify;}
+strong{color:#0c3a33;}
+.num{background:var(--hl);color:#7c4a03;font-weight:700;padding:1px 6px;border-radius:4px;font-family:"Helvetica Neue",Arial,sans-serif;font-size:95%;}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14.5px;}
+th{background:#eef4f2;color:#123f38;padding:9px 10px;border:1px solid var(--line);text-align:left;font-weight:700;}
+td{padding:8px 10px;border:1px solid var(--line);}
+tr:nth-child(even) td{background:#fafcfb;}
+.callout{background:#eff7f4;border-left:4px solid var(--accent);border-radius:0 8px 8px 0;padding:14px 18px;margin:18px 0;font-size:15px;}
+.callout b{color:var(--accent);}
+.warn{background:#fdf6ec;border-left:4px solid var(--accent2);padding:14px 18px;border-radius:0 8px 8px 0;margin:18px 0;font-size:15px;}
+.warn b{color:var(--accent2);}
+ul,ol{margin:8px 0 8px 26px;}
+li{margin:6px 0;text-align:justify;}
+.toc{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;}
+.toc span{background:#eef4f2;color:#123f38;border-radius:8px;padding:6px 14px;font-size:13.5px;font-family:"Helvetica Neue",Arial,sans-serif;}
+.srcnote{font-size:12.5px;color:var(--sub);font-family:"Helvetica Neue",Arial,sans-serif;}
+.audit{font-size:13.5px;color:var(--sub);border-top:1px dashed var(--line);margin-top:22px;padding-top:14px;font-family:"SFMono-Regular",Consolas,"Helvetica Neue",monospace;}
+footer{text-align:center;color:var(--sub);font-size:13px;padding:10px 0 30px;}
+</style>
+</head>
+<body>
+<header class="hero">
+<div class="tag">LLM 关键节点论文 · B2 批次 · 深度解读</div>
+<h1>Self-Instruct：用自我生成的指令对齐语言模型</h1>
+<div class="en">Self-Instruct: Aligning Language Models with Self-Generated Instructions (ACL 2023)</div>
+<div class="meta">Yizhong Wang 等 · University of Washington / Allen Institute for AI / JHU 等 · arXiv:2212.10560 · ACL 2023</div>
+</header>
+<main class="wrap">
+
+<section class="card">
+<h2 class="sec">摘要</h2>
+<p>本文解读华盛顿大学联合 Allen Institute for AI 等机构发表于 ACL 2023 的《Self-Instruct》。其核心论断是：让语言模型遵循指令所需的监督数据，可以由一个<strong>未经任何指令微调的 vanilla 预训练 LM 通过迭代自举自行生成</strong>——从 <span class="num">175</span> 个手工种子任务起步，经"指令生成 → 分类识别 → 实例生成 → 过滤入池"四步流水线滚雪球至 <span class="num">52,445</span> 条指令与 <span class="num">82,439</span> 个实例；用它微调原始 GPT3 后，SUPERNI 零样本 ROUGE-L 从 <span class="num">6.8</span> 飙升至 <span class="num">39.9</span>（绝对提升 <span class="num">+33.1%</span>），几乎追平人类标注 + RLHF 路线的 InstructGPT_001（<span class="num">40.8</span>）；在 252 条全新用户导向指令的人类评估中仅落后其 <span class="num">5%</span> 绝对值。论文以此证明：<strong>对齐所需的知识早已潜伏在预训练模型内部，缺的只是把它"钓出来"的格式化程序。</strong>它是 Alpaca 与整场开源指令微调浪潮的直接思想源头。</p>
+<div class="toc"><span>一 问题定位</span><span>二 概念内核</span><span>三 方法还原</span><span>四 证据链</span><span>五 批判性分析</span><span>六 启示与影响</span></div>
+<p class="srcnote">数据依据：00-源数据提取.md，全部数字与原文一致；标注「（推断）」处为分析者推理补充。</p>
+</section>
+
+<section class="card">
+<h2 class="sec">一、问题定位：指令数据稀缺与"有能力、不听话"的矛盾</h2>
+<h3>1.1 论文要解决的问题</h3>
+<p>2022 年底的行业现状是一个尖锐的剪刀差：一方面 NLP 任务资源极其丰富，大量公开数据集覆盖五花八门的应用；另一方面<strong>没有一个普通用户会按"数据集格式"向语言模型提需求</strong>。用户说的是"帮我改写这句话"，而模型只有被指令格式数据微调后才能响应。彼时唯一被验证有效的路径是 InstructGPT 式路线——雇人撰写指令、收集演示、再做 RLHF，成本高、周期慢、过程封闭。</p>
+<p>论文把问题压缩成一句话：<strong>指令微调数据本身成了新的瓶颈资源</strong>。已有替代方案（FLAN、T0、T5-LM 一系）是把传统 NLP 数据集机械转换为指令格式，表达力被锚死在既有任务形态上。于是作者提出激进一问：既然 vanilla GPT3 已"读过互联网"，<strong>能不能让它自己给自己写教材？</strong></p>
+<h3>1.2 在对齐技术谱系中的位置</h3>
+<ul>
+<li><strong>对人工标注路线的成本质疑</strong>：InstructGPT 依赖付费标注员；Self-Instruct 只需 <span class="num">175</span> 个种子任务（每任务 1 指令 + 1 实例）作引子。</li>
+<li><strong>对数据集转换路线的表达力质疑</strong>：T0/FLAN 的指令空间被经典 NLP 任务锁死；本文专门设计 <span class="num">252</span> 条全新用户导向指令检验此差异。</li>
+<li><strong>与并行工作的分野</strong>：同期 Unnatural Instructions 用 InstructGPT_002 蒸馏；本文坚持从纯 vanilla LM（davinci 引擎）自举——结论更惊人：<strong>连"老师"都不需要</strong>。</li>
+</ul>
+<div class="callout"><b>一句话小结</b>｜本文解决的不是"如何更好地标注数据"，而是釜底抽薪地问"数据是否必须由人来标"——并给出否定答案的第一个系统性证据。</div>
+</section>
+
+<section class="card">
+<h2 class="sec">二、概念内核：四个核心概念逐一定义</h2>
+<h3>2.1 Instruction Data（指令数据的形式化定义）</h3>
+<p><strong>定义</strong>：指令 I_t 定义任务 t，附带 n_t ≥ 1 个输入-输出实例 {(X_t,i, Y_t,i)}，要求模型满足 M(I_t, X_t,i) = Y_t,i。</p>
+<p><strong>拆解</strong>：定义中藏着关键决策——<strong>允许 X 为空</strong>（纯指令无额外输入）。最终数据中空输入实例达 <span class="num">35,878</span> 条，占 <span class="num">82,439</span> 总实例约 43%（推断计算）。真实用户请求有一大类是"无输入开场"型，只学传统带输入数据集的模型永远学不会响应这类请求。定义层的"允许空集"直接决定下游泛化宽度。</p>
+<h3>2.2 Bootstrapping（迭代自举）</h3>
+<p><strong>定义</strong>：以小规模种子池为起点，反复执行"采样上下文 → 生成新任务 → 过滤 → 入池"循环的自增强机制。</p>
+<p><strong>拆解</strong>：每轮新生成的任务回流为后续生成的上下文示例，形成滚雪球式多样性累积。配合每次采样 <span class="num">8</span> 条示例强制混入 <span class="num">2</span> 条模型自产的设计（<span class="num">6 人类 + 2 机器</span>），系统被明确引导去探索种子分布之外。<span class="num">175 → 52,445</span>，放大约 300 倍（推断计算）。</p>
+<h3>2.3 Input-first vs Output-first（双序实例生成）</h3>
+<p><strong>定义</strong>：非分类任务先依指令生成输入再生成输出；分类任务先枚举类标签集合、再按标签反推合理输入。</p>
+<p><strong>拆解</strong>：针对隐蔽统计陷阱——一律先生成输入会让分类任务的输入<strong>系统性偏向单一标签</strong>（如语法错误检测只产出正确语句）。Output-first 把类别均衡从"碰运气"变成"结构性保证"。最终分类指令达 <span class="num">11,584</span> 条（约 22%）。（推断）"生成顺序决定分布形状"可推广到一切含离散结构目标的合成场景。</p>
+<h3>2.4 Quality-Diversity Filter（质量-多样性双重过滤）</h3>
+<p><strong>定义</strong>：新指令仅当与任何现有指令 ROUGE-L 相似度 <span class="num">&lt; 0.7</span> 才准入；叠加模态关键词排除（image/picture/graph 等）与启发式无效样本剔除（过长/过短/输出复读输入等）。</p>
+<p><strong>拆解</strong>：过滤是自举不退化为复读机的唯一防线。（推断）隐性代价是度量纯基于字面相似度，无法识别"表述新颖但实质同义"，多样性上限受制于字面度量——第五章展开。</p>
+<div class="callout"><b>一句话小结</b>｜四概念构成因果链——形式化定义圈定目标空间，自举提供探索引擎，双序生成保住分布健康，双重过滤守住质量底线。</div>
+</section>
+
+<section class="card">
+<h2 class="sec">三、方法还原：四步流水线与微调配方的完整复盘</h2>
+<h3>3.1 四步自动生成流水线（Figure 2）</h3>
+<ul>
+<li><strong>Step 1 指令生成</strong>：从池采样 <span class="num">8</span> 条作 few-shot 上下文（6 人工 + 2 模型自产），提示 vanilla GPT3 生成新指令。人机混合配比是刻意的多样性注入器。</li>
+<li><strong>Step 2 分类识别</strong>：用 <span class="num">12</span> 分类 + <span class="num">19</span> 非分类种子示例判别指令类型，是流水线的路由器。</li>
+<li><strong>Step 3 实例生成</strong>：双分支——Input-first 走非分类任务；Output-first 走分类任务防标签偏斜。</li>
+<li><strong>Step 4 过滤后处理</strong>：三道闸门——ROUGE-L ≥ 0.7 即弃；含图像类关键词即弃；实例级启发式剔除重复/矛盾/退化样本。通过者入池循环。</li>
+</ul>
+<h3>3.2 微调配方的工程细节</h3>
+<ul>
+<li><strong>训练目标</strong>：拼接"指令 + 输入"作 prompt 监督生成输出；prompt loss weight = <span class="num">0</span>；仅训 <span class="num">2</span> epochs（OpenAI API 微调 davinci 引擎，默认超参）。</li>
+<li><strong>模板鲁棒性</strong>：刻意使用多套格式模板（Task:/Input:/Output: 前缀可选、换行数可变），防止对单一格式过拟合——学的是"遵循指令"而非"记住界面"。</li>
+<li><strong>对比引擎</strong>：默认对照 text-davinci_001（人类演示监督微调产物，与本设置最接近的公开参照）。</li>
+</ul>
+<h3>3.3 产出数据的全景统计（Table 1）</h3>
+<table>
+<tr><th>统计维度</th><th>数值</th></tr>
+<tr><td>指令总数</td><td><b>52,445</b></td></tr>
+<tr><td>├ 分类型 / └ 非分类型</td><td>11,584 / 40,861</td></tr>
+<tr><td>实例总数</td><td><b>82,439</b></td></tr>
+<tr><td>├ 空输入实例</td><td>35,878</td></tr>
+<tr><td>平均长度（指令 / 输入 / 输出，词）</td><td>15.9 / 12.7 / 18.9</td></tr>
+</table>
+<p><strong>解读三个信号</strong>：其一，平均指令仅 <span class="num">15.9</span> 词，说明自举数据以短平快任务为主体，与真实长程请求尚有距离；其二，非分类占约 78%，双序策略没有让分类淹没池子；其三，43% 空输入比例印证"无输入指令是被刻意保育的物种"。（推断）这一画像预示了 SUPERNI 平台期更早的结构性原因。</p>
+<div class="callout"><b>一句话小结</b>｜方法体系 = 一个自举引擎 + 两道生成分支 + 三道质量闸门；微调侧用多模板与极简超参把复杂度压到最低。</div>
+</section>
+
+<section class="card">
+<h2 class="sec">四、证据链：三条实验线的数字复盘</h2>
+<h3>4.1 主线一：SUPERNI 零样本泛化（Table 3，119 任务 × 100 实例）</h3>
+<table>
+<tr><th>模型</th><th>ROUGE-L</th><th>与本文关系</th></tr>
+<tr><td>Vanilla GPT3</td><td>6.8</td><td>起点：几乎无法遵循指令，不知何时停止</td></tr>
+<tr><td>T5-LM（11B 全模型）</td><td>25.7</td><td>传统 LM 对照</td></tr>
+<tr><td>T0</td><td>33.1</td><td>数据集转换路线代表</td></tr>
+<tr><td>GPT3 + T0 Training</td><td>37.9</td><td>把 T0 数据拿来微调 GPT3</td></tr>
+<tr><td><b>GPT3_SELF-INST（本文）</b></td><td><b>39.9</b></td><td>纯自产数据微调，+33.1%</td></tr>
+<tr><td>InstructGPT_001</td><td>40.8</td><td>人类演示路线，差距仅 0.9 点</td></tr>
+<tr><td>Tk-INSTRUCT</td><td>46.0</td><td>SUPERNI 内建指令上界参照</td></tr>
+<tr><td>GPT3 + SUPERNI Training</td><td>49.5</td><td>用评测域训练集直接训练</td></tr>
+<tr><td><b>GPT3_SELF-INST + SUPERNI</b></td><td><b>51.6</b></td><td>叠加仍再 +2.1，证明互补价值</td></tr>
+</table>
+<ol>
+<li><strong>+33.1% 要放回基线的荒芜中看</strong>：vanilla GPT3 的 <span class="num">6.8</span> 不是"差"而是"失能"——根本不知道要停止生成。这 33.1 个点几乎全部来自"格式化唤醒"，而非新知识注入。</li>
+<li><strong>追平 InstructGPT_001 是最锋利的对比</strong>：001 代表"人类写指令 + 人类演示"重资产路线；自产数据仅差 <span class="num">0.9</span> 点。（推断）该差距在 ROUGE-L 噪声范围内，"几乎追平"并不夸张。</li>
+<li><strong>51.6 &gt; 49.5 的叠加增益常被忽视</strong>：若自产数据只是评测域数据的劣质替代，叠加应饱和甚至互斥；实际再涨 2.1 点，说明两者信息正交。</li>
+</ol>
+<h3>4.2 主线二：252 条用户导向新指令的人类评估（Figure 6）</h3>
+<p>全新制定 <span class="num">252</span> 条人工指令（每条 1 实例），统一提示零样本作答；专家按 A/B/C/D 四等级评定，κ = <span class="num">0.57</span>。结果：vanilla GPT3 基本无法响应；GPT3_SELF-INST 大幅优于 T0/SUPERNI 数据训练的同底座模型；将 RATING-B 计为有效时仅落后 InstructGPT_001 <span class="num">5%</span> 绝对值。InstructGPT_002/003 能力突出、明显领先全场。这条线补上了 SUPERNI 的盲区——在更贴近真实用户表达的战场上，自产数据路线依然守住对传统路线的优势。</p>
+<h3>4.3 主线三：数据质量审计与规模曲线（Table 2 / Figure 7）</h3>
+<table>
+<tr><th>评审维度</th><th>通过率</th></tr>
+<tr><td>任务整体有效</td><td>92%</td></tr>
+<tr><td>输入字段适当</td><td>79%</td></tr>
+<tr><td>输出正确</td><td><b>58%</b></td></tr>
+<tr><td>全部字段有效</td><td><b>54%</b></td></tr>
+</table>
+<p>规模曲线随指令数持续提升，但在约 <span class="num">16K</span> 指令后趋于平台（SUPERNI 上更早，约几百条即饱和）；用更强的 InstructGPT_003 蒸馏改进输出后可再提升 <span class="num">+10%</span>——输出质量是明确杠杆。这三组数字构成全文最诚实的部分：<strong>一半的数据是"错"的，但模型仍然学好了</strong>——这是理解自监督式对齐的钥匙，也是第五章的主战场。</p>
+<div class="callout"><b>一句话小结</b>｜证据体系呈"两强一诚"——SUPERNI +33.1% 追平重资产路线、用户导向评估仅差 5% 是两记强心针；而 54% 有效率与 ~16K 平台期的坦白披露反而增强了可信度。</div>
+</section>
+
+<section class="card">
+<h2 class="sec">五、批判性分析：局限的深层含义与独立疑点</h2>
+<h3>5.1 作者自述局限的深层含义</h3>
+<ul>
+<li><strong>生成噪声高（58%/54%）</strong>：作者辩称多数错误样本"格式正确或部分正确"仍有指导价值。深层含义是指令微调对标签噪声的容忍度远高于传统监督学习——模型学的主要是映射格式而非细粒度知识。但"过滤掉全部错误样本再训会更好还是更差"这一消融缺失。</li>
+<li><strong>评估依赖领域专家</strong>：新指令含写程序、逻辑翻译等任务，普通标注者无法胜任，评估规模受限、κ 仅 0.57。（推断）"5% 差距"的置信区间不窄，应读作方向性结论。</li>
+<li><strong>自举受种子分布制约</strong>：生成指令分布与典型 NLP 任务不同，SUPERNI 上平台更早——单一自举源存在表达力天花板。</li>
+<li><strong>~16K 平台期</strong>：多样性饱和后堆量无效。</li>
+<li><strong>对比引擎受限</strong>："追平 InstructGPT"锚定在 text-davinci_001 这一较老引擎上，跨引擎比较需谨慎。</li>
+</ul>
+<h3>5.2 独立观察到的五个疑点</h3>
+<p><strong>① "54% 正确率却 +33.1%"的机制未被解释</strong>：全文最大的理论留白。（推断）可能机制有三：a) 错误多为输出内容错误但任务语义仍可辨识，模型学到的是"指令→响应模式"；b) seq2seq 训练下错误输出被稀释；c) ROUGE-L 类指标奖励表面格式对齐，放大了"学会格式"的收益。三种机制对应完全不同的后续设计，论文均未实验区分——为后来"拒绝采样""质量加权"留下改进空间。</p>
+<p><strong>② ROUGE-L &lt; 0.7 度量的盲区</strong>：基于最长公共子序列、纯字面。"把这段英文翻译成中文"与"将如下英语句子译为汉语"会被判为"多样"双双入池。（推断）池子真实语义多样性被系统性高估，16K 平台期或部分源于<strong>语义熵提前饱和</strong>而非数量饱和。今天复现必须换 embedding 相似度——这是历史局限而非疏忽。</p>
+<p><strong>③ 自我蒸馏的循环性风险</strong>：Self-Instruct 本质是模型蒸馏自己的 zero-shot 分布。若 vanilla GPT3 对某类任务有系统性盲区，自举不仅不填补盲区，反而会强化周边错误模式。<span class="num">175</span> 条种子的人工选择实际承担了"纠偏锚点"角色——方法并非真正无监督，人工先验只是被压缩到种子层。（推断）Alpaca 后来改用 text-davinci_003 当教师，本质是承认了纯自我自举的教师上限。</p>
+<p><strong>④ 人类评估协议的单薄处</strong>：252 条每条仅 1 实例；B 级是否计有效的口径变化显著影响结论（两种口径之一差距达 5%）。（推断）A/D 两端判别清晰而 B/C 中间地带才是真实差距所在，κ=0.57 恰说明中间地带争议大；盲测与否未明确强调。</p>
+<p><strong>⑤ 与 Unnatural Instructions 的对照缺口</strong>：同期同目标不同路径（vanilla 自举 vs InstructGPT_002 蒸馏），但未在统一协议下交换训练数据对比。读者无法回答"教师更强则合成数据线性变强吗"——直到 Figure 7 "003 蒸馏 +10%"才部分补上，系统性教师强度 scaling 曲线一年后才由后续工作补齐。</p>
+<div class="warn"><b>批判总评</b>｜最深的裂缝不在工程而在理论——"半数错误数据为何有效"与"字面相似度能否代理语义多样性"两个根本问题悬而未决；但正是这些裂缝定义了此后两年合成数据研究的整张地图。</div>
+</section>
+
+<section class="card">
+<h2 class="sec">六、启示与影响：一场范式迁移的原点</h2>
+<h3>6.1 五条可迁移的方法论启示</h3>
+<ol>
+<li><strong>"模型内部已有对齐所需的知识，数据工程的任务是提取而非灌输"</strong>：全文最核心的世界观贡献。它把对齐问题从"获取更好的监督信号"重构为"设计更好的提取程序"。任何"能力已存在但表达不出"的场景都适用。</li>
+<li><strong>自举式数据生成的通用模板</strong>：种子池 → 条件采样 → 过滤入池 → 循环。此四拍节奏演化为 Evol-Instruct、拒绝采样微调及今日各家合成数据管线。关键不变量有二：<strong>新样本回流成为条件上下文</strong>（探索接力棒）、<strong>廉价准入闸门</strong>（防坍缩免疫系统）。</li>
+<li><strong>生成顺序即分布控制</strong>：Output-first 对分类任务的标签均衡，是"结构化目标先采样结构再填充内容"原则的最早示范。凡合成含离散骨架的数据（标签、推理步骤数、答案类型），都应先定骨架后长肉。</li>
+<li><strong>噪声容忍是有边界的免费午餐</strong>：54% 有效率仍 +33.1%，格式级学习对标签噪声鲁棒；但 ~16K 平台与 003 蒸馏 +10% 说明<strong>质量在多样性饱和后成为唯一杠杆</strong>——"先堆量、后提纯"的两阶段资源分配由此有了实证起点。</li>
+<li><strong>多样性度量必须与语义空间对齐</strong>：ROUGE-L 阈值法在其历史语境下够用；今天复现此类管线，embedding 相似度或最小语义距离约束是不可省略的升级件。</li>
+</ol>
+<h3>6.2 历史定位：它点燃了什么</h3>
+<ul>
+<li><strong>直接后裔 Alpaca（2023-03）</strong>：斯坦福团队原样借用 Self-Instruct 流水线（175 种子→52K 数据刻意呼应），教师换成 text-davinci_003、微调对象换成 LLaMA-7B，约 600 美元成本造出首个可用开源指令模型——引爆开源复刻潮。</li>
+<li><strong>Evol-Instruct / WizardLM</strong>：把"采样生成"升级为"进化式改写"，直接回应 16K 平台期的多样性瓶颈。</li>
+<li><strong>合成数据范式主流化</strong>：从指令合成到思维链合成、偏好对合成，前沿实验室训练数据的合成比例已过半——其方法论合法性的第一块基石就是本文的 +33.1%。</li>
+<li><strong>概念泛化</strong>："self-instruct" 已从论文名变成一类方法的通名，涵盖 self-play、self-rewarding 等后续谱系。</li>
+</ul>
+<h3>6.3 未竟之路（作者局限 → 后续演化）</h3>
+<table>
+<tr><th>本文局限</th><th>后续演化方向</th></tr>
+<tr><td>种子分布依赖</td><td>多教师、多域种子混合（Alpaca 换教师；Tulu 混合多源）</td></tr>
+<tr><td>输出质量仅 58%</td><td>拒绝采样、验证器打分、AI 反馈（RLAIF）层层提纯</td></tr>
+<tr><td>字面多样性过滤</td><td>语义嵌入去重、指令演化扩空间</td></tr>
+<tr><td>~16K 规模平台</td><td>从堆指令数转向堆任务复杂度（Evol）与堆验证强度（RFT/PRM）</td></tr>
+</table>
+<div class="callout"><b>一句话小结</b>｜Self-Instruct 的历史角色类似莱特兄弟的首飞——飞行短暂而粗糙（58% 正确率、16K 平台），但它证明"机器可以自己产生让自己变得对齐的燃料"这一反直觉命题，此后两年整个行业的燃料工业都建在这条跑道的延长线上。</div>
+</section>
+
+<section class="card">
+<h2 class="sec">总结</h2>
+<p>《Self-Instruct》用一个极简的四步自举流水线（<span class="num">175</span> 种子 → 循环扩张 → <span class="num">52,445</span> 指令 + <span class="num">82,439</span> 实例），完成了对"对齐数据必须人工标注"这一默认假设的证伪：GPT3 在 SUPERNI 上零样本 ROUGE-L 从 <span class="num">6.8</span> 提升至 <span class="num">39.9</span>（<span class="num">+33.1%</span>），逼近人类演示路线的 InstructGPT_001（<span class="num">40.8</span>），并在 252 条用户导向指令上仅落后 <span class="num">5%</span>。其方法内核——自举探索、双序生成控分布、ROUGE-L 闸门防坍缩、多模板微调——构成了后世合成数据管线的原型机；其未解之谜——噪声容忍机制、字面多样性盲区、自我蒸馏天花板——划定了随后两年的主战场。作为 Alpaca 与整场开源指令微调浪潮的思想原点，这篇论文的价值不在数字的高度，而在方向的转折：<strong>对齐的第一性资源不是人力，而是模型自身。</strong></p>
+<div class="audit">— 自检区块 —<br>
+[1] UTF-8 编码，无替换字符（U+FFFD）：通过<br>
+[2] div 开闭配平：header/main/section/footer 结构闭合，div 总数 = 开闭相等：通过<br>
+[3] 六层结构完整（摘要 / 一问题定位 / 二概念内核 / 三方法还原 / 四证据链 / 五批判性分析 / 六启示与影响 / 总结）：通过<br>
+[4] 关键数字高亮（52,445 / 82,439 / 6.8→39.9 / +33.1% / 40.8 / 5% / 58% / 54% / ~16K / 175）：通过<br>
+[5] 数字唯一依据 00-源数据提取.md，推理处标注「（推断）」：通过
+</div>
+</section>
+</main>
+<footer>Self-Instruct 深度解读报告 · B2_P2 · 2026-08</footer>
+</body>
+</html>

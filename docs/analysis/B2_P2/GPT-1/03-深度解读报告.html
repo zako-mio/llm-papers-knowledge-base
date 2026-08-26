@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPT-1 深度解读 — Improving Language Understanding by Generative Pre-Training</title>
+<style>
+:root{
+  --ink:#1a2233; --sub:#5a6478; --paper:#f7f5f0; --card:#ffffff;
+  --accent:#0e7c66; --accent-soft:#e2f2ee; --gold:#b98a2e; --gold-soft:#faf3e3;
+  --line:#e4dfd4; --num-bg:#0e7c66; --warn:#b3402a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:"Source Han Sans SC","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;background:var(--paper);color:var(--ink);line-height:1.85;font-size:16px}
+.wrap{max-width:920px;margin:0 auto;padding:0 28px 80px}
+header.hero{background:linear-gradient(135deg,#12312b 0%,#0e7c66 60%,#159a7e 100%);color:#fff;padding:64px 28px 48px;text-align:center}
+header.hero .kicker{letter-spacing:.35em;font-size:.78rem;opacity:.85;text-transform:uppercase;margin-bottom:14px}
+header.hero h1{font-family:"Source Han Serif SC","Noto Serif SC",serif;font-size:2.05rem;line-height:1.45;max-width:780px;margin:0 auto 18px}
+header.hero .en{font-style:italic;font-family:Georgia,"Times New Roman",serif;font-size:1rem;opacity:.88;max-width:640px;margin:0 auto}
+header.hero .meta{margin-top:22px;font-size:.86rem;opacity:.9}
+header.hero .meta span{display:inline-block;margin:0 10px}
+.provenance{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:8px;padding:18px 22px;margin:-26px auto 34px;max-width:860px;font-size:.87rem;color:var(--sub);box-shadow:0 6px 18px rgba(26,34,51,.08)}
+.provenance strong{color:var(--gold)}
+nav.toc{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:44px}
+nav.toc a{text-decoration:none;color:var(--accent);background:var(--accent-soft);border:1px solid transparent;border-radius:999px;padding:6px 16px;font-size:.85rem;transition:.2s}
+nav.toc a:hover{border-color:var(--accent)}
+section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:36px 40px;margin-bottom:32px;box-shadow:0 2px 10px rgba(26,34,51,.04)}
+section h2{font-family:"Source Han Serif SC","Noto Serif SC",serif;font-size:1.42rem;color:#12312b;display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid var(--accent-soft)}
+section h2 .no{flex:none;width:38px;height:38px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.02rem;font-family:Georgia,serif}
+section h3{font-size:1.06rem;color:var(--accent);margin:26px 0 10px}
+section h3::before{content:"§ ";color:var(--gold)}
+p{margin:10px 0}
+ul,ol{padding-left:24px;margin:10px 0}
+li{margin:6px 0}
+span.num{font-family:"SF Mono",Consolas,Menlo,monospace;font-weight:700;color:var(--num-bg);background:var(--accent-soft);border-radius:5px;padding:1px 7px;font-size:.93em;white-space:nowrap}
+span.num.warn{color:var(--warn);background:#fbeae5}
+blockquote{border-left:4px solid var(--gold);background:var(--gold-soft);padding:14px 20px;border-radius:0 8px 8px 0;margin:16px 0;font-size:.92rem;color:#6b5a33}
+blockquote p{margin:6px 0}
+code,.formula{font-family:"SF Mono",Consolas,Menlo,monospace;background:#f0ede6;border-radius:6px;padding:2px 8px;font-size:.88em}
+pre.formula{display:block;padding:16px 20px;margin:14px 0;overflow-x:auto;line-height:1.7}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.89rem}
+th{background:#12312b;color:#fff;font-weight:600;padding:9px 12px;text-align:left}
+td{padding:8px 12px;border-bottom:1px solid var(--line)}
+tr:nth-child(even) td{background:#fbfaf7}
+td.up{color:var(--accent);font-weight:700}
+td.down{color:var(--warn);font-weight:700}
+.tag{display:inline-block;font-size:.72rem;border-radius:999px;padding:2px 10px;margin-right:6px;vertical-align:middle}
+.tag.ext{background:#fbeae5;color:var(--warn)}
+.tag.note{background:var(--gold-soft);color:var(--gold)}
+.abstract{background:linear-gradient(160deg,#fbfaf7,#f2efe8);border:1px dashed #cfc6ae;border-radius:10px;padding:20px 24px;font-size:.95rem}
+.callout{border-radius:10px;padding:16px 20px;margin:16px 0;font-size:.92rem}
+.callout.blue{background:#edf3fa;border-left:4px solid #3a6ea5}
+.callout.red{background:#fdf1ee;border-left:4px solid var(--warn)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:720px){.grid2{grid-template-columns:1fr}section{padding:26px 22px}}
+.mini{background:#fbfaf7;border:1px solid var(--line);border-radius:10px;padding:18px 20px}
+.mini h4{font-size:.95rem;color:#12312b;margin-bottom:8px}
+footer{max-width:860px;margin:0 auto 60px;text-align:center;font-size:.82rem;color:var(--sub)}
+.selfcheck{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 16px;font-family:Consolas,monospace;font-size:.78rem;text-align:left}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="kicker">LLM 关键节点论文 · 深度解读 B2_P2</div>
+  <h1>GPT-1：生成式预训练如何改写 NLP 的迁移范式</h1>
+  <div class="en">Improving Language Understanding by Generative Pre-Training</div>
+  <div class="meta"><span>Radford · Narasimhan · Salimans · Sutskever（OpenAI）</span><span>2018 年 6 月 · Preprint (Work in progress) · 12 页</span></div>
+</header>
+
+<div class="wrap">
+
+<div class="provenance">
+  <strong>数据依据</strong>：本报告全部数字唯一取自同目录 <code>00-源数据提取.md</code>（OpenAI 官方 CDN 直链 PDF 全文提取，SHA256=eb81a65e0856bd38…d0），关键数字随文标注页码/表号。GLUE 总分按稿内注记处理双口径：表格直比 <span class="num">72.8 − 68.9 = +3.9</span>；摘要处 “+5.5%” 为相对 GenSen 口径的粗算。<strong><span class="tag ext">非本文出处</span></strong>参数量 <span class="num">117M</span> 为 OpenAI 后续资料/GPT-2 对比表通行口径，论文正文仅载架构规格。
+</div>
+
+<nav class="toc">
+  <a href="#s0">摘要</a><a href="#s1">一 · 问题定位</a><a href="#s2">二 · 概念内核</a><a href="#s3">三 · 方法拆解</a><a href="#s4">四 · 证据链</a><a href="#s5">五 · 批判性分析</a><a href="#s6">六 · 启示与影响</a>
+</nav>
+
+<section id="s0">
+  <h2><span class="no">◈</span>摘要</h2>
+  <div class="abstract">
+    <p>GPT-1（2018-06）是首个完整验证“生成式预训练 + 判别式微调”范式的工作，也是 Transformer decoder 首次充当通用自然语言理解骨干。论文在 BooksCorpus（<span class="num">7000+</span> 本未出版书籍）上以标准语言建模目标训练 <span class="num">12</span> 层 masked self-attention Transformer decoder（<span class="num">768</span> 维隐藏态、<span class="num">12</span> 头、FFN 内部 <span class="num">3072</span> 维；<span class="num">117M</span> 参数为非本文出处的外部通行口径），随后仅附加线性输出层即迁移到 <span class="num">12</span> 项 NLU 任务：其中 <span class="num">9</span> 项刷新 SOTA，单模型常胜过 ensemble 基线。常识推理 Story Cloze 绝对提升 <span class="num">+8.9%</span>（<span class="num">86.5</span> vs <span class="num">77.6</span>），阅读理解 RACE 提升 <span class="num">+5.7%</span>，CoLA 提升 <span class="num">+10.4</span>（<span class="num">45.4</span> vs <span class="num">35.0</span>），GLUE 总分 <span class="num">72.8</span>（前最佳 <span class="num">68.9</span>）。消融显示移除预训练导致平均分从 <span class="num">74.7</span> 崩塌至 <span class="num">59.9</span>（<span class="num">−14.8</span>），证明预训练是最大收益源；zero-shot 实验进一步预示语言模型可自发习得多任务能力，成为 GPT-2/GPT-3 叙事的思想先声。</p>
+  </div>
+</section>
+
+<section id="s1">
+  <h2><span class="no">一</span>问题定位</h2>
+  <h3>监督学习的标注瓶颈</h3>
+  <p>在 GPT-1 出现之前，NLU 主流做法是为每个任务收集标注数据、从头训练专属网络。这条路线有两个结构性痛点：</p>
+  <ul>
+    <li><strong>标注成本高企且分布不均</strong>——像 RTE 这样的小数据集只有 <span class="num">2490</span> 个样本（p.5–6），纯监督方法在此规模下泛化极差；GPT-1 自己在 RTE 上失守（<span class="num warn">56.0</span> vs 前 SOTA <span class="num">61.7</span>）恰好反证了小数据集对先验知识的渴求。</li>
+    <li><strong>任务间知识零共享</strong>——语言的基础规律（句法、语义、指代、逻辑）要在十几个数据集上被重复学习十几遍。</li>
+  </ul>
+  <p>论文引言将希望寄托于“利用无标注文本中蕴含的丰富信息”（§1, p.1），是对当时社区普遍焦虑的直接回应。</p>
+  <h3>半监督学习的既有格局</h3>
+  <table>
+    <tr><th>前人路径</th><th>代表</th><th>缺口</th></tr>
+    <tr><td>词/句级特征提取</td><td>word2vec、ELMo</td><td>表示是“特征供给方”，下游仍需定制结构；ELMo 所用 1B Word Benchmark 为句级打乱文本，破坏长程结构（§4.1, p.4–5）</td></tr>
+    <tr><td>无监督预训练目标</td><td>语言建模 / 翻译 / 重构</td><td>多基于 LSTM/循环网络，长程依赖弱，缺乏系统性跨任务验证</td></tr>
+    <tr><td>辅助训练目标</td><td>多任务 aux loss</td><td>仅作单任务正则化，未与大规模预训练结合</td></tr>
+  </table>
+  <h3>GPT-1 提出的问题</h3>
+  <div class="grid2">
+    <div class="mini"><h4>① 可行性</h4><p style="font-size:.9rem">无标注语料上的生成式预训练，能否产生对判别任务有实质增益的通用表示？</p></div>
+    <div class="mini"><h4>② 最小改动性</h4><p style="font-size:.9rem">迁移能否不定制架构——只加一个线性输出层就覆盖推理/问答/相似度/分类四大任务族？</p></div>
+  </div>
+  <p>第二点是常被忽视但极具工程价值的主张：GPT-1 明确把“迁移时架构改动最小化”列为全文卖点（§3, p.3–4）。</p>
+</section>
+
+<section id="s2">
+  <h2><span class="no">二</span>概念内核</h2>
+  <h3>范式核心：“pre-train once, fine-tune everywhere”</h3>
+  <pre class="formula">阶段一（无监督）：海量无标注文本 ──语言建模 L₁──▶ 通用表示 Θ
+阶段二（有监督）：Θ + 线性输出层 W_y ──联合目标 L₃──▶ 任务专家</pre>
+  <p>其背后隐含两个假设（论文以实验而非公理方式给出）：</p>
+  <ul>
+    <li><strong>假设 A（通用性）</strong>：预测下一个词这一朴素目标足以迫使模型学会句法、语义乃至语篇连贯，这些能力对判别任务同样有价值。最硬证据来自消融：去掉预训练后 8 数据集平均分从 <span class="num">74.7</span> 掉到 <span class="num">59.9</span>（Table 5, p.8）。</li>
+    <li><strong>假设 B（可迁移性）</strong>：预训练学到的计算结构可逐层搬运。Figure 2 left（p.7）显示从仅迁移 embedding 到全 <span class="num">12</span> 层迁移，MultiNLI 收益单调上升、累计最高达 <span class="num">9%</span>——每一层都携带可迁移功能。</li>
+  </ul>
+  <h3>关键设计抉择及其理由</h3>
+  <table>
+    <tr><th>抉择</th><th>选择</th><th>论文给出的理由</th></tr>
+    <tr><td>语料</td><td>BooksCorpus <span class="num">7000+</span> 本未出版书籍</td><td>长连续文本利于长程依赖学习；对照 ELMo 的句级打乱语料（§4.1）</td></tr>
+    <tr><td>骨干</td><td>Transformer decoder（Liu et al.[34] variant）</td><td>替代 LSTM：长程更稳、并行更高效；消融证实结构本身贡献 <span class="num">−5.6</span> 分差距</td></tr>
+    <tr><td>注意力</td><td>masked self-attention（causal, <span class="num">12</span> heads）</td><td>保持生成目标的概率合法性；代价是牺牲双向编码（见批判性分析）</td></tr>
+    <tr><td>位置编码</td><td>learned position embeddings</td><td>弃用原版 sinusoidal，让位置信息参与学习</td></tr>
+    <tr><td>激活 / 初始化</td><td>GELU[18]；N(0, <span class="num">0.02</span>)</td><td>LayerNorm 广泛使用使简单初始化即可稳定训练</td></tr>
+  </table>
+  <h3>与同期路线的概念分野</h3>
+  <p>ELMo 属于“特征式”：预训练产出上下文向量供下游架构调用，但下游架构仍要重新设计。GPT-1 属于“微调式”：预训练直接给出整套计算图，下游只换输出头。这个分野决定了两件事：其一，迁移成本更低（架构不动）；其二，预训练模型的归纳偏置整体继承到下游——zero-shot 实验正是极端展示：不做任何微调，仅靠启发式读取概率输出，四种任务功能已随预训练稳步上升（Figure 2 right, p.7–8）。</p>
+</section>
+
+<section id="s3">
+  <h2><span class="no">三</span>方法拆解</h2>
+  <h3>目标函数体系（§3, p.3–4）</h3>
+  <pre class="formula">L₁(U) = Σᵢ log P(uᵢ | u_{i−k},…,u_{i−1}; Θ)</pre>
+  <p>计算流程：token embedding Wₑ + position embedding Wₚ → 12 层 transformer block（masked multi-head self-attention + position-wise FFN）→ softmax(h·Wₜ)。</p>
+  <pre class="formula">P(y|x¹,…,x^m) = softmax(h_l^m · W_y)
+L₂(C) = Σ log P(y|x¹,…,x^m)
+L₃(C) = L₂(C) + λ·L₁(C)，λ = 0.5</pre>
+  <p>新增参数只有 W_y 和分隔符 embedding——“minimal architecture change”的形式化表达。辅助 LM 目标的双重作用：(a) 改善泛化；(b) 加速收敛。但消融给出精细结论：<code>w/o aux LM</code> 平均分 <span class="num">75.0</span> 反而比 full 的 <span class="num">74.7</span> 高 <span class="num">0.3</span>，收益集中在 NLI/QQP 等大数据集，小数据集略负（p.8）——λ=<span class="num">0.5</span> 并非普适最优。</p>
+  <h3>架构规格（§4.1 Model specifications, p.5）</h3>
+  <table>
+    <tr><th>项目</th><th>数值</th><th>出处口径</th></tr>
+    <tr><td>层数</td><td><span class="num">12</span>-layer decoder-only Transformer</td><td>论文 §4.1</td></tr>
+    <tr><td>注意力</td><td>masked self-attention，<span class="num">12</span> heads</td><td>论文 §4.1</td></tr>
+    <tr><td>隐藏维</td><td><span class="num">768</span></td><td>论文 §4.1</td></tr>
+    <tr><td>FFN inner states</td><td><span class="num">3072</span></td><td>论文 §4.1</td></tr>
+    <tr><td>参数量</td><td><span class="num">117M</span></td><td><span class="tag ext">非本文出处</span>外部通行口径（OpenAI 后续资料/GPT-2 对比表）</td></tr>
+  </table>
+  <h3>任务输入变换（§3.3, p.4, Figure 1）</h3>
+  <p>traversal-style 思路[52]：把一切结构化输入拍平成单一 token 序列，统一走 linear+softmax 头，共用随机初始化的 ⟨s⟩/⟨e⟩ 标记：</p>
+  <table>
+    <tr><th>任务类型</th><th>变换方式</th></tr>
+    <tr><td>文本蕴含</td><td><code>⟨s⟩ premise $ hypothesis ⟨e⟩</code>（分隔符 $ 拼接）</td></tr>
+    <tr><td>相似度</td><td>两种句序各拼一份分别前向，两个 h_l element-wise 相加再进输出层（天然对称）</td></tr>
+    <tr><td>QA / 常识推理</td><td><code>[z; q; $; a_k]</code>，每个候选独立前向，softmax 归一化选答案</td></tr>
+    <tr><td>分类（SST-2 等）</td><td>直接 <code>⟨s⟩ text ⟨e⟩</code></td></tr>
+  </table>
+  <h3>预训练配置（§4.1, p.4–5）</h3>
+  <table>
+    <tr><th>项</th><th>配置</th></tr>
+    <tr><td>语料</td><td>BooksCorpus[71]：<span class="num">7000+</span> 本未出版书籍（Adventure/Fantasy/Romance 等）</td></tr>
+    <tr><td>分词</td><td>BPE <span class="num">40,000</span> merges[53]；ftfy 清洗 + spaCy tokenizer</td></tr>
+    <tr><td>优化器</td><td>Adam，max lr <span class="num">2.5e-4</span>；<span class="num">2000</span> updates 线性 warmup，余弦退火至 0</td></tr>
+    <tr><td>训练轮次</td><td><span class="num">100</span> epochs，batch <span class="num">64</span> × <span class="num">512</span> token 连续序列</td></tr>
+    <tr><td>正则</td><td>residual/embedding/attention dropout 均 <span class="num">0.1</span>；modified L2 weight decay w=<span class="num">0.01</span>（非 bias/gain 权重，[37] 式）</td></tr>
+  </table>
+  <p>预训练后困惑度达 token-level perplexity <span class="num">18.4</span>（p.5）——衡量生成底座质量的直接指标。</p>
+  <h3>微调配置（§4.1, p.5）</h3>
+  <p>复用预训练超参，分类器加 dropout <span class="num">0.1</span>；lr <span class="num">6.25e-5</span>，batch size <span class="num">32</span>，多数任务 <span class="num">3</span> epochs 即收敛；线性 lr decay + warmup 占训练 <span class="num">0.2%</span>；λ=<span class="num">0.5</span>。“多数任务 3 epochs 收敛”是范式实用性的无声证明——下游适配成本被压到极低。</p>
+</section>
+
+<section id="s4">
+  <h2><span class="no">四</span>证据链</h2>
+  <h3>主结果矩阵（Table 1–4, p.5–7）</h3>
+  <p>评测覆盖 <span class="num">12</span> 数据集、四大任务族：NLI（SNLI/MultiNLI-m·mm/QNLI/RTE/SciTail）、问答与常识推理（RACE-m/-h、Story Cloze）、句子相似度（MRPC/QQP/STS-B）、分类（SST-2/CoLA）：</p>
+  <table>
+    <tr><th>数据集</th><th>GPT-1</th><th>前 SOTA（方法）</th><th>Δ</th></tr>
+    <tr><td>MNLI-m</td><td><span class="num">82.1</span></td><td><span class="num">80.6</span> Stochastic Answer Net(3x)</td><td class="up">+1.5</td></tr>
+    <tr><td>MNLI-mm</td><td><span class="num">81.4</span></td><td><span class="num">80.1</span> 同上</td><td class="up">+1.3</td></tr>
+    <tr><td>SNLI</td><td><span class="num">89.9</span></td><td><span class="num">89.3</span> ESIM+ELMo(5x)/CAFE(5x)</td><td class="up">+0.6</td></tr>
+    <tr><td>SciTail</td><td><span class="num">88.3</span></td><td><span class="num">83.3</span> CAFE</td><td class="up">+5.0</td></tr>
+    <tr><td>QNLI</td><td><span class="num">88.1</span></td><td><span class="num">82.3</span> GenSen</td><td class="up">+5.8</td></tr>
+    <tr><td>RTE</td><td><span class="num warn">56.0</span></td><td><span class="num">61.7</span> Multi-task BiLSTM+Attn</td><td class="down">−5.7 ✗</td></tr>
+    <tr><td>Story Cloze</td><td><span class="num">86.5</span></td><td><span class="num">77.6</span> Hidden Coherence Model</td><td class="up">+8.9</td></tr>
+    <tr><td>RACE val</td><td><span class="num">59.0</span></td><td><span class="num">53.3</span> BiAttention MRU(9x)</td><td class="up">+5.7</td></tr>
+    <tr><td>CoLA (mc)</td><td><span class="num">45.4</span></td><td><span class="num">35.0</span> Single-task BiLSTM+ELMo+Attn</td><td class="up">+10.4</td></tr>
+    <tr><td>SST-2</td><td><span class="num">91.3</span></td><td><span class="num">91.6</span> Multi-task BiLSTM(ELMo)</td><td class="down">−0.3 competitive</td></tr>
+    <tr><td>STS-B (pc)</td><td><span class="num">82.0</span></td><td><span class="num">81.0</span> ECNU(SemEval'17)</td><td class="up">+1.0</td></tr>
+    <tr><td>QQP (F1)</td><td><span class="num">70.3</span></td><td><span class="num">66.1</span> 同 CoLA 基线</td><td class="up">+4.2</td></tr>
+    <tr><td>GLUE 总分</td><td><span class="num">72.8</span></td><td><span class="num">68.9</span> Multi-task BiLSTM+ELMo+Attn</td><td class="up">+3.9 ~ +5.5 *</td></tr>
+  </table>
+  <blockquote><p>* 双口径注记：表格直比 <span class="num">72.8 − 68.9 = +3.9</span>；摘要处 “+5.5%” 为相对 GenSen 71.x 口径的粗算（§4.2 p.6 与 Abstract 对照）。引用必须注明口径。</p></blockquote>
+  <p>证据链三个层次：<strong>广度</strong>（<span class="num">9/12</span> 任务刷新 SOTA）、<strong>强度</strong>（Story Cloze <span class="num">+8.9%</span>、CoLA <span class="num">+10.4</span> 这类跃升出现在此前几乎停滞的任务上）、<strong>纯度</strong>（单模型常胜过 <span class="num">5x/9x</span> ensemble 基线，基线侧脚注明确标出）。</p>
+  <h3>消融研究：收益归因（Table 5, p.8）</h3>
+  <table>
+    <tr><th>变体</th><th>Avg（8 数据集无权平均）</th><th>相对 full Δ</th><th>归因结论</th></tr>
+    <tr><td>Transformer w/ aux LM（full）</td><td><span class="num">74.7</span></td><td>—</td><td>基准</td></tr>
+    <tr><td>Transformer w/o pre-training</td><td><span class="num warn">59.9</span></td><td class="down">−14.8</td><td>预训练是最大单一收益源</td></tr>
+    <tr><td>Transformer w/o aux LM</td><td><span class="num">75.0</span></td><td>+0.3</td><td>aux LM 仅大数据集有益，非普适</td></tr>
+    <tr><td>LSTM w/ aux LM（1层2048单元）</td><td><span class="num">69.1</span></td><td class="down">−5.6</td><td>Transformer 结构本身贡献显著</td></tr>
+  </table>
+  <p>这组消融回答了当时最尖锐的质疑：“涨点到底来自预训练还是新结构？”答案是双因子驱动但权重悬殊——预训练贡献 <span class="num">14.8</span> 分，结构切换贡献 <span class="num">5.6</span> 分，两者相加基本解释了 GPT-1 对旧范式的全面优势。唯一例外细节：LSTM 变体在 MRPC 一项上反而胜出。</p>
+  <h3>迁移深度曲线（Figure 2 left, p.7）</h3>
+  <p>在 MultiNLI 与 RACE 上逐层增加迁移层数：仅迁移 embedding 已有提升，逐层叠加单调改善，全 <span class="num">12</span> 层迁移在 MultiNLI 上累计最高 <span class="num">+9%</span>。这条曲线否定了“只有底层词向量有用”的特征式直觉，证明预训练高层同样携带可迁移的任务无关功能。</p>
+  <h3>Zero-shot 行为学（Figure 2 right, p.7–8）</h3>
+  <div class="callout blue">
+    <p><strong>四种免微调启发式随预训练更新数稳定上升：</strong></p>
+    <ul>
+      <li>CoLA：平均 token log-prob 阈值判决</li>
+      <li>SST-2：追加 "very" 后比较 positive/negative 概率</li>
+      <li>RACE：候选答案平均 log-prob 取最大</li>
+      <li>DPRD / Winograd：代入指代后比较剩余序列 log-prob</li>
+    </ul>
+    <p>同设置下 LSTM zero-shot 方差显著更高 → Transformer 的 inductive bias 更利迁移。这是全文最具前瞻性的一节：首次实证“语言建模本身就是隐式多任务学习”，直接铺垫 GPT-2 的 "unsupervised multi-task learner" 叙事与 GPT-3 的 in-context learning。</p>
+  </div>
+</section>
+
+<section id="s5">
+  <h2><span class="no">五</span>批判性分析</h2>
+  <h3>论文自陈的局限（原文明确承认）</h3>
+  <ol>
+    <li><strong>小数据集失守 RTE</strong>：<span class="num">2490</span> 例上 <span class="num warn">56.0</span> 低于 multi-task biLSTM 的 <span class="num">61.7</span>；作者推测多任务训练可缓解但明言 "we have not explored this currently"（p.5–6）。这是诚实的技术留白，也是后来多任务/提示路线的伏笔。</li>
+    <li><strong>MRPC 未夺冠</strong>：F1 <span class="num">82.3</span> 未超 Single-task BiLSTM 的 <span class="num">84.9</span>（Table 4/5 对照）；相似度三集两胜一平。</li>
+    <li><strong>辅助 LM 目标非普适</strong>：消融显示收益集中于大数据集，小数据集无益甚至略负（p.8）——λ=<span class="num">0.5</span> 默认值掩盖了任务依赖的超参敏感性。</li>
+    <li><strong>多任务联合训练未探索</strong>：结论与正文均留白（p.6, p.8）。</li>
+  </ol>
+  <h3>结构性局限<span class="tag note">推断</span>（由内容合理推断，标注为推断）</h3>
+  <ol start="5">
+    <li><strong>单向因果注意力的先天缺口</strong>：decoder-only masked self-attention 只看左文，天然弱于双向编码。此缺口正是 ELMo/BERT 双向路线的立论点；BERT 随后以双向弥补并在同类任务上反超——GPT-1 与 BERT 十个月的竞速本质上是“生成式目标 vs 双向编码”的目标函数之争。</li>
+    <li><strong>QA 类推理开销大</strong>：<code>[z;q;$;a_k]</code> 逐候选独立完整前向，k 个答案 k 次前向，工程效率低；直到生成式答案范式出现才被绕开。</li>
+    <li><strong>语料域窄且规模有限</strong>：仅 BooksCorpus 约 <span class="num">7000</span> 本书（≈1GB 级文本），体裁偏小说叙事；后续 GPT-2 WebText 证明规模与域多样性是继续涨点的第一杠杆。</li>
+    <li><strong>评测口径混杂</strong>：部分结果取 GLUE leaderboard 口径、部分取各数据集文献，ensemble 基线（<span class="num">5x/9x</span>）与单模型混比，跨表可比性有限——论文自己以脚注声明，GLUE 的 +3.9/+5.5 双口径亦源于此。</li>
+  </ol>
+  <h3>方法学再审视</h3>
+  <div class="callout red">
+    <p>把上述局限放回 2018 年的历史坐标，可得三点公允判断：</p>
+    <ul>
+      <li>"Work in progress" 的自我定位与多处 "we have not explored" 留白表明作者清楚这是一篇<strong>范式宣言而非终局之作</strong>；</li>
+      <li>RTE/MRPC 局部失守恰恰强化主论证——预训练收益在大数据集上压倒性成立，小数据失败指向“如何注入任务知识”这一未解决问题，而非范式失效；</li>
+      <li>zero-shot 小节当时只是附录性质的观察，事后看却是全文最有生命力的部分——历史选择沿这条线走到 GPT-3，而非沿微调线走到 BERT 式精修。</li>
+    </ul>
+  </div>
+  <h3>可复现性与开放性</h3>
+  <p>论文未附官方代码链接，权重发布时未公开（源数据 §1 注明：权重后由 OpenAI 于 2019 年随 GPT-2 发布潮间接开放）。作为 preprint 未经同行评审，所有 SOTA 声明依赖论文自报数字与 GLUE leaderboard 交叉。引用具体分数时应保留“自报结果”的审慎。</p>
+</section>
+
+<section id="s6">
+  <h2><span class="no">六</span>启示与影响</h2>
+  <h3>直接确立的遗产</h3>
+  <ul>
+    <li><strong>范式确立</strong>："pre-train once, fine-tune everywhere" 从此成为 NLP 默认工作流；minimal-architecture-change 迁移原则（只加线性头）至今仍是各种 adapter/prompt 变体的基线。</li>
+    <li><strong>规格原点</strong>：<span class="num">12</span> 层 / <span class="num">768</span> 维 / <span class="num">12</span> 头 / <span class="num">3072</span> FFN 的 GPT-1 规格，成为 GPT-2（48 层）扩缩路线的原点——scaling law 叙事在血缘上始于这张小小的规格表（<span class="num">117M</span> 参数为非本文出处的外部通行口径）。</li>
+    <li><strong>思想先声</strong>：zero-shot 启发式一节是 GPT-2 "language models are unsupervised multi-task learners" 与 GPT-3 in-context learning 的直接思想源头（源数据 §6 历史锚点）。</li>
+  </ul>
+  <h3>对后续竞争格局的影响</h3>
+  <p>GPT-1 用一份未送审的 preprint 改写了行业议程设置：十个月后 BERT 以双向编码在同一批任务上反超，但其“预训练→微调”骨架完全承袭 GPT-1；再往后，GPT 系坚持 causal decoder 路线并在规模化中胜出，证明单向注意力的“缺陷”在足够大的模型与数据面前并非不可逾越——这场目标函数之争的最终裁决权交给了 scale。</p>
+  <h3>方法论层面的可迁移教训</h3>
+  <ol>
+    <li><strong>消融归因先行</strong>：一组干净的四变体消融（<span class="num">−14.8</span> / <span class="num">+0.3</span> / <span class="num">−5.6</span>）预先回应“涨点归因”质疑，“主结果+归因”双链证据结构值得任何系统类论文效仿。</li>
+    <li><strong>最小改动原则的价值</strong>：把“迁移成本”作为一等公民的设计目标，比单纯刷分更具工程生命力。</li>
+    <li><strong>负面结果的诚实呈现</strong>：RTE <span class="num warn">−5.7</span>、SST-2 <span class="num warn">−0.3</span>、MRPC 未夺冠都如实写入正文与表格，反而增强了 <span class="num">9/12</span> 主张的可信度。</li>
+    <li><strong>前瞻性观察的留种价值</strong>：zero-shot 小节篇幅不足一页，却孕育了此后五年的主流叙事——范式级洞见往往最初以脚注形态出现。</li>
+  </ol>
+  <h3>结语</h3>
+  <p>GPT-1 的历史角色是“承前启后的第一块多米诺”：向前，它终结了“每任务一套架构”的手工时代；向后，它埋下了 zero-shot 与 scaling 两条主线。以今天的眼光看，它的绝对分数早已被超越，但它回答的那个问题——<strong>无标注文本中的语言知识能否被一个通用模型统一承载并廉价迁移</strong>——的答案至今仍是整个大语言模型产业的地基。困惑度 <span class="num">18.4</span>、GLUE <span class="num">72.8</span> 这些数字会被遗忘，而两阶段范式不会。</p>
+</section>
+
+</div><!-- /wrap -->
+
+<footer>
+  本报告数字唯一依据同目录 <code>00-源数据提取.md</code>（提取于 2026-08-26，pdf-reader-core 3.1.1）；除显式标注“非本文出处/推断”外均可在论文对应页码复核。<br>解读报告生成日期：2026-08-26 · B2_P2 GPT-1
+  <div class="selfcheck" id="selfcheck">self-check: pending…</div>
+</footer>
+
+<script>
+(function(){
+  var html = document.documentElement.outerHTML;
+  var open = (html.match(/<div\b/g)||[]).length;
+  var close = (html.match(/<\/div>/g)||[]).length;
+  var fffd = html.indexOf("\uFFFD") !== -1;
+  var sections = document.querySelectorAll("section").length;
+  var nums = document.querySelectorAll("span.num").length;
+  var ok = (open === close) && !fffd && sections === 7;
+  document.getElementById("selfcheck").textContent =
+    "self-check: div open=" + open + " close=" + close +
+    " | U+FFFD=" + (fffd ? "FOUND(BAD)" : "none") +
+    " | sections=" + sections + "/7 | span.num=" + nums +
+    " => " + (ok ? "PASS" : "FAIL");
+})();
+</script>
+</body>
+</html>

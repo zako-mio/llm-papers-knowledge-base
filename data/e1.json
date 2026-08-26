@@ -1,0 +1,17 @@
+{
+  "era": "E1",
+  "era_name": "奠基期：注意力革命与预训练范式确立",
+  "range": "2017-06 ~ 2019-12",
+  "narrative": null,
+  "dir": "papers/E1_奠基期_2017-2019",
+  "papers": [
+    {"id": "1706.03762", "slug": "Attention_Is_All_You_Need", "t": "Attention Is All You Need", "org": "Google Brain/Research", "d": "2017-06", "p": "P3", "c": "纯自注意力Transformer架构，完全弃用RNN/CNN", "prev": "LSTM/GRU+attention的seq2seq为主流", "need": "RNN串行训练慢，长程依赖弱难并行", "win": "全并行训练可扩展性极强，效果全面超越", "imp": "奠定大模型时代基石，几乎所有LLM的底座", "code": "https://github.com/tensorflow/tensor2tensor", "conf": "verified"},
+    {"id": "1802.05365", "slug": "ELMo", "t": "Deep Contextualized Word Representations", "org": "AI2", "d": "2018-02", "p": "P2", "c": "双向LSTM深度上下文词表示，动态嵌入替代静态向量", "prev": "静态Word2Vec/GloVe词向量主导", "need": "一词多义无法用静态向量区分", "win": "即插即用提升多项NLP任务，开启上下文表示路线", "imp": "为Transformer预训练铺路", "code": "https://github.com/allenai/allennlp", "conf": "cited"},
+    {"id": null, "ext_url": "https://s3-us-west-2.amazonaws.com/openai-assets/research-covers/language-unsupervised/language_understanding_paper.pdf", "slug": "GPT-1", "t": "Improving Language Understanding by Generative Pre-Training", "org": "OpenAI", "d": "2018-06", "p": "P2", "c": "确立生成式预训练+判别式微调两阶段范式", "prev": "ELMo特征融合式迁移，任务专用架构为主", "need": "标注数据稀缺，需通用统一迁移框架", "win": "Transformer解码器统一架构，12项任务9项SOTA", "imp": "定义decoder-only路线起点，催生GPT系列", "code": "https://github.com/openai/finetune-transformer-lm", "conf": "cited"},
+    {"id": "1810.04805", "slug": "BERT", "t": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding", "org": "Google", "d": "2018-10", "p": "P3", "c": "双向编码器+MLM预训练，理解类任务全面刷新", "prev": "GPT单向语言模型与ELMo浅层拼接并存", "need": "单向建模看不到右侧上下文，理解任务受限", "win": "11项NLU纪录+开源即用成工业标配", "imp": "掀起BERT化浪潮，预训练-微调成NLP标准流程", "code": "https://github.com/google-research/bert", "conf": "verified"},
+    {"id": null, "ext_url": "https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf", "slug": "GPT-2", "t": "Language Models are Unsupervised Multitask Learners", "org": "OpenAI", "d": "2019-02", "p": "P2", "c": "论证语言模型天然是多任务学习者，zero-shot可用", "prev": "BERT式微调范式占绝对主流", "need": "验证摆脱下游监督的任务无关学习假说", "win": "WebText上zero-shot多任务成立，分阶段发布引发热议", "imp": "开创prompt/zero-shot范式，铺路GPT-3规模化", "code": "https://github.com/openai/gpt-2", "conf": "verified"},
+    {"id": "1904.10509", "slug": "Sparse_Transformers", "t": "Generating Long Sequences with Sparse Transformers", "org": "OpenAI", "d": "2019-04", "p": "P1", "c": "strided/fixed稀疏注意力，复杂度O(L√L)", "prev": "全注意力二次方复杂度限制序列长度", "need": "长序列显存与算力爆炸不可行", "win": "万级序列可行且生成质量基本保持", "imp": "开创高效稀疏注意力线，Longformer/BigBird继承", "code": "https://github.com/openai/sparse_attention", "conf": "cited"},
+    {"id": "1910.10683", "slug": "T5", "t": "Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer", "org": "Google", "d": "2019-10", "p": "P2", "c": "text-to-text统一框架+系统消融预训练配方+C4语料", "prev": "各家预训练目标碎片化，缺受控对比结论", "need": "缺乏哪些设计真正有效的系统性实验证据", "win": "框架统一消融详尽C4开放，成seq2seq参考实现", "imp": "影响指令格式设计，C4广泛沿用", "code": "https://github.com/google-research/text-to-text-transfer-transformer", "conf": "verified"},
+    {"id": "1911.02150", "slug": "MQA", "t": "Fast Transformer Decoding: One Write-Head is All You Need", "org": "Google", "d": "2019-11", "p": "P2", "c": "多query头共享单组KV，压缩KV cache", "prev": "标准多头注意力各头独立KV", "need": "解码时KV cache访存成主要瓶颈", "win": "推理吞吐数倍提升，质量损失很小", "imp": "被PaLM/Falcon采用，GQA的直接前身", "code": null, "conf": "cited"}
+  ]
+}

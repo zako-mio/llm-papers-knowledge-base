@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>03-深度解读报告：Qwen3.5 官方发布博客 · B2_P2 开源阵营架构效率节点</title>
+<style>
+:root{
+  --ink:#1a2332; --paper:#fafbfc; --card:#ffffff; --line:#e3e8ef;
+  --accent:#6d28d9; --accent-soft:#f3eefe; --num:#b91c1c; --num-bg:#fef2f2;
+  --muted:#5b6577; --gold:#92610a; --gold-bg:#fffaeb; --green:#047857;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:"Noto Sans SC","Source Han Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--paper); color:var(--ink); line-height:1.85; font-size:16px;
+}
+.hero{
+  background:linear-gradient(135deg,#241a4f 0%,#4c1d95 55%,#6d28d9 100%);
+  color:#fff; padding:64px 24px 56px; text-align:center;
+}
+.hero .kicker{font-size:13px; letter-spacing:.35em; text-transform:uppercase; opacity:.75; margin-bottom:14px;}
+.hero h1{font-size:34px; font-weight:800; letter-spacing:.02em; line-height:1.4;}
+.hero .sub{margin-top:16px; font-size:15px; opacity:.85;}
+.hero .meta{margin-top:22px; display:inline-block; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25); border-radius:999px; padding:6px 20px; font-size:13px;}
+.container{max-width:920px; margin:0 auto; padding:40px 24px 72px;}
+.toc{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:26px 30px; margin-bottom:44px; box-shadow:0 1px 3px rgba(26,35,50,.05);}
+.toc h2{font-size:15px; color:var(--accent); letter-spacing:.15em; margin-bottom:12px;}
+.toc ol{list-style:none; counter-reset:toc;}
+.toc li{counter-increment:toc; padding:5px 0; font-size:15px;}
+.toc li::before{content:counter(toc,cjk-ideographic) "、"; color:var(--accent); font-weight:700; margin-right:8px;}
+.toc a{color:var(--ink); text-decoration:none; border-bottom:1px dashed var(--line);}
+.toc a:hover{color:var(--accent); border-bottom-color:var(--accent);}
+section.card{
+  background:var(--card); border:1px solid var(--line); border-radius:14px;
+  padding:38px 42px; margin-bottom:36px; box-shadow:0 1px 3px rgba(26,35,50,.05);
+}
+section.card>h2{
+  font-size:24px; font-weight:800; padding-bottom:14px; margin-bottom:24px;
+  border-bottom:3px solid var(--accent); display:flex; align-items:center; gap:12px;
+}
+section.card>h2 .idx{
+  flex:none; width:40px; height:40px; border-radius:10px; background:var(--accent);
+  color:#fff; font-size:18px; display:flex; align-items:center; justify-content:center; font-weight:700;
+}
+h3{font-size:18px; margin:30px 0 12px; color:var(--accent); font-weight:700;}
+h3::before{content:"▎"; margin-right:4px;}
+p{margin:12px 0; text-align:justify;}
+ul,ol{margin:12px 0 12px 26px;}
+li{margin:7px 0; text-align:justify;}
+span.num{
+  color:var(--num); background:var(--num-bg); font-weight:700;
+  padding:1px 7px; border-radius:6px; white-space:nowrap;
+  font-family:"JetBrains Mono",Consolas,monospace; font-size:.94em;
+}
+.infer{
+  color:var(--muted); font-style:normal; font-size:.92em;
+  background:var(--accent-soft); border-left:3px solid var(--accent);
+  padding:2px 10px; border-radius:0 6px 6px 0; display:inline-block; margin-top:2px;
+}
+.callout{
+  background:var(--gold-bg); border:1px solid #f2e3b3; border-radius:10px;
+  padding:16px 20px; margin:18px 0; font-size:15px;
+}
+.callout b{color:var(--gold);}
+table{width:100%; border-collapse:collapse; margin:16px 0; font-size:14.5px;}
+th{background:var(--accent-soft); color:var(--accent); text-align:left; padding:10px 12px; border:1px solid var(--line); font-weight:700;}
+td{padding:9px 12px; border:1px solid var(--line); vertical-align:top;}
+tr:nth-child(even) td{background:#fbfaff;}
+blockquote{
+  border-left:4px solid var(--accent); background:var(--accent-soft);
+  padding:14px 18px; border-radius:0 10px 10px 0; margin:16px 0; font-size:15px; color:var(--muted);
+}
+.kv-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin:18px 0;}
+.kv{
+  background:linear-gradient(160deg,var(--accent-soft),#fff); border:1px solid var(--line);
+  border-radius:10px; padding:14px 16px;
+}
+.kv .k{font-size:12.5px; color:var(--muted); letter-spacing:.08em;}
+.kv .v{font-size:21px; font-weight:800; color:var(--accent); margin-top:4px; font-family:"JetBrains Mono",Consolas,monospace;}
+.selfcheck{
+  background:#f0fdf4; border:1px solid #bbf7d0; border-radius:14px;
+  padding:22px 28px; margin-top:44px; font-size:14px; color:var(--green);
+}
+.selfcheck h2{font-size:15px; margin-bottom:10px; letter-spacing:.12em;}
+.selfcheck ul{margin-left:20px;}
+footer{margin-top:40px; text-align:center; font-size:13px; color:var(--muted);}
+@media (max-width:640px){
+  section.card{padding:26px 20px;}
+  .hero h1{font-size:25px;}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="kicker">LLM 关键节点论文全集 · B2_P2 · 开源阵营架构效率节点</div>
+  <h1>Qwen3.5 深度解读报告<br>Towards Native Multimodal Agents</h1>
+  <div class="sub">397B 总参 · 每 token 激活 17B · 线性注意力 Gated DeltaNet + 稀疏 MoE 混合架构 · Apache-2.0 开放权重</div>
+  <div class="meta">Qwen Team（阿里巴巴通义实验室）· 2026 年 2 月发布 · 本报告成文 2026-08-26</div>
+</div>
+
+<div class="container">
+
+<nav class="toc">
+  <h2>目 录</h2>
+  <ol>
+    <li><a href="#s1">问题定位——效率为何升格为第一性命题</a></li>
+    <li><a href="#s2">概念内核——四大支柱概念</a></li>
+    <li><a href="#s3">方法拆解——架构 / 训练 / 推理三层规格</a></li>
+    <li><a href="#s4">证据链——从爆点数字到基准矩阵</a></li>
+    <li><a href="#s5">批判性分析——六个批判点</a></li>
+    <li><a href="#s6">启示与影响——范式迁移的三条战线</a></li>
+  </ol>
+</nav>
+
+<section class="card" id="s1">
+  <h2><span class="idx">壹</span>问题定位</h2>
+  <h3>节点坐标：开源竞争公式的改写时刻</h3>
+  <p>本文档所属的 B2_P2 节点，处于开源阵营从「总参数军备竞赛」转向「架构级效率」的转折点上。在 Qwen3.5 之前，开源旗舰的竞争力公式是<span class="num">1T</span> 级总参对冲激活不足（如 K2-1T-A32B）；Qwen3.5 发布博客提出的命题则是：<b>在不牺牲能力的前提下优化速度与成本</b>。<span class="infer">（推断：这一命题转换是对闭源旗舰 API 定价体系的正面攻击——性能进入同一梯队后，「开源权重 + 低推理成本」构成组合拳。）</span></p>
+  <h3>博客的五问结构</h3>
+  <ol>
+    <li><b>是什么</b>——<span class="num">397B</span> 总参 / 每 token 仅激活 <span class="num">17B</span> 的原生视觉-语言模型，语言支持 <span class="num">119→201</span> 种；</li>
+    <li><b>有多强</b>——Language 与 Vision Language 双基准表，对标 GPT5.2、Claude 4.5 Opus、Gemini-3 Pro；</li>
+    <li><b>为什么能</b>——承袭 Qwen3-Next 的线性注意力 + 高稀疏 MoE 架构叙事；</li>
+    <li><b>怎么训的</b>——异构多模态训练近 <span class="num">100%</span> 纯文本吞吐、FP8 全管线、异步 RL 框架端到端 <span class="num">3×–5×</span> 加速；</li>
+    <li><b>去哪里</b>——从模型 scaling 转向系统集成：持久记忆 / 具身接口 / 自我改进 / 经济感知。</li>
+  </ol>
+  <div class="callout"><b>话语策略观察：</b>博客同时面向开发者（吞吐倍数 + Model Studio 托管）、开源社区（Apache-2.0 权重 + 完整模型卡）与评测界（双基准表 + 口径脚注）。<span class="infer">（推断：三重受众决定了「技术细节点到为止 + 数字密集轰炸」的文体，也埋下后续批判空间。）</span></div>
+</section>
+
+<section class="card" id="s2">
+  <h2><span class="idx">贰</span>概念内核</h2>
+  <h3>支柱一：线性注意力的工程化落地（Gated Delta Networks）</h3>
+  <p>传统自注意力逐 token 计算注意力矩阵，序列复杂度平方级；Gated DeltaNet（源自 arXiv:<span class="num">2412.06464</span>，Mamba2 的 delta rule 改造）以<b>门控衰减 + delta rule 增量更新固定尺寸循环状态</b>替代之，序列复杂度近线性。其输出门控（output gating）消除 attention sink 与 massive activations——线性架构大规模训练的两大经典稳定性杀手。纯线性注意力存在记忆瓶颈，Qwen 的解法是 <span class="num">3:1</span> 混合排布：<span class="num">60 层 = 15 × [3×(GDN→MoE) + 1×(GA→MoE)]</span>，保留周期性全局混合层。这是「效率不牺牲能力」主张的架构学基础。</p>
+  <h3>支柱二：高稀疏 MoE 与激活经济学</h3>
+  <p><span class="num">512</span> 专家、每 token 激活 <span class="num">10 routed + 1 shared</span>（expert intermediate dim <span class="num">1024</span>），激活比约 <span class="num">4.1%</span>。<span class="infer">（推断：该稀疏度属已公开大模型中最激进梯队。）</span>单次前向计算量接近一个 <span class="num">17B</span> 稠密模型，知识容量却对应 <span class="num">397B</span> 总参；配合 MTP 多步预测头，共同构成 <span class="num">19×</span> 吞吐的架构基础。</p>
+  <h3>支柱三：早期融合的原生多模态</h3>
+  <p>不做 VL 适配器后挂，而是预训练即混入视觉 token，换取「跨代持平的语言能力 + 超专用 VL 模型的视觉能力」双目标。实测 MMMU <span class="num">85.0</span>、MathVision <span class="num">88.6</span>、OmniDocBench1.5 <span class="num">90.8</span> 支撑后半句。<span class="infer">（推断：原生路线统一了语言与视觉训练管线，为具身接口铺路，与 Summary 的未来宣言呼应。）</span></p>
+  <h3>支柱四：Agent 规模化 RL</h3>
+  <p>post-training 增益主要来自 RL 任务与环境的大规模扩展，重难度递进与泛化性而非刷榜；综合排名口径披露为 BFCL-V4 / VITA-Bench / DeepPlanning / Tool-Decathlon / MCP-Mark 五项平均名次——对抗「挑指标」质疑的话语设计。</p>
+</section>
+
+<section class="card" id="s3">
+  <h2><span class="idx">叁</span>方法拆解</h2>
+  <h3>架构层全栈规格（HF 模型卡 Model Overview）</h3>
+  <table>
+    <tr><th>维度</th><th>规格</th><th>分析含义</th></tr>
+    <tr><td>层布局</td><td><span class="num">60</span> 层 = <span class="num">15</span> 组 × [<span class="num">3</span>×GDN+MoE，<span class="num">1</span>×GA+MoE]</td><td><span class="num">3:1</span> 线性/全注意力交替，全局混合周期 <span class="num">4</span> 层</td></tr>
+    <tr><td>GDN 头配置</td><td>V=<span class="num">64</span> / QK=<span class="num">16</span>，head dim <span class="num">128</span></td><td>V/QK 非对称头数为 DeltaNet 系典型设计</td></tr>
+    <tr><td>全注意力层</td><td><span class="num">32</span> Q 头 / <span class="num">2</span> KV 头，dim <span class="num">256</span>，RoPE dim <span class="num">64</span></td><td>GQA 将 KV Cache 压至 2 头，长上下文省显存</td></tr>
+    <tr><td>MoE</td><td><span class="num">512</span> 专家，<span class="num">10+1</span> 激活，inter dim <span class="num">1024</span>，hidden dim <span class="num">4096</span></td><td>shared expert 保底通用知识</td></tr>
+    <tr><td>词表</td><td><span class="num">248,320</span>（padded），上代 <span class="num">150k→250k</span></td><td>服务 <span class="num">201</span> 语言与 <span class="num">10–60%</span> 编解码效率提升</td></tr>
+    <tr><td>上下文</td><td>原生 <span class="num">262,144</span> → 可扩展 <span class="num">1,010,000</span> tokens</td><td>原生即 256k，百万级为外推扩展</td></tr>
+  </table>
+  <p><span class="infer">（推断：GQA 仅 2 KV 头 + 线性层占 75%，使长上下文 KV Cache 显存大幅下降——这是 256k 场景吞吐优势的第二支柱，第一支柱是 MTP。）</span></p>
+  <h3>训练层三大基础设施创新</h3>
+  <ul>
+    <li><b>异构原生多模态训练</b>：视觉+文本混训保持近 <span class="num">100%</span> 相对纯文本吞吐——解决 early fusion 最大工程障碍；</li>
+    <li><b>原生 FP8 管线</b>：激活内存降约 <span class="num">50%</span>、提速 &gt;<span class="num">10%</span>，稳定扩展数十万亿 token 量级；</li>
+    <li><b>可扩展异步 RL 框架</b>：train-inference 分离、rollout router replay、投机解码、多轮 rollout locking、梯度陈旧性约束五项技术，端到端 <span class="num">3×–5×</span> 加速，支持百万级 agent scaffold。</li>
+  </ul>
+  <p><span class="infer">（推断：第三项最具战略纵深——RL 环境规模化是 Agent 能力来源，异步框架决定环境规模上限，本质是为「Agent 数据飞轮」修基础设施。）</span></p>
+  <h3>推理层与评测方法层</h3>
+  <p>Qwen Chat 提供 auto/thinking/fast 三模式，API 暴露 enable_thinking / enable_search；auto 模式下模型自主决定是否思考及调用 search/code interpreter。<span class="infer">（推断：决策权向模型自主判断转移，指向 Agent 自治方向。）</span>评测脚注披露 Search Agent 采用 context-folding（<span class="num">256k</span> 阈值裁剪工具响应）或 discard-all 双策略——BrowseComp <span class="num">69.0</span> vs <span class="num">78.6</span> 差异来源，官方坦承 agentic 分数依赖 scaffolding。</p>
+</section>
+
+<section class="card" id="s4">
+  <h2><span class="idx">肆</span>证据链</h2>
+  <h3>核心指标速览</h3>
+  <div class="kv-grid">
+    <div class="kv"><div class="k">解码吞吐（256k，vs Qwen3-Max）</div><div class="v">19.0×</div></div>
+    <div class="kv"><div class="k">总参数 / 每 token 激活</div><div class="v">397B / 17B</div></div>
+    <div class="kv"><div class="k">SWE-bench Verified</div><div class="v">76.4</div></div>
+    <div class="kv"><div class="k">基座 MMLU-Pro</div><div class="v">76.01</div></div>
+    <div class="kv"><div class="k">TAU2-Bench</div><div class="v">86.7</div></div>
+    <div class="kv"><div class="k">MathVision（超 Gemini-3 Pro 86.6）</div><div class="v">88.6</div></div>
+    <div class="kv"><div class="k">AIME26 / HMMT Feb25</div><div class="v">91.3 / 94.8</div></div>
+    <div class="kv"><div class="k">语言覆盖</div><div class="v">201 种</div></div>
+  </div>
+  <h3>效率主张的证据</h3>
+  <p><span class="num">19.0×</span> 解码吞吐（<span class="num">256k</span> 档，vs Qwen3-Max；<span class="num">32k</span> 档为 <span class="num">8.6×</span>）；对 Qwen3-235B-A22B 为 <span class="num">7.2×</span> / <span class="num">3.5×</span>。第三方复现：AMD MI355X + SGLang 报告最高 <span class="num">17×</span> 加速；PyTorch TokenSpeed 记录 <span class="num">580</span> tps agentic GPU 速度纪录。<span class="infer">（推断：硬件厂商与框架方的复现意愿虽利益相关，但技术可信度高于广告。）</span>能力侧：预训练基座匹配 &gt;<span class="num">1T</span> 参数的 Qwen3-Max-Base；MMLU-Pro <span class="num">76.01</span> vs GLM-4.5 <span class="num">65.00</span>、DeepSeek-V3.2 <span class="num">62.82</span>。</p>
+  <h3>能力证据分层</h3>
+  <table>
+    <tr><th>维度</th><th>关键数字</th><th>横向位置</th></tr>
+    <tr><td>数学推理</td><td>AIME26 <span class="num">91.3</span>，HMMT Feb25 <span class="num">94.8</span>，IMOAnswerBench <span class="num">80.9</span>，GPQA <span class="num">88.4</span>，HLE-Verified <span class="num">37.6</span></td><td>第一梯队</td></tr>
+    <tr><td>编码</td><td>SWE-bench Verified <span class="num">76.4</span>，Terminal Bench 2 <span class="num">52.5</span></td><td>落后 Claude 4.5 Opus（<span class="num">80.9</span>）/ GPT5.2（<span class="num">80.0</span>），持平 K2.5（<span class="num">76.8</span>）</td></tr>
+    <tr><td>Search Agent</td><td>BrowseComp <span class="num">69.0/78.6</span>（双策略），BrowseComp-zh <span class="num">70.3</span>，HLE w/ tool <span class="num">48.3</span>，WideSearch <span class="num">74.0</span></td><td><span class="num">78.6</span> 与 K2.5 持平、略超 Claude（<span class="num">67.8</span>）</td></tr>
+    <tr><td>General Agent</td><td>TAU2-Bench <span class="num">86.7</span>，BFCL-V4 <span class="num">72.9</span>，MCP-Mark <span class="num">46.1</span>，Tool Decathlon <span class="num">38.3</span>，DeepPlanning <span class="num">34.3</span></td><td>MCP-Mark 显著超 K2.5（<span class="num">29.5</span>）低于 GPT5.2（<span class="num">57.5</span>）；TAU2 接近 Claude（<span class="num">91.6</span>）</td></tr>
+    <tr><td>视觉多模态</td><td>MMMU <span class="num">85.0</span>，MathVision <span class="num">88.6</span>，OmniDocBench1.5 <span class="num">90.8</span>，OCRBench <span class="num">93.1</span>，OSWorld-Verified <span class="num">62.2</span>，AndroidWorld <span class="num">66.8</span>，ZEROBench <span class="num">12</span>，BabyVision <span class="num">52.3</span></td><td>文档理解与数学视觉多项同表领先</td></tr>
+    <tr><td>多语言</td><td>NOVA-63 <span class="num">59.1</span>，MAXIFE <span class="num">88.2</span>，INCLUDE <span class="num">85.6</span></td><td>表中最高或次高</td></tr>
+    <tr><td>基座对照</td><td>MMLU-Pro <span class="num">76.01</span>，SuperGPQA <span class="num">57.96</span>，SWE-agentless <span class="num">43.26</span></td><td>较 DeepSeek-V3.2（<span class="num">62.82</span>/<span class="num">34.67</span>）全面领先同代开源</td></tr>
+  </table>
+  <div class="callout"><b>证据结构评估：</b>博客呈金字塔修辞——塔尖是 <span class="num">19×</span> 单一爆点，中层是双基准表铺开，底层是基础设施叙述托底。<span class="infer">（推断：塔尖数字的参照系是自家上代而非跨厂商对照——证据链最强一环锚在最弱对照系上，是全文最值得警惕的结构性错位。）</span></div>
+</section>
+
+<section class="card" id="s5">
+  <h2><span class="idx">伍</span>批判性分析</h2>
+  <h3>其一：吞吐数字的口径依赖</h3>
+  <p><span class="num">8.6×/19.0×</span> 以自家 Qwen3-Max 为分母且绑定 <span class="num">32k/256k</span> 特定档位，无跨厂商同硬件对照。第三方 SemiAnalysis 指出此类比值对 TP 配置与 interactivity 假设敏感。<span class="infer">（推断：更公允的呈现应是同硬件每 token 成本绝对值；回避绝对值符合营销规律但有损可比性。）</span></p>
+  <h3>其二：无独立技术报告的可验证性缺口</h3>
+  <p>仅博客 + 模型卡，scaling 细节待后续报告。未披露清单冗长：总训练 token 数（仅「数十万亿」量级）、GPU 型号与算力成本、视觉编码器规格、蒸馏/合成数据占比、RL 环境构造与奖励设计；安全评测章节完全缺位，与 Anthropic 式 system card 发布形成对照。<span class="infer">（推断：「跨代持平」目前是断言而非可检验结论。）</span></p>
+  <h3>其三：自评口径空间</h3>
+  <p>BrowseComp 分数强依赖策略选择（<span class="num">69.0</span> vs <span class="num">78.6</span>，差近 <span class="num">10</span> 分）；MathVision 对自家用固定 boxed{} prompt、对他家取两次运行最高值。综合排名五项中 BFCL-V4 与 MCP-Mark 恰是其相对强项。<span class="infer">（推断：非造假，而是「合规的议程设置」。）</span></p>
+  <h3>其四：GDN 架构的隐性部署税</h3>
+  <p>混合架构要求推理框架同时管理 KV Cache 与 Mamba 循环状态双资源池，并做 PD 分离状态迁移，部署复杂度高于标准 Transformer；官方博客对此只字未提。<span class="infer">（推断：将造成生态分层——大厂自建推理栈吃满红利，中小部署方因框架支持滞后可能实际体验不到倍数优势。）</span></p>
+  <h3>其五：广度指标的质量盲区</h3>
+  <p><span class="num">201</span> 语言仅报广度与 <span class="num">10–60%</span> 编解码效率提升，低资源语言质量无逐语种评测；词表扩容亦有 embedding 参数膨胀代价。<span class="infer">（推断：多语言广度更多是地缘市场信号而非能力证明。）</span></p>
+  <h3>其六：首日单尺寸的生态不确定性</h3>
+  <p>"more sizes are coming"——小尺寸是否沿用 DeltaNet 混合架构当时未定，社区围绕 GDN 的推理栈投资存在押注风险（后续 Qwen3.6 才补齐尺寸矩阵）。</p>
+</section>
+
+<section class="card" id="s6">
+  <h2><span class="idx">陆</span>启示与影响</h2>
+  <h3>开源阵营：竞争主轴的扭转</h3>
+  <p>从「总参数军备竞赛」转向「激活经济学 + 架构效率」——<span class="num">397B</span> 总参即可跨代持平 &gt;<span class="num">1T</span> 的基座。<span class="infer">（推断：此后开源发布的必答题将从「MMLU 多少」变为「每 token 激活多少、长上下文吞吐多少」。）</span></p>
+  <h3>推理基础设施：一次范式迁移</h3>
+  <p>GDN 混合架构成为线性注意力工程化落地的最大规模公开验证，vLLM/SGLang/TokenSpeed 等框架被迫在同一周期支持「KV Cache + Mamba State」双资源池管理。<span class="infer">（推断：类似当年 GQA 普及——短期适配阵痛，长期成标配能力。）</span></p>
+  <h3>多模态路线：原生融合的胜利</h3>
+  <p>early fusion 首次以完整基准表证明「原生 ≥ 适配器后挂」（MMMU <span class="num">85.0</span>、OmniDocBench1.5 <span class="num">90.8</span>、OSWorld-Verified <span class="num">62.2</span> 同时覆盖理解与具身操作）。<span class="infer">（推断：VL 适配器作为独立品类将加速萎缩。）</span></p>
+  <h3>Agent 产品化：三点可迁移经验</h3>
+  <ul>
+    <li>Search Agent 的 context-folding 策略（<span class="num">256k</span> 阈值裁剪工具响应）可复用；</li>
+    <li>综合排名用多任务平均名次而非单点最高分，更抗过拟合；</li>
+    <li>auto 模式的意图路由预示 API 设计从显式开关走向自治判断。</li>
+  </ul>
+  <h3>节点结论</h3>
+  <p>B2_P2 节点的历史意义在于<b>效率从工程优化项升格为架构设计的第一性原理</b>。一份无独立技术报告的博客完成了这件事：证据强度不足以终结「线性 vs 全注意力召回能力」的学术争论，但足以改变产业默认选项。<span class="num">19×</span> 这个数字的修辞寿命会超过它的技术精确性——发布博客的本质是行业议程的重设工具，而非科学论文。<span class="infer">（推断：评估此类节点的正确姿势是追踪六个月后第三方部署统计，届时真实吞吐分布会替代发布日倍数。）</span></p>
+  <h3>谱系连接与方法论沉淀</h3>
+  <p><b>向前</b>：架构直接承袭 Qwen3-Next，学术源头为 arXiv:<span class="num">2412.06464</span> 对 Mamba2 的 delta rule 改造——本节点是「线性注意力学术线」与「稀疏 MoE 工程线」的交汇点。<b>向后</b>：Summary 宣告持久记忆/具身接口/自我改进/经济感知四方向，「经济感知」意味着模型将对自身推理成本负责——与 <span class="num">19×</span> 叙事构成同一逻辑两半：先降单位成本，再让模型节约地使用自己。</p>
+  <p><b>方法论三条</b>：(a) 倍数反查法——遇 X 倍数字先找分母与档位；(b) 脚注考古法——口径差异藏在脚注（BrowseComp 双策略差近 <span class="num">10</span> 分即「官方自曝的口径敏感带」）；(c) 未披露清单法——未披露项的分布模式比披露项更能反映议程取舍（算力成本与安全评测双双缺席，指向成本与安全叙事的主动回避）。</p>
+</section>
+
+<div class="selfcheck">
+  <h2>✓ 文末自检（Self-Check）</h2>
+  <ul>
+    <li>编码：UTF-8 无 BOM，meta charset=UTF-8 已声明，全文无 U+FFFD 替换字符；</li>
+    <li>结构：DOCTYPE / html / head / body 开闭配平，全部 div 与 section 成对闭合，CSS 内联于单一 style 块；</li>
+    <li>数据：全部量化数字取自同目录《00-源数据提取.md》（阿里云官方镜像 × HF 模型卡交叉核验），未引入外部数字；</li>
+    <li>标注：凡分析性判断均以「（推断）」样式（.infer 类）显式标示，与事实陈述区分；</li>
+    <li>排版：单文件无外链依赖，span.num 高亮关键数字，含目录锚点跳转与响应式布局。</li>
+  </ul>
+</div>
+
+<footer>B2_P2 · 开源阵营架构效率节点 · Qwen3.5 官方发布博客深度解读 · 数据依据：00-源数据提取.md · 2026-08-26</footer>
+
+</div>
+</body>
+</html>

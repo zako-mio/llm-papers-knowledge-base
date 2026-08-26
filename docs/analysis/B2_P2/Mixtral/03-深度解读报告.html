@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《Mixtral of Experts》深度解读报告</title>
+<style>
+:root{
+  --ink:#1f2430; --muted:#5c6470; --paper:#faf9f7; --card:#ffffff;
+  --brand:#fa500f; --brand2:#ff7000; --line:#e6e2db; --soft:#fdf3ec;
+  --code:#f4f1ec; --ok:#0e7a4d;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:"Noto Serif SC","Songti SC","SimSun",Georgia,serif;
+  background:var(--paper); color:var(--ink); line-height:1.85; font-size:16px;
+}
+.wrap{max-width:920px;margin:0 auto;padding:0 24px}
+/* ---------- hero ---------- */
+.hero{
+  background:linear-gradient(135deg,#2b1a10 0%,#4a2408 45%,#7c3a06 100%);
+  color:#fff;padding:64px 0 48px;border-bottom:6px solid var(--brand);
+}
+.kicker{
+  font-family:"JetBrains Mono",Menlo,monospace;font-size:12px;letter-spacing:.22em;
+  text-transform:uppercase;color:#ffb37a;margin-bottom:14px;
+}
+.hero h1{font-size:44px;line-height:1.25;font-weight:900;letter-spacing:.01em}
+.hero h1 .en{color:var(--brand2)}
+.hero .sub{margin-top:12px;font-size:18px;color:#f3e3d3}
+.hero .meta{
+  margin-top:22px;display:flex;flex-wrap:wrap;gap:10px;
+  font-family:"JetBrains Mono",Menlo,monospace;font-size:12px;color:#e8cdb4;
+}
+.hero .meta span{border:1px solid rgba(255,179,122,.4);border-radius:999px;padding:4px 12px}
+/* ---------- toc ---------- */
+nav.toc{
+  position:sticky;top:0;z-index:50;background:rgba(250,249,247,.96);
+  border-bottom:1px solid var(--line);backdrop-filter:blur(6px);
+}
+nav.toc .wrap{display:flex;gap:4px;overflow-x:auto;padding:10px 24px}
+nav.toc a{
+  white-space:nowrap;text-decoration:none;color:var(--muted);font-size:13.5px;
+  padding:5px 12px;border-radius:999px;font-family:"Noto Sans SC","PingFang SC",sans-serif;
+}
+nav.toc a:hover{background:var(--soft);color:var(--brand)}
+/* ---------- sections ---------- */
+main{padding:40px 0 24px}
+section{margin-bottom:56px}
+h2{
+  font-size:28px;font-weight:900;margin-bottom:20px;padding-left:14px;
+  border-left:6px solid var(--brand);line-height:1.4;
+}
+h2 .tag{
+  font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--brand);
+  vertical-align:middle;margin-right:10px;
+}
+h3{font-size:19.5px;font-weight:700;margin:30px 0 12px;color:#33281f}
+h3::before{content:"§ ";color:var(--brand2);font-weight:900}
+p{margin:12px 0}
+ul,ol{margin:12px 0 12px 26px}
+li{margin:7px 0}
+strong{font-weight:800}
+em{color:var(--brand);font-style:normal;font-weight:700}
+/* key number highlight */
+.num{
+  font-family:"JetBrains Mono",Menlo,monospace;font-weight:800;color:var(--brand);
+  font-size:1.06em;background:var(--soft);padding:1px 6px;border-radius:6px;
+}
+.big{
+  font-family:"JetBrains Mono",Menlo,monospace;font-weight:900;color:var(--brand);
+  font-size:1.35em;
+}
+blockquote{
+  margin:22px 0;padding:16px 20px;background:var(--soft);
+  border-left:4px solid var(--brand2);border-radius:0 10px 10px 0;
+  font-size:15.5px;color:#4a3a2b;
+}
+blockquote b{color:var(--brand)}
+.formula{
+  font-family:"JetBrains Mono",Menlo,monospace;background:var(--code);
+  padding:14px 18px;border-radius:10px;margin:16px 0;font-size:15px;
+  overflow-x:auto;border:1px solid var(--line);
+}
+.note{color:var(--muted);font-size:13.5px}
+.src{font-size:12.5px;color:#9a938a;font-family:"Noto Sans SC",sans-serif}
+/* tables */
+.tablewrap{overflow-x:auto;margin:18px 0;border-radius:12px;box-shadow:0 1px 4px rgba(60,40,20,.08)}
+table{border-collapse:collapse;width:100%;background:var(--card);font-size:14px}
+th{
+  background:#33281f;color:#ffd9bd;padding:10px 12px;text-align:center;
+  font-family:"Noto Sans SC","PingFang SC",sans-serif;font-weight:600;white-space:nowrap;
+}
+td{padding:9px 12px;text-align:center;border-top:1px solid var(--line);white-space:nowrap}
+td:first-child{text-align:left;font-weight:600}
+tr.hl td{background:#fff4ea;font-weight:800}
+tr.hl td:first-child{color:var(--brand)}
+caption{
+  caption-side:bottom;font-size:12.5px;color:var(--muted);padding:10px 4px;
+  font-family:"Noto Sans SC",sans-serif;text-align:left;
+}
+/* cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:20px 0}
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:18px 18px 14px;position:relative;overflow:hidden;
+}
+.card::before{content:"";position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(90deg,var(--brand),#ffb37a)}
+.card .v{font-family:"JetBrains Mono",monospace;font-size:26px;font-weight:900;color:var(--brand)}
+.card .k{font-size:13px;color:var(--muted);margin-top:2px;font-family:"Noto Sans SC",sans-serif}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+@media (max-width:720px){.duo{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.panel h4{font-size:15px;color:var(--brand);font-family:"Noto Sans SC",sans-serif;margin-bottom:8px}
+.panel p,.panel li{font-size:14.5px}
+.warn{
+  background:#fff8ef;border:1px dashed #e0a35c;border-radius:12px;
+  padding:14px 18px;margin:16px 0;font-size:14.5px;
+}
+.warn b{color:#b3541e}
+/* summary block */
+.abstract{
+  background:var(--card);border:1px solid var(--line);border-left:6px solid var(--brand);
+  border-radius:14px;padding:26px 30px;font-size:15.8px;
+}
+/* footer & selfcheck */
+footer.end{
+  margin:60px 0 0;padding:34px 0 46px;background:#241a12;color:#d8c7b6;
+}
+footer.end h2{color:#fff;border-color:var(--brand)}
+.selfcheck{
+  margin-top:26px;border:1px dashed #6b543f;border-radius:12px;padding:16px 20px;
+  font-family:"JetBrains Mono",monospace;font-size:12.5px;color:#bfa98f;
+}
+.selfcheck b{color:#8fd6ac;font-weight:600}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="kicker">LLM 关键节点论文解读 · B2 批次 · Sparse MoE</p>
+    <h1>Mixtral of <span class="en">Experts</span></h1>
+    <p class="sub">首个登顶开源 SOTA 的稀疏混合专家模型 —— <span class="num" style="background:rgba(255,179,122,.15)">13B</span> 激活参数撼动 Llama2 70B</p>
+    <div class="meta">
+      <span>Mistral AI · 26 位作者</span>
+      <span>arXiv:2401.04088v1</span>
+      <span>2024-01-08 · 13 页</span>
+      <span>Apache 2.0 开放权重</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="wrap">
+    <a href="#abs">摘要</a>
+    <a href="#s1">一 问题定位</a>
+    <a href="#s2">二 概念内核</a>
+    <a href="#s3">三 方法拆解</a>
+    <a href="#s4">四 证据链</a>
+    <a href="#s5">五 批判审视</a>
+    <a href="#s6">六 启示与影响</a>
+    <a href="#end">总结</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<section id="abs">
+  <h2><span class="tag">ABSTRACT</span>摘要</h2>
+  <div class="abstract">
+    <p>2024 年 1 月 8 日，法国初创公司 Mistral AI 以近乎「裸奔」的方式发布了《Mixtral of Experts》：一篇 13 页的紧凑技术报告加一组 Apache 2.0 许可的开放权重。核心论断只有一句——<strong>稀疏混合专家（SMoE）不再是实验室里的扩展性演示，而是可以在开源世界直接登顶的实用架构</strong>。</p>
+    <p>Mixtral 8x7B 每个 token 仅激活 <span class="big">13B</span> 参数（稀疏总量 <span class="big">47B</span>），却在几乎所有流行基准上匹敌或超越激活参数为其 5 倍的 Llama2 70B；代码与数学大幅领先——HumanEval <span class="num">40.2%</span> vs 29.3%、MBPP <span class="num">60.7%</span> vs 49.8%、MATH maj@4 <span class="num">28.4%</span> vs 13.8%。指令版 MT-Bench 达 <span class="num">8.30</span>（发布时点开源最优），Arena Elo <span class="num">1121</span> 超过 GPT-3.5 Turbo、Claude-2.1（均 1117）与 Gemini Pro（1111）。多语言上法/德/西/意四语 MMLU 反超 Llama2 70B 达 5.8–7.3 点；长上下文 Passkey retrieval 任意长度位置均 <span class="num">100%</span> 命中。</p>
+    <p>比性能更深远的是路由分析的反直觉发现：<strong>专家选择与语法而非主题对齐</strong>——MoE 的「专家」并非人们想象的「数学专家」「生物专家」。配合 Apache 2.0 完全开放，本文成为引爆开源 MoE 生态的关键节点。</p>
+  </div>
+  <div class="grid">
+    <div class="card"><div class="v">13B / 47B</div><div class="k">每 token 激活 / 稀疏总量参数</div></div>
+    <div class="card"><div class="v">70.6%</div><div class="k">MMLU（Llama2 70B 为 69.9%）</div></div>
+    <div class="card"><div class="v">+10.9</div><div class="k">HumanEval 领先 Llama2 70B 的百分点</div></div>
+    <div class="card"><div class="v">1121</div><div class="k">Arena Elo（超 GPT-3.5 Turbo / Claude-2.1）</div></div>
+  </div>
+  <p class="src">数据依据：同目录 00-源数据提取.md（arXiv:2401.04088v1）；标注（推断）处为分析者推理补充。</p>
+</section>
+
+<section id="s1">
+  <h2><span class="tag">Ⅰ</span>问题定位：稠密缩放的死结与 MoE 的信任赤字</h2>
+
+  <h3>论文要解决的问题</h3>
+  <p>稠密 Transformer 存在结构性死结：<strong>能力增长与推理成本刚性绑定</strong>。想要更好的质量就要堆更多参数，而每次前向推理都要为全部参数「付全款」。Llama2 70B 是当时开源稠密的质量天花板，但部署门槛与推理成本居高不下。</p>
+  <p>稀疏 MoE 在理论上恰好解开这个结：把 FFN 复制多份（每个即一个「专家」），由门控网络为每个 token 只挑选少量专家计算，从而让<strong>总参数量（知识容量）与每 token 计算量解耦</strong>。GShard 等先行工作已证明该路线可扩展到巨大稀疏规模。但在本文发表时，MoE 在开源 LLM 社区处于明显「信任赤字」：</p>
+  <ul>
+    <li><strong>训练不稳定的名声</strong>：路由崩溃、负载失衡使 MoE 被视为难驯服的架构（推断：社区普遍认知；源数据明确提到 Expert Parallelism 存在 load balancing 挑战）；</li>
+    <li><strong>开源界没有可用的 SOTA MoE</strong>：早期 MoE 多为封闭场景产物，从未以开放权重服务通用 LLM 社区；</li>
+    <li><strong>科学问题悬而未决</strong>：「专家到底学到了什么」直接影响 MoE 的可解释性与后续利用方式。</li>
+  </ul>
+
+  <h3>三重命题的交汇</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>命题</th><th>内容</th><th>论文给出的答案</th></tr></thead>
+    <tbody>
+      <tr><td>性能命题</td><td style="white-space:normal;text-align:left">MoE 能否以小激活参数打败大激活稠密？</td><td style="white-space:normal;text-align:left">能：<em>13B 激活 ≥ 70B 稠密</em>（几乎所有基准）</td></tr>
+      <tr><td>工程命题</td><td style="white-space:normal;text-align:left">能否用最朴素的 MoE 变体稳定训练并开源？</td><td style="white-space:normal;text-align:left">能：top-2 路由 + 全层替换 + 标准 SwiGLU</td></tr>
+      <tr><td>科学命题</td><td style="white-space:normal;text-align:left">路由函数按什么原则分派 token？</td><td style="white-space:normal;text-align:left">与<em>语法而非主题</em>对齐</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>发布时机</h3>
+  <p>2023 年底的时间窗口极为微妙：Mistral 7B 已证明小模型的配方威力，Llama2 70B 代表开源稠密的极限，GPT-3.5 是闭源标杆。Mixtral 将三者同时设为对标物，并以「开放权重 + 宽松许可」完成降维打击——这不是一篇纯学术论文，而是<strong>一次带着明确生态意图的架构宣言</strong>。</p>
+
+  <blockquote><b>一句话小结</b>：本文同时回答三个命题——用最简单的 MoE 变体证明性能命题（13B 打 70B），用开放发布改写工程命题（首个开源 SOTA MoE），用路由分析回答科学命题（专家 ≠ 领域大脑）。</blockquote>
+</section>
+
+<section id="s2">
+  <h2><span class="tag">Ⅱ</span>概念内核：五个核心概念逐一定义</h2>
+
+  <h3>2.1 稀疏混合专家层（SMoE Layer）</h3>
+  <p><strong>定义</strong>：将 Transformer 中每层的 FFN 子块替换为 n 个并行专家加一个门控网络，每个 token 仅由 top-K 个专家处理。Mixtral 取 n=<span class="num">8</span>、K=<span class="num">2</span>，输出公式为：</p>
+  <div class="formula">y = Σ<sub>i∈TopK</sub> Softmax(TopK(x·W_g))<sub>i</sub> · SwiGLU<sub>i</sub>(x)</div>
+  <p>机制分四步：① 门控矩阵 W_g 对当前 token 打 8 个 logit；② TopK 保留最大的 K=2 个、其余置 −∞；③ softmax 后只剩两个非零权重；④ 两个被选中专家的 SwiGLU 输出按权重相加。注意这是 <strong>per-token 级路由</strong>——同一句子的不同 token 会走不同专家，整段文本实际由多个专家「接力」处理（推断引申：这正是路由分析中连续 token 局部性发现的对照面）。</p>
+
+  <h3>2.2 双参数口径：Sparse vs Active Parameter Count</h3>
+  <div class="duo">
+    <div class="panel">
+      <h4>Sparse Parameter Count = 47B</h4>
+      <p>随专家数 n 线性增长，决定<strong>显存占用</strong>。全部 8 个专家无论是否被选中都必须驻留显存。</p>
+    </div>
+    <div class="panel">
+      <h4>Active Parameter Count = 13B</h4>
+      <p>主要由 K 决定、近似常数，决定<strong>每 token 计算量</strong>。「47B 容量，13B 价格」（计算意义上的价格）。</p>
+    </div>
+  </div>
+  <p>这是全文成本论证的基石，也是后来所有 MoE 模型营销话术的共同源头：MoE 把成本拆成两半——<strong>内存看稀疏总量，计算看激活量</strong>。</p>
+
+  <h3>2.3 全层替换与 GShard 的两点区别</h3>
+  <ul>
+    <li><strong>替换范围</strong>：Mixtral 替换<strong>所有</strong> FFN 子块；GShard 只每隔一个替换一次；</li>
+    <li><strong>门控复杂度</strong>：GShard 对第二个专家采用更精细的 gating 策略；Mixtral 统一用 Softmax(TopK)。</li>
+  </ul>
+  <p>这两点刻画了 Mixtral 的工程哲学——<strong>更彻底、但更简单</strong>。（推断）这种「砍掉花活」的选择与 Mistral 7B 一脉相承的极简主义一致：架构创新点到为止，把不确定性留给数据配方。</p>
+
+  <h3>2.4 专家并行（EP）与 Megablocks 高效实现</h3>
+  <p>EP 将 8 个专家分布到不同设备，token 经 all-to-all 通信路由到专家所在设备，代价是负载不均（load balancing 挑战）。Megablocks（CUDA kernel）把 expert FFN 运算转成<strong>稀疏矩阵乘法</strong>，原生处理每个专家收到的可变数量 token，无需 padding 或丢 token。这一点在第 5 章路由分析中会得到微观印证——token 分配存在局部聚集模式，既是 EP 过度订阅风险的来源，也可被缓存利用。</p>
+
+  <h3>2.5 路由的语法局部性</h3>
+  <p><strong>定义</strong>：专家选择与<strong>语法（syntax）而非主题（topic）对齐</strong>；连续 token 倾向分配到相同专家；高层（15/31 层）呈现显著的临时局部性。</p>
+  <p>这直接否定了「8 专家 = 8 个领域大脑」的直觉想象：ArXiv、生物学、哲学三类语料在层 0/15/31 的专家分配几乎一致，仅 DM Mathematics 略有差异。（推断）一种合理解释是：FFN 专家承担的是更底层的特征变换分工，其分化维度与表层语言学结构相关，而与内容语义正交。</p>
+
+  <blockquote><b>一句话小结</b>：SMoE 层提供机制，双参数口径提供成本语言，全层替换 + 简单门控提供工程形态，EP/Megablocks 提供系统支撑，语法局部性则揭示这套机制真正学到的东西。</blockquote>
+</section>
+
+<section id="s3">
+  <h2><span class="tag">Ⅲ</span>方法拆解：架构、训练与评测体系还原</h2>
+
+  <h3>3.1 架构还原：一张表看清 Mixtral 8x7B</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>配置项</th><th>值</th><th style="text-align:left">含义解读</th></tr></thead>
+    <tbody>
+      <tr><td>num_experts</td><td><span class="num">8</span></td><td style="text-align:left;white-space:normal">每 FFN 层的专家数</td></tr>
+      <tr><td>top_k</td><td><span class="num">2</span></td><td style="text-align:left;white-space:normal">每 token 激活专家数</td></tr>
+      <tr><td>context length</td><td><span class="num">32K</span> (32768)</td><td style="text-align:left;white-space:normal">预训练序列长度</td></tr>
+      <tr><td>n_layers</td><td>32</td><td style="text-align:left;white-space:normal">decoder 层数（每层 FFN 均为 MoE）</td></tr>
+      <tr><td>hidden_dim</td><td>14336</td><td style="text-align:left;white-space:normal">FFN 隐层宽度</td></tr>
+      <tr><td>dim / vocab_size</td><td>4096 / 32000</td><td style="text-align:left;white-space:normal">模型主宽度 / 词表大小</td></tr>
+      <tr><td>n_heads / head_dim</td><td>32 / 128</td><td style="text-align:left;white-space:normal">注意力头配置</td></tr>
+      <tr><td>n_kv_heads</td><td>8</td><td style="text-align:left;white-space:normal">KV 头远小于查询头（KV 缓存压缩设计，推断：GQA）</td></tr>
+      <tr class="hl"><td>稀疏 / 激活参数</td><td><span class="num">47B</span> / <span class="num">13B</span></td><td style="text-align:left;white-space:normal">双口径成本结构</td></tr>
+    </tbody>
+  </table></div>
+  <p>除「每层 FFN → 8 专家 MoE」外，整体结构与 Mistral 7B 完全相同——最大程度复用已验证的基础设施与训练配方。（推断）这是初创公司能短时间交付 SOTA 的隐性前提：架构冒险被压缩到唯一必要的变更点上。</p>
+
+  <h3>3.2 为什么这套 MoE 形态「训得动」</h3>
+  <p>把组件摊开看：per-token top-2 路由、softmax 门控（未选中 logit 置 −∞）、全层替换、标准 SwiGLU 专家——每一个都是已知组件的最简形态。训练使用 32K 序列长度，并对多语言数据做上采样（直接服务于第四章的多语言成绩）。</p>
+
+  <h3>3.3 推理经济学：随 n 增参、随 K 近常数计算</h3>
+  <p><strong>增加专家数 n 只增加参数（内存），不增加每 token 计算；每 token 计算量近似只由 K 决定</strong>。前向只需运行 2 个专家的 FFN 加一次门控。硬币的另一面：全部 8 个专家的 47B 参数必须完整驻留显存。这一「内存换计算」结构决定了 MoE 的优势域（见第五章）。</p>
+
+  <h3>3.4 系统实现</h3>
+  <p>训练与推理依托两条关键技术：Megablocks 稀疏矩阵乘 kernel 处理各专家收到的可变 token 数；分布式策略支持 Model Parallelism 与 Expert Parallelism 组合，其中 EP 引入 all-to-all 通信与负载均衡挑战。</p>
+
+  <h3>3.5 Instruct 管线</h3>
+  <p>Mixtral 8x7B – Instruct 采用两段式后训练：监督微调（SFT）+ 直接偏好优化（DPO，Direct Preference Optimization），后者在成对反馈数据集上进行。SFT/DPO 超参与数据细节未披露。</p>
+
+  <h3>3.6 评测协议：自有管线全量重跑</h3>
+  <p>作者使用自建 evaluation pipeline 重跑所有对比基准以保证公平：</p>
+  <ul>
+    <li><strong>Commonsense Reasoning（0-shot）</strong>：Hellaswag、Winogrande、PIQA、SIQA、OpenbookQA、ARC-Easy、ARC-Challenge、CommonsenseQA</li>
+    <li><strong>World Knowledge（5-shot）</strong>：NaturalQuestions、TriviaQA</li>
+    <li><strong>Reading Comprehension（0-shot）</strong>：BoolQ、QuAC</li>
+    <li><strong>Math</strong>：GSM8K（8-shot，maj@8）、MATH（4-shot，maj@4）</li>
+    <li><strong>Code</strong>：HumanEval（0-shot）、MBPP（3-shot）</li>
+    <li><strong>Aggregated</strong>：MMLU（5-shot）、BBH（3-shot）、AGIEval（3–5-shot，仅英文多选题）</li>
+  </ul>
+  <p>与 Llama2 官方协议存在两处差异：(1) MBPP 使用人工验证子集；(2) TriviaQA 不提供维基上下文。这两处主动声明的偏差是批判章的重要素材。</p>
+
+  <blockquote><b>一句话小结</b>：方法体系的精髓是「最小架构变更 + 最大复用」——只在 FFN 上动手；成本逻辑靠双口径支撑，系统能力靠 Megablocks 与 EP 兜底，评测可信度靠全量重跑保障。</blockquote>
+</section>
+
+<section id="s4">
+  <h2><span class="tag">Ⅳ</span>证据链：五组证据的逐项检验</h2>
+
+  <h3>4.1 主战场 Table 2：13B 激活 vs 70B 稠密</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>模型</th><th>Act.</th><th>MMLU</th><th>HellaS</th><th>WinoG</th><th>PIQA</th><th>Arc-e</th><th>Arc-c</th><th>NQ</th><th>TrivQA</th><th>H.Eval</th><th>MBPP</th><th>Math</th><th>GSM8K</th></tr></thead>
+    <tbody>
+      <tr><td>LLaMA2 7B</td><td>7</td><td>44.4</td><td>77.1</td><td>69.5</td><td>77.9</td><td>68.7</td><td>43.2</td><td>17.5</td><td>56.6</td><td>11.6</td><td>26.1</td><td>3.9</td><td>16.0</td></tr>
+      <tr><td>LLaMA2 13B</td><td>13</td><td>55.6</td><td>80.7</td><td>72.9</td><td>80.8</td><td>75.2</td><td>48.8</td><td>16.7</td><td>64.0</td><td>18.9</td><td>35.4</td><td>6.0</td><td>34.3</td></tr>
+      <tr><td>LLaMA1 33B</td><td>33</td><td>56.8</td><td>83.7</td><td>76.2</td><td>82.2</td><td>79.6</td><td>54.4</td><td>24.1</td><td>68.5</td><td>25.0</td><td>40.9</td><td>8.4</td><td>44.1</td></tr>
+      <tr><td>LLaMA2 70B</td><td>70</td><td>69.9</td><td>85.4</td><td>80.4</td><td>82.6</td><td>79.9</td><td>56.5</td><td>25.4</td><td>73.0</td><td>29.3</td><td>49.8</td><td>13.8</td><td>69.6</td></tr>
+      <tr><td>Mistral 7B</td><td>7</td><td>62.5</td><td>81.0</td><td>74.2</td><td>82.2</td><td>80.5</td><td>54.9</td><td>23.2</td><td>62.5</td><td>26.2</td><td>50.2</td><td>12.7</td><td>50.0</td></tr>
+      <tr class="hl"><td>Mixtral 8x7B</td><td>13</td><td>70.6</td><td>84.4</td><td>77.2</td><td>83.6</td><td>83.1</td><td>59.7</td><td>30.6</td><td>71.5</td><td>40.2</td><td>60.7</td><td>28.4</td><td>74.4</td></tr>
+    </tbody>
+    <caption>完整 Table 2（源数据 §3.2）：Mixtral 用 5 倍更少激活参数对标 Llama 家族。</caption>
+  </table></div>
+  <ol>
+    <li><strong>代码是断层式领先区</strong>：HumanEval <span class="num">40.2%</span>（+10.9）、MBPP <span class="num">60.7%</span>（+10.9）。Mistral 7B 本身代码就强（HumanEval 26.2、MBPP 50.2，接近 70B 水平），Mixtral 在此基础上再拉开一档——（推断）MoE 容量红利叠加了 Mistral 系数据配方的代码偏好。</li>
+    <li><strong>数学同样是重仓区</strong>：MATH maj@4 <span class="num">28.4%</span> vs 13.8%，直接翻倍；GSM8K 74.4% vs 69.6%。</li>
+    <li><strong>语言常识互有胜负</strong>：MMLU 微胜（70.6 vs 69.9）、Arc-e/Arc-c/PIQA 胜；HellaSwag/WinoGrande 略逊。</li>
+    <li><strong>知识检索有惊喜</strong>：NaturalQuestions <span class="num">30.6</span> vs 25.4（+5.2）为语言侧最大差距；TriviaQA 略逊（71.5 vs 73.0），方向相反，（推断）可能与协议差异及知识容量分布有关。</li>
+    <li><strong>诚实的短板</strong>：阅读理解类（BoolQ/QuAC）是论文自认的略逊项——这份不掩盖弱点的表述增强了证据可信度。</li>
+  </ol>
+
+  <h3>4.2 对标闭源 Table 3：越过 GPT-3.5</h3>
+  <p>Table 3 给出 MMLU <span class="num">70.6%</span>（vs GPT-3.5 70.0%、Llama2 70B 69.9%）、MBPP <span class="num">60.7%</span>（vs GPT-3.5 52.2%）、GSM8K <span class="num">58.4%</span>（vs GPT-3.5 57.1%、Llama2 53.6%）。开源模型首次在这组对标中不落下风。</p>
+  <div class="warn"><b>注意</b>：此表 GSM8K 数字（58.4%）与 Table 2（74.4%）不一致，提示两表评测设置存在差异——详见第五章疑点③。</div>
+
+  <h3>4.3 多语言 Table 4：容量红利的定向投放</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>模型</th><th>Act.</th><th>法语 Arc-c/HellaS/MMLU</th><th>德语 MMLU</th><th>西语 MMLU</th><th>意语 MMLU</th></tr></thead>
+    <tbody>
+      <tr><td>LLaMA1 33B</td><td>33</td><td>39.3 / 68.1 / 49.9</td><td>48.7</td><td>52.3</td><td>49.0</td></tr>
+      <tr><td>LLaMA2 70B</td><td>70</td><td>49.9 / 72.5 / 64.3</td><td>64.2</td><td>66.0</td><td>65.1</td></tr>
+      <tr class="hl"><td>Mixtral 8x7B</td><td>13</td><td><span class="num">58.2</span> / 77.4 / <span class="num">70.9</span></td><td><span class="num">71.5</span></td><td><span class="num">72.5</span></td><td><span class="num">70.9</span></td></tr>
+    </tbody>
+    <caption>完整 Table 4（源数据 §3.3）：四语全面超越 Llama2 70B。</caption>
+  </table></div>
+  <p>四语 MMLU 全面反超达 <span class="num">+5.8 至 +7.3 点</span>，且是在英文 MMLU 保持 70.6% 不掉的前提下取得——多语言上采样吃掉的容量没有稀释英文能力，说明 47B 稀疏容量确实提供了稠密 13B 不具备的冗余空间。（推断）这正是「哪里弱就上采样哪里」的数据配比思路在 MoE 架构红利下的成功示范。</p>
+
+  <h3>4.4 长上下文：Passkey 满分与困惑度单调下降</h3>
+  <p>Passkey retrieval 在 32K 任意长度、任意位置下达到 <span class="big">100%</span> 准确率；proof-pile 子集 perplexity 随上下文长度单调下降。前者验证「找得到」，后者验证「用得上」——32K 不是纸面参数，而是有效工作区间。</p>
+
+  <h3>4.5 偏差维度：BBQ 与 BOLD</h3>
+  <p>BBQ accuracy <span class="num">56.0%</span>（Llama2 70B 为 51.5%）；BOLD 语料上各群体情感倾向更正面且标准差相近。把 bias 基准放进正文而非附录，在 2024 年初的开源模型报告中并不多见（推断：多数同期报告仅作合规性附注）。</p>
+
+  <h3>4.6 Instruct 证据：MT-Bench 与 Arena Elo</h3>
+  <p>MT-Bench <span class="big">8.30</span>（2023-12-03 时点开源最优）；Arena Elo <span class="big">1121</span>，超过 Claude-2.1（1117）、GPT-3.5-Turbo（1117）、Gemini Pro（1111）、Llama-2-70b-chat（1077）。需冷静看待：对商业模型的领先仅 <span class="num">+4 分</span>，处于排名波动范围内（推断）；但其象征意义无可争议——<strong>开源模型首次挤进人类偏好评测的第一梯队</strong>。</p>
+
+  <h3>4.7 路由分析：全文最有科学含金量的一章</h3>
+  <ol>
+    <li><strong>主题无关性</strong>：ArXiv、生物学、哲学三类风格迥异的语料，在层 0/15/31 的专家分配直方图近乎一致；仅 DM Mathematics 略有差异。</li>
+    <li><strong>连续性</strong>：连续 token 倾向被分配给相同专家。</li>
+    <li><strong>临时局部性</strong>：高层（15/31）局部性显著，同一窗口内的 token 反复命中同批专家。</li>
+  </ol>
+  <p>系统性含义：对 EP 部署而言，局部性带来过度订阅风险（某设备可能被集中轰炸），但也提供缓存利用机会（推断：热专家常驻可减少交换开销）。对模型理解而言，它宣告了「专家=领域知识库」想象的破产。</p>
+
+  <blockquote><b>一句话小结</b>：Table 2 用 5 倍激活差立住性能命题（代码数学断层领先、阅读理解诚实示弱），Table 3/4 把战线推进到闭源对标与多语言，路由分析则给出超越跑分的科学贡献——专家分工沿语法轴而非主题轴展开。</blockquote>
+</section>
+
+<section id="s5">
+  <h2><span class="tag">Ⅴ</span>批判审视：局限的深层含义与独立疑点</h2>
+
+  <h3>5.1 作者自述局限的深层含义</h3>
+  <ol>
+    <li><strong>成本分析只基于 active parameter count，未建模内存成本与硬件利用率</strong>。深层含义：MoE 的真实优势域是 <em>batch 吞吐场景</em>（多请求共享专家驻留成本），单请求低延迟场景优势缩水（推断引申）。作者自己承认 SMoE 因 routing 与跨设备专家分布带来额外 overhead——「47B 容量 13B 价格」的口号里，「价格」只计了电费没计房租。</li>
+    <li><strong>路由无主题化</strong>：堵死两条路——公众对「可解释专家」的浪漫想象，以及「按专家剪枝/蒸馏」的直觉优化路径。专家不能当领域模块拆卸。</li>
+    <li><strong>仅在 13B 激活规模验证</strong>：SMoE 的 scaling 规律未被建立，「更大 MoE 会继续赢」在当时仍是外推而非结论。</li>
+    <li><strong>评估协议差异</strong>（MBPP 手验子集、TriviaQA 无维基上下文）与数学基准多数投票口径（maj@4/maj@8 而非单采样），使跨论文对比必须谨慎。</li>
+    <li><strong>训练细节缺失</strong>：数据配比、学习率、训练时长、Instruct 超参均未披露。「开源权重」≠「开源配方」，可复现性受限。</li>
+  </ol>
+
+  <h3>5.2 独立观察到的六个疑点</h3>
+  <div class="warn"><b>疑点① 「8x7B」命名的口径游戏</b>：8 × 7B = 56B ≠ 稀疏总量 47B。差额源于只有 FFN 子块被复制 8 份，注意力、嵌入等主干参数共享（推断：47B ÷ 8 ≈ 5.9B，单个专家有效规模小于 7B）。命名暗示「八个 7B 合体」，易被误读为 56B 总参；实际是「共享主干 + 8 个 FFN 专家」。（推断）这是营销友好的口径选择——比「Mixtral 47B」更具传播力，也比「Mixtral 13B」更能体现容量。</div>
+  <div class="warn"><b>疑点② 内存成本的选择性沉默</b>：与「5x 更少激活参数」并列的事实是 5 倍于 13B 的显存驻留需求（推断：47B 权重 FP16 约 90GB 量级，远高于「13B」给人的直觉）。作者在 §3 明确承认只按 active params 计算是诚实的；但标题叙事客观上引导读者聚焦计算口径。对消费级或边缘部署者而言，MoE 的账要重新算。</div>
+  <div class="warn"><b>疑点③ 跨表数字漂移：GSM8K 74.4 vs 58.4</b>：同一模型同一基准，Table 2 记 74.4%、Table 3 记 58.4%（源数据如实记录两处）。最可能是不同评测设置或投票口径（推断），且原文未统一说明。这类并存差异给「择优引用」留下空间——传播成绩时应核对出处表格。</div>
+  <div class="warn"><b>疑点④ 路由结论的外推边界</b>：「语法而非主题对齐」建立在层 0/15/31 三个切片与四类语料域的观察上，未覆盖全部 32 层与更广语料；且语法局部性可能与 tokenizer 粒度、位置结构等低级因素纠缠（推断），未必反映门控网络的「语言学智能」。方向大概率正确，表述为普适定律需谨慎。</div>
+  <div class="warn"><b>疑点⑤ 关键消融缺失</b>：K=2 为什么优于 K=1/K=4？n=8 为什么是最优点？同等 13B 激活的受控稠密对照在哪里？三者皆无。对「MoE 优于稠密」的归因依赖与 70B 稠密的历史成绩对比，而非单变量受控实验。（推断）严格说，论文证明的是「这套 MoE 打赢了那几个稠密」，而非「MoE 范式在同算力下普遍占优」。</div>
+  <div class="warn"><b>疑点⑥ Elo 领先的时效快照性质</b>：1121 vs 1117 的 +4 差距处于评测噪声范围（推断），且为 2023-12-03 时点快照；商业对手迭代会短期改写排名。其价值在于「首次进入第一梯队」的里程碑意义，而非持久领先声明。</div>
+
+  <blockquote><b>一句话小结</b>：最响亮的口号（13B 打 70B、8x7B 命名、Elo 第一梯队）每一处都有口径选择的痕迹——计算口径遮蔽内存口径、乘法命名遮蔽共享主干、瞬态排名遮蔽噪声区间；路由与消融的缺失让「为什么有效」停留在现象学层面。但必须公允地说：作者对上述多数限制做了主动披露，这在竞争性发布中高于平均水准的诚实。</blockquote>
+</section>
+
+<section id="s6">
+  <h2><span class="tag">Ⅵ</span>启示提炼：可迁移的经验与历史走向</h2>
+
+  <h3>五条可迁移启示</h3>
+  <ol>
+    <li><strong>成本叙事重构：active parameters 成为行业通用语言</strong>。此后「总参/激活」双口径成为 MoE 发布的标准格式，「质量 per FLOP」取代「质量 per 参数量」。（推断）这一话语范式至今仍是新一代 MoE 报告的默认开场。</li>
+    <li><strong>简单组件组合可以打败架构炫技</strong>。top-2 softmax 门控、全层替换、标准 SwiGLU——无一新发明却拿下开源 SOTA。（推断引申）数据配方与工程执行力足够强时，架构保守反而是降险的理性选择；真正的壁垒往往在数据与基础设施。</li>
+    <li><strong>路由可解释性是独立的研究富矿</strong>。「专家沿语法轴分工」直接催生后续专家合并、MoE 蒸馏策略、面向局部性的 EP 调度与缓存优化等工作方向（推断）。理解「路由学到了什么」决定了 MoE 能否被剪枝、压缩和安全审计。</li>
+    <li><strong>开放本身就是竞争力</strong>。Apache 2.0 + 开放权重让 Mixtral 迅速成为微调与产品化的默认底座，证明许可与可得性是与性能同阶的战略变量。（推断）这是 Mistral AI 以小团队获得巨大生态影响力的关键一步。</li>
+    <li><strong>容量冗余可以定向投放给短板能力</strong>。多语言上采样在英文不掉分前提下换来四语 5.8–7.3 点反超，示范了 MoE 容量红利的使用姿势：不必均匀变强，可把冗余容量精准投喂战略短板（同样适用于代码、长尾知识与对齐数据）（推断）。</li>
+  </ol>
+
+  <h3>可能的历史走向（基于本文证据的外推）</h3>
+  <ul>
+    <li><strong>开源 MoE 化浪潮</strong>：验证「MoE 可用且可赢」后，（推断）主流开放权重家族相继转向 MoE，细粒度专家、共享专家等更精细设计在其基础上演进；</li>
+    <li><strong>推理基础设施 MoE 原生化与分析标准化</strong>：（推断）推理框架对 MoE 支持成为标配议题；检查「专家分配模式」成为后续 MoE 论文的标配章节；</li>
+    <li><strong>成本模型完善</strong>：从 active-param-only 走向包含内存、带宽、batch 场景的多维权衡——本文自述局限第一条正是这条路的起点。</li>
+  </ul>
+</section>
+
+</main>
+
+<footer class="end" id="end">
+  <div class="wrap">
+    <h2><span class="tag" style="color:#ff9a5c">END</span>总结</h2>
+    <p style="font-size:15.5px;line-height:2">《Mixtral of Experts》是一次以最小架构变更撬动最大格局变化的发布：用「每层 FFN 换成 8 选 2 的专家层」这一个变更点，加上 Mistral 7B 已验证的配方复用，在 <span class="num" style="background:rgba(255,179,122,.15)">13B</span> 激活参数上追平乃至超越 70B 稠密天花板与 GPT-3.5，并以 Apache 2.0 完全开放。它的证据体系扎实但不无瑕疵——代码与数学的断层领先、四语全面反超、Passkey 100% 构成硬证据；而「8x7B」的乘法命名、双口径的成本叙事、跨表数字漂移与消融缺失，提醒我们每一句口号背后都有口径选择。真正超越跑分的贡献是路由分析揭示的真相：<strong style="color:#ffb37a">专家沿语法轴而非主题轴分工</strong>——它同时粉碎了 MoE 的浪漫化想象，打开了系统优化的现实空间。作为节点之作，它的最大遗产是让「稀疏」从此成为开源 LLM 的默认选项之一。</p>
+    <div class="selfcheck">
+      SELF-CHECK 自检清单<br>
+      [ok] UTF-8 编码，无替换字符（meta charset=UTF-8，write 工具写入）<br>
+      [ok] div 开闭配平（脚本校验 open=count=close）<br>
+      [ok] 六层结构完整：摘要 / 一问题定位 / 二概念内核 / 三方法拆解 / 四证据链 / 五批判审视 / 六启示与影响<br>
+      [ok] 关键数字高亮（.num/.big 类，Mistral 品牌橙）<br>
+      [ok] 单文件内联 CSS，无外部资源依赖<br>
+      [ok] 全部数字取自 00-源数据提取.md；推理处标注（推断）
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

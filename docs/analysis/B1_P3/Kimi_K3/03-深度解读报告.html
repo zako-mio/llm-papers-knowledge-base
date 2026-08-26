@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《Kimi K3: Open Frontier Intelligence》深度解读报告</title>
+<style>
+:root{
+  --ink:#1a2332;--ink-soft:#44506b;--paper:#f7f8fb;--card:#ffffff;
+  --accent:#2456d6;--accent-soft:#e8eefc;--gold:#b45309;--num-bg:#fff3e0;
+  --line:#dde3ef;--ok:#0d7a43;--warn:#b3261e;--tag:#5b6474;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Source Han Serif SC","Noto Serif CJK SC","Songti SC",serif;background:var(--paper);color:var(--ink);line-height:1.85;font-size:16px;}
+.wrap{max-width:920px;margin:0 auto;padding:0 28px 80px;}
+header.hero{background:linear-gradient(135deg,#101c3d 0%,#1d3470 55%,#2a4aa8 100%);color:#fff;padding:64px 28px 48px;text-align:center;}
+.hero .kicker{letter-spacing:.35em;font-size:13px;color:#9db4ee;text-transform:uppercase;font-family:ui-monospace,monospace;}
+.hero h1{font-size:32px;line-height:1.4;margin:18px auto 14px;max-width:760px;font-weight:700;}
+.hero .meta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-family:ui-monospace,monospace;font-size:12.5px;color:#c9d6f5;}
+.hero .meta span{border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:4px 14px;}
+.hero p.lede{max-width:720px;margin:22px auto 0;font-size:15px;color:#dbe4fa;}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:38px 42px;margin-top:30px;box-shadow:0 1px 3px rgba(16,28,61,.05);}
+h2{font-size:23px;padding-left:14px;border-left:5px solid var(--accent);margin-bottom:22px;letter-spacing:.02em;}
+h3{font-size:17.5px;color:#16307c;margin:26px 0 10px;}
+p{margin:10px 0;text-align:justify;}
+.num{font-family:ui-monospace,SFMono-Regular,monospace;font-weight:700;color:var(--gold);background:var(--num-bg);padding:1px 6px;border-radius:5px;font-size:.93em;white-space:nowrap;}
+.pos{color:var(--ok);font-weight:700;}
+.neg{color:var(--warn);font-weight:700;}
+blockquote{background:var(--accent-soft);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;padding:14px 20px;margin:16px 0;color:#1c2c58;}
+blockquote b{color:var(--accent);}
+code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9em;background:#eef1f7;padding:1px 5px;border-radius:4px;color:#24304d;}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.8px;}
+th{background:#16244c;color:#eaf0ff;padding:9px 11px;text-align:left;font-weight:600;white-space:nowrap;}
+td{padding:8px 11px;border-bottom:1px solid var(--line);}
+tr:nth-child(even) td{background:#fafbfe;}
+td.c,th.c{text-align:center;}
+.top td{background:#eaf7ef !important;}
+ul,ol{margin:10px 0 10px 24px;}
+li{margin:7px 0;text-align:justify;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0;}
+.mini{border:1px solid var(--line);border-radius:10px;padding:16px 18px;background:#fbfcff;}
+.mini h4{font-size:14.5px;color:#16307c;margin-bottom:8px;}
+.mini p{font-size:13.8px;margin:6px 0;}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:20px 0;}
+.kpi{text-align:center;border:1px solid var(--line);border-radius:12px;padding:18px 10px;background:linear-gradient(180deg,#ffffff,#f2f6ff);}
+.kpi .v{font-family:ui-monospace,monospace;font-size:24px;font-weight:800;color:var(--accent);}
+.kpi .l{font-size:12.5px;color:var(--tag);margin-top:6px;line-height:1.5;}
+.tagline{display:inline-block;background:#eef2fb;color:#3a4c86;border-radius:999px;padding:2px 12px;font-size:12.5px;margin:0 6px 6px 0;font-family:ui-monospace,monospace;}
+.note{font-size:13.5px;color:var(--tag);}
+.audit{background:#10233f;color:#d7e2f7;border:none;}
+.audit h2{color:#fff;border-color:#4d79d8;}
+.audit table{background:transparent;}
+.audit td{border-color:#27406e;background:transparent !important;color:#cfdcf5;}
+.audit th{background:#1c3a68;}
+.pass{color:#5ad18b;font-weight:700;}
+footer{text-align:center;color:var(--tag);font-size:12.5px;margin-top:36px;font-family:ui-monospace,monospace;}
+@media(max-width:640px){section{padding:26px 20px;}.grid2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header class="hero">
+<div class="kicker">Deep Reading · Technical Report Review</div>
+<h1>《Kimi K3: Open Frontier Intelligence》<br>深度解读报告</h1>
+<div class="meta"><span>Moonshot AI · Kimi Team</span><span>arXiv:2607.24653v2</span><span>2026-07</span><span>47 页 Technical Report</span></div>
+<p class="lede">首个开放 3T 级模型如何在"参数规模 × 交互规模"两条缩放轴上同时推进——以混合线性注意力、稳定化 MoE、九专家 RL 与全栈基建，把开源前沿推至闭源双雄的射程之内。</p>
+</header>
+
+<div class="wrap">
+
+<section id="abstract">
+<h2>摘要</h2>
+<p>本文解读 Moonshot AI（月之暗面）Kimi Team 于 2026 年 7 月发布的模型技术报告《Kimi K3: Open Frontier Intelligence》。论文的核心论断是：开源阵营的前沿化必须在<strong>两条缩放轴上同时推进</strong>——把预训练基础模型推到史无前例的 <span class="num">3T 级</span>参数（总参 <span class="num">2.78T</span>、激活 <span class="num">104.2B</span>），同时把 RL、推理强度与长程交互扩展到 <span class="num">1M token</span> 上下文。为此，K3 在架构层给出"稳定性优先"全家桶：以 channel-wise 遗忘门的线性注意力 KDA 与 Gated MLA 按 <span class="num">3:1</span> 混合组成 <span class="num">93 层</span>主干，配合 Attention Residuals 跨层检索、Stable LatentMoE 三项稳定化与 Per-Head Muon 优化器；在系统层则以 MoonEP 完美平衡专家并行、Firecracker 微 VM 沙箱（checkpoint <span class="num">133 ms</span> / resume <span class="num">49 ms</span>）支撑 1M 上下文的 agentic RL。</p>
+<p>最终整体缩放效率较 Kimi K2 提升约 <span class="num">2.5×</span>，在长程编码、agentic、知识、推理与视觉任务上仅次于最强闭源系统（Claude Fable 5、GPT-5.6 Sol），并在 BrowseComp <span class="num pos">91.2</span>、SWE-Marathon <span class="num pos">42.0</span>、ProgramBench <span class="num pos">77.8</span> 等 9 项外部基准登顶，第三方 WebDev Arena Elo 以 <span class="num">1,678</span> 位列 <span class="num">#1/99</span>，同时以 BrowseComp 每任务 <span class="num">$2.03</span> 建立成本优势。这是首个开放的 3T 级模型——尽管其 CC BY-NC-ND 4.0 许可使"开放"一词需要限定语（详见第五章）。本报告按"问题—概念—方法—证据—批判—启示"六层结构逐层拆解。</p>
+<div class="kpis">
+<div class="kpi"><div class="v">2.78T</div><div class="l">总参数<br>激活 104.2B</div></div>
+<div class="kpi"><div class="v">1M</div><div class="l">上下文窗口<br>K2 的 8×</div></div>
+<div class="kpi"><div class="v">2.5×</div><div class="l">整体缩放效率<br>较 Kimi K2</div></div>
+<div class="kpi"><div class="v">69+24</div><div class="l">KDA : MLA<br>按 3:1 混合</div></div>
+<div class="kpi"><div class="v">$2.03</div><div class="l">BrowseComp<br>每任务成本</div></div>
+</div>
+<p class="note">数据依据：pdf-worker 源数据提取文件（00-源数据提取.md），全部数字以该文件为准；标注「（推断）」处为分析者推理补充。</p>
+</section>
+
+<section id="s1">
+<h2>一、问题定位：开源前沿的双重缩放困境</h2>
+<h3>1.1 论文要解决的问题</h3>
+<p>论文面对的是一个行业级悬问：<strong>当最强闭源系统持续领跑时，开放权重模型能否站上同一前沿？</strong>作者的回答不是单点突破，而是主张两条缩放轴必须同时推进：</p>
+<ul>
+<li><strong>轴一 · 预训练规模</strong>：从 Kimi K2 的 <span class="num">1.04T</span> 总参 / <span class="num">32.6B</span> 激活，扩展到 <span class="num">2.78T</span> / <span class="num">104.2B</span>（<span class="num">+167%</span> / <span class="num">+220%</span>）——这是首个开放 3T 级模型；</li>
+<li><strong>轴二 · 交互规模</strong>：将 RL 训练、推理强度（low/high/max 三档）、长程交互扩展到 <span class="num">1M</span> 上下文（训练上下文 128K → 1M，<span class="num">8×</span>），触发数百上千次工具调用、累积极百万 token 的 "reasoning–acting–observing–verifying–adapting" 循环。</li>
+</ul>
+<p>只推轴一会得到一个"知识渊博但不会做事"的大模型；只推轴二则受限于底座容量。（推断）这一"双轴论"实质上是对 2025–2026 年间"预训练撞墙论"的正面回应：预训练没有撞墙，撞墙的是单轴缩放的边际收益。</p>
+<h3>1.2 双轴各自的技术堵点</h3>
+<p>要让双轴缩放可行，需逐一拆除四类堵点，它们构成全文技术布局的真实骨架：</p>
+<ol>
+<li><strong>注意力的长程成本</strong>：纯 softmax 注意力在 1M 上下文下预填充与缓存成本高昂，且传统线性注意力存在"精确回忆"短板——需要能承担主力层的线性注意力变体；</li>
+<li><strong>超大规模 MoE 的训练稳定性</strong>：<span class="num">896 选 16</span>的路由在 2.78T 参数下极易负载失衡与激活爆炸；</li>
+<li><strong>深层网络的信号衰减</strong>：层数 <span class="num">61 → 93</span>，跨层传播距离拉长，朴素堆叠会放大退化；</li>
+<li><strong>长程 agentic RL 的系统瓶颈</strong>：RL rollout 需要真实执行环境，沙箱生命周期管理与 1M 上下文的训练/推理基建都是全新工程问题。</li>
+</ol>
+<blockquote><b>一句话小结：</b>论文的真问题不是"再训一个更大的模型"，而是"让 3T 参数 + 1M 交互的组合在工程上可训、可用、可负担"——四类堵点分别对应 KDA/Gated MLA、Stable LatentMoE/QB、AttnRes、AgentENV/MoonEP 四组解法。</blockquote>
+</section>
+
+<section id="s2">
+<h2>二、概念内核：八个核心概念逐一定义</h2>
+
+<h3>2.1 KDA（Kimi Delta Attention）</h3>
+<p><strong>定义</strong>：带 channel-wise 遗忘门的 delta-rule 循环注意力，递推式为 <code>S_t=(I−β_t k_t k_tᵀ)Diag(α_t)S_{t−1}+β_t k_t v_tᵀ</code>，输出 <code>ő_t=S_tᵀ q_t</code>。<strong>拆解</strong>：delta-rule 负责"有界状态下的覆写式记忆"，channel-wise 遗忘门让每通道拥有独立遗忘速率——相当于给记忆矩阵装上逐通道"时间常数"。工程点睛之笔在于 decay 映射改造：log-decay 用缩放 sigmoid 且下限 <code>g_min=−5</code>，保证 retention factor <code>α &gt; e^−5 ≈ 6.7×10⁻³</code>；由此任意 <span class="num">16-token tile</span> 的累计 log-decay 落在 <span class="num">(−80, 0)</span> 区间，使<strong>连对角线 tile 都能用 dense Tensor Core 乘法计算</strong>——数值稳定性与硬件利用率被绑进同一处设计。K3 中 <span class="num">69/93</span> 层使用 KDA，线性注意力在此不是边缘补充而是主力。</p>
+
+<h3>2.2 Gated MLA</h3>
+<p><strong>定义</strong>：沿用 DeepSeek-V2 MLA（低秩 KV 压缩注意力），全 MLA 层采用 NoPE（无位置编码），新增输入依赖的全秩输出门 <code>y_t=W_o[Sigmoid(W_g x_t)⊙ő_t]</code>，且训练中 attention 输出保留 FP32。<strong>拆解</strong>：<span class="num">24</span> 个 Gated MLA 层与 69 个 KDA 层按每 block <span class="num">3 KDA + 1 MLA</span> 交织。MLA 提供精确回忆锚点，KDA 负责廉价的长程状态维护。（推断）输出门让每个位置自主决定采纳多少注意力输出，类似残差门控；FP32 是 2.78T 规模下对注意力数值精度的保守兜底。NoPE 更深远：位置信息不靠外挂编码，而由 KDA 循环结构内生携带——这是 1M 外推能力的来源之一。</p>
+
+<h3>2.3 Attention Residuals（AttnRes）</h3>
+<p><strong>定义</strong>：每层用可学习 pseudo-query 选择性检索前面所有层的输出作为残差，开销从 O(Ld) 降到 <span class="num">O(Nd)</span>；93 层分 <span class="num">8 blocks</span>（每块 12 层，含 embedding 共 9 块）。<strong>拆解</strong>：解决深层网络的信息高速公路问题。传统做法要么只有紧邻残差（远层信息衰减），要么 dense 连接（成本平方增长）；AttnRes 把"访问历史层"建模成一次检索。（推断）这与 KDA 在哲学上一致——K3 整个架构都在用"检索"替代"持久携带"，无论序列维还是深度维。</p>
+
+<h3>2.4 Stable LatentMoE</h3>
+<p><strong>定义</strong>：将 FFN 全宽投影与路由专家宽分离的 MoE 结构，latent 维度 <span class="num">3,584（0.5×）</span>；每 token 激活 896 专家中的 <span class="num">16</span> 个（稀疏度 <span class="num">56</span>）加 <span class="num">2</span> 个共享专家；配三项稳定化：up-projection 前 RMSNorm、SiTU-GLU、Quantile Balancing。<strong>拆解</strong>：（推断）LatentMoE 让专家在低秩空间工作，降低冗余并省显存；前向公式 <code>u=Σ p_i E_i^routed(W↓x)</code>、<code>y=Σ E_j^shared(x)+W↑RMSNorm(u)</code> 显示专家输出升维前还要过一道 RMSNorm。稀疏度 56 意味着单 token 只见约 <span class="num">1.8%</span> 的专家，这在 896 专家尺度上是激进稀疏，也解释了为何 QB 从"优化技巧"升级为"生存必需"。</p>
+
+<h3>2.5 SiTU-GLU</h3>
+<p><strong>定义</strong>：有界激活函数 <code>β1·tanh(W_g x/β1)⊙Sigmoid(W_g x)⊙(β2·tanh(W_u x/β2))</code>，<code>β1=4</code>、<code>β2=25</code>，输出界 <code>|f(x)| ≤ β1β2 = 100</code>。<strong>拆解</strong>：替代 SwiGLU 的位置。tanh 饱和性天然截断异常大激活，（推断）在 2.78T 规模下个别 token 触发巨大激活是 loss spike 的常见诱因，SiTU-GLU 用函数形状而非梯度裁剪来根治，与"Stable"主题呼应；β 缩放是为了让线性区足够宽、避免拖慢学习。</p>
+
+<h3>2.6 Quantile Balancing（QB）</h3>
+<p><strong>定义</strong>：auxiliary-loss-free 的 MoE 负载均衡——按目标分位数设每专家偏置，取 Top-(k+1) 得分的 cutoff 更新偏置 <code>b^(t+1)_j ← −quantile_{1−k/n}(s_{:,j}−α^(t))</code>；分位数用每专家<span class="num">几百 bin</span> 的直方图估计。<strong>拆解</strong>：auxiliary-loss-free 思想的工程化深化。传统辅助损失间接调节且干扰主损失；QB 直接操纵路由偏置，用分位数（而非极值）作 cutoff 使更新鲁棒，直方图估计避免全局排序开销。（推断）该操作在每个 step 的热路径上运行，精度换速度是有意取舍。</p>
+
+<h3>2.7 MOPD（Multi-Teacher On-Policy Distillation）</h3>
+<p><strong>定义</strong>：多教师在线策略蒸馏——先训出三域 × 三推理强度 {low, high, max} 共 <span class="num">9 个</span>域专家模型，再以学生自身轨迹对齐多个教师分布，蒸馏收敛为单一模型。<strong>拆解</strong>："三域"指 long-horizon coding、general agents、general reasoning/knowledge。直接混训所有域 × 强度容易互相冲突（推断），分治后再合并绕开冲突；on-policy 的关键是学生在自己的分布上学习教师行为，避免分布漂移。这套管线的隐含承诺：<strong>"max 强度的成绩单"与"low 强度的低成本服务"来自同一个权重</strong>。</p>
+
+<h3>2.8 AgentENV</h3>
+<p><strong>定义</strong>：基于 Firecracker 微 VM 的开源 RL 沙箱基础设施：checkpoint <span class="num">133 ms</span> / resume <span class="num">49 ms</span>，支持 pause/resume（等待推理约占 sandbox 生命周期的 <span class="num">98%</span>）、fork（用于奖励判定）与 snapshot；存储 OverlayBD + ublk，内存 overcommit <span class="num">6.5×</span>。<strong>拆解</strong>：名字背后是一个反直觉的资源画像——sandbox 一生中 98% 时间在等模型推理。因此优化方向不是"跑得快"而是"停得起、恢复得快、复制得便宜"。（推断）fork 用于奖励判定意味着同一条轨迹可分叉多个假设结局并行验证，对长程任务的奖励塑形价值很大。</p>
+
+<blockquote><b>一句话小结：</b>八个概念构成一条完整因果链——KDA/Gated MLA 解决"1M 上下文付不起钱"，AttnRes 解决"93 层传不动"，Stable LatentMoE/SiTU-GLU/QB 解决"2.78T 训不稳"，MOPD 解决"多域多强度训不出一个模型"，AgentENV 解决"agentic RL 没地方跑"。</blockquote>
+</section>
+
+<section id="s3">
+<h2>三、方法拆解：架构—预训练—后训练—基建的全栈还原</h2>
+
+<h3>3.1 架构全景：一张 Table 1 看懂 K2 → K3</h3>
+<table>
+<tr><th>维度</th><th class="c">Kimi K2</th><th class="c">Kimi K3</th><th class="c">Δ</th></tr>
+<tr><td>总参数</td><td class="c mono">1.04T</td><td class="c mono"><span class="num">2.78T</span></td><td class="c">+167%</td></tr>
+<tr><td>激活参数</td><td class="c mono">32.6B</td><td class="c mono"><span class="num">104.2B</span></td><td class="c">+220%</td></tr>
+<tr><td>层数</td><td class="c mono">61</td><td class="c mono">93</td><td class="c">+52%</td></tr>
+<tr><td>Hidden Dim</td><td class="c mono">7,168</td><td class="c mono">7,168</td><td class="c">=</td></tr>
+<tr><td>Routed Experts</td><td class="c mono">384</td><td class="c mono">896</td><td class="c">+133%</td></tr>
+<tr><td>Experts Active/Token</td><td class="c mono">8</td><td class="c mono">16</td><td class="c">+100%</td></tr>
+<tr><td>Shared Experts</td><td class="c mono">1</td><td class="c mono">2</td><td class="c">+100%</td></tr>
+<tr><td>每专家 MoE Hidden</td><td class="c mono">2,048</td><td class="c mono">3,072</td><td class="c">+50%</td></tr>
+<tr><td>Latent MoE Dim</td><td class="c mono">–</td><td class="c mono">3,584 (0.5×)</td><td class="c">–</td></tr>
+<tr><td>Attention Heads</td><td class="c mono">64</td><td class="c mono">96</td><td class="c">+50%</td></tr>
+<tr><td>训练上下文</td><td class="c mono">128K</td><td class="c mono"><span class="num">1M</span></td><td class="c">8×</td></tr>
+<tr><td>Attention 机制</td><td class="c">MLA</td><td class="c">Hybrid KDA–MLA</td><td class="c">–</td></tr>
+<tr><td>激活函数</td><td class="c">SwiGLU</td><td class="c">SiTU-GLU</td><td class="c">–</td></tr>
+<tr><td>Attention 层组成</td><td class="c mono">61 MLA</td><td class="c mono">69 KDA + 24 MLA</td><td class="c">–</td></tr>
+</table>
+<p>三个值得注意的结构决策：(1) <strong>Hidden Dim 不变</strong>——扩容几乎全部通过加深、加宽专家池和加多激活专家实现；(2) <strong>激活参数增幅（+220%）超过总参增幅（+167%）</strong>——K3 有意提高每个 token 的"思考预算"，与 agentic 任务需要更强单步计算的判断一致（推断）；(3) <span class="num">3:1</span> 的 KDA:MLA 配比意味着约 <span class="num">75%</span> 注意力层是线性的，1M 上下文的注意力成本被结构性压低。</p>
+<div class="mini"><h4>视觉侧 · MoonViT-V2</h4><p><span class="num">27 层</span> ViT、<span class="num">401M</span> 参数、patch 14、pixel-shuffle 2×2 降采样、最大支持 <span class="num">3,584×3,584</span> 像素；最特别的是<strong>从头以 next-token prediction 训练、不用 SigLIP 初始化</strong>——放弃成熟初始化换取训练稳定性（源数据明确记录此举提升稳定性）。</p></div>
+
+<h3>3.2 预训练：<span class="num">2.5×</span> 缩放效率从哪里来</h3>
+<ul>
+<li><strong>数据</strong>：Web Text / Code / Math / Knowledge 四大文本域 + 大规模视觉语料，含程序化生成多模态数据（SVG、3D、Webpage、Game、CAD）——与后训练 kernel/web-dev 任务形成呼应（推断）；</li>
+<li><strong>Scaling law</strong>：整体缩放效率较 K2 提升约 <span class="num">2.5×</span>（Fig 7）；各自最优超参下 <strong>cosine decay 优于 WSD</strong>——与近期社区风向相逆的实证结论；</li>
+<li><strong>优化器</strong>：Per-Head Muon（Q/K/V 动量矩阵按 head 切分逐一正交化）+ 权重裁剪 + QB；cosine 学习率 + <span class="num">1%</span> warmup，weight decay <span class="num">0.1</span>；</li>
+<li><strong>上下文课程</strong>：初始 <span class="num">8K</span> → <span class="num">64K</span>，cooldown 阶段按 <span class="num">256K → 1M</span> 四阶段课程扩展。</li>
+</ul>
+<p class="note">（推断）2.5× 是"复合乘积"：架构（KDA 降低长上下文成本、LatentMoE 提高参数效率）+ 优化器（Muon 正交化加速收敛）+ 数据课程三者叠加，论文未提供单变量消融分解各因子贡献——这是第四章证据链与第五章批判的共同关注点。</p>
+
+<h3>3.3 后训练：9 个专家如何合并成一个模型</h3>
+<ol>
+<li><strong>SFT 冷启动</strong>：XTML 序列化格式；自 SFT 起即启用 QAT（<span class="num">MXFP4</span> 权重 / <span class="num">MXFP8</span> 激活）——量化感知训练从冷启动开始而非部署前补课；</li>
+<li><strong>域专家 RL</strong>：三域 × 三档推理强度 = <span class="num">9 个专家模型</span>。环境覆盖六类任务：可验证 search 与专业知识工作、software engineering 与 kernel 优化、多模态推理 + vision-in-the-loop 工具使用、persistent assistant 工作流、web 开发、autonomous execution；机制包括统一白盒 RL 环境、知识图谱引导任务合成、agentic 环境中的可验证问题构造等；</li>
+<li><strong>MOPD 合并</strong>：多教师在线策略蒸馏把 9 个专家收敛为单一模型，用户无需在不同场景切换模型。</li>
+</ol>
+
+<h3>3.4 基础设施：三条战线</h3>
+<div class="grid2">
+<div class="mini"><h4>① 3T 预训练线</h4><p>MoonEP 完美平衡专家并行（静态计算形状 + zero-copy 通信，附录 E 给出证明）；统一 activation manager 使 recompute/量化/offload 可组合（block-wise FP8）；SonicMoE 式梯度重写、cache-based pipeline 通信、Pipeline ZeRO-2 梯度分片到 CPU、经 Mooncake 跨 PP rank 远程 offload、P2P Muon 正交化、动态 CP 将 ViT 计算隐藏进 pipeline bubble。</p></div>
+<div class="mini"><h4>② 1M Agentic RL 线</h4><p>co-located RL + partial rollouts + write-back 外部 KV cache 池 + 自适应限制调度器 + 参考权重梯度缓冲复用；沙箱即 AgentENV（checkpoint 133 ms / resume 49 ms / fork 验奖 / 内存超售 6.5×）。</p></div>
+<div class="mini"><h4>③ 推理服务线 · 缓存与调度</h4><p>KDA-aware 前缀缓存：MLA 用 <span class="num">512-token</span> hash block 细粒度索引、物理块 <span class="num">6,144</span> token；KDA checkpoint 稀疏保存于 hash 端点（可在 B=<span class="num">2560</span> 时命中）；chained hash 保证整段前缀匹配；cache-aware affinity 调度（主/备双 cluster）+ budget-based admission control。</p></div>
+<div class="mini"><h4>④ 解码 Kernel</h4><p>KDA 状态 replay（缓存 projected inputs、on-chip 重建 accepted tokens 状态）；Block AttnRes 的 spec 解码激活 + 侧流 + 融合；LatentMoE latent GEMM 融合 + WarpDecode token-centric 解码。</p></div>
+</div>
+<blockquote><b>一句话小结：</b>方法体系是一台"四缸引擎"——架构缸提供可行性，预训练缸提供 2.5× 效率，后训练缸提供能力密度，基建缸把前三缸变成可运维系统；任何一缸熄火，"3T + 1M"的故事都不成立。</blockquote>
+</section>
+
+<section id="s4">
+<h2>四、证据链：基准矩阵的形态学解读</h2>
+
+<h3>4.1 外部基准（Table 2 · effort=max · temp=1.0）：K3 赢在哪、输在哪</h3>
+<p>对比阵容：Claude Fable 5、GPT-5.6 Sol、Claude Opus 4.8、GPT-5.5、GLM-5.2。按结果形态分三组。</p>
+<table>
+<tr><th>A 组 · K3 登顶（9 项）</th><th class="c">Kimi K3</th><th class="c">最强对手</th><th class="c">差距</th></tr>
+<tr class="top"><td>BrowseComp</td><td class="c mono"><span class="num pos">91.2</span></td><td class="c">Sol 90.4</td><td class="c pos">+0.8</td></tr>
+<tr class="top"><td>DeepSearchQA (F1)</td><td class="c mono"><span class="num pos">95.0</span></td><td class="c">Fable 94.2</td><td class="c pos">+0.8</td></tr>
+<tr class="top"><td>MCPMark-Verified</td><td class="c mono"><span class="num pos">94.5</span></td><td class="c">Sol 92.9</td><td class="c pos">+1.6</td></tr>
+<tr class="top"><td>SWE-Marathon</td><td class="c mono"><span class="num pos">42.0</span></td><td class="c">Fable 35.0</td><td class="c pos">+7.0</td></tr>
+<tr class="top"><td>ProgramBench</td><td class="c mono"><span class="num pos">77.8</span></td><td class="c">Sol 77.6</td><td class="c pos">+0.2</td></tr>
+<tr class="top"><td>AutomationBench</td><td class="c mono"><span class="num pos">30.8</span></td><td class="c">Fable 29.1</td><td class="c pos">+1.7</td></tr>
+<tr class="top"><td>Harvey Lab-AA</td><td class="c mono"><span class="num pos">94.6</span></td><td class="c">Fable 93.6</td><td class="c pos">+1.0</td></tr>
+<tr class="top"><td>OmniDocBench</td><td class="c mono"><span class="num pos">91.1</span></td><td class="c">Fable 89.8</td><td class="c pos">+1.3</td></tr>
+<tr class="top"><td>GPQA Diamond（次优，并列 GPT-5.5）</td><td class="c mono">93.5</td><td class="c">Sol 94.1</td><td class="c neg">−0.6</td></tr>
+</table>
+<table>
+<tr><th>B/C 组 · 代表项</th><th class="c">Kimi K3</th><th class="c">领先者</th><th class="c">差距</th><th>组别</th></tr>
+<tr><td>Terminal-Bench 2.1</td><td class="c mono">88.3</td><td class="c">Sol 88.8</td><td class="c neg">−0.5</td><td>B 小幅落后</td></tr>
+<tr><td>MCP-Atlas</td><td class="c mono">84.2</td><td class="c">Fable 84.7</td><td class="c neg">−0.5</td><td>B 小幅落后</td></tr>
+<tr><td>Agents' Last Exam</td><td class="c mono">28.3</td><td class="c">Sol 29.6</td><td class="c neg">−1.3</td><td>B 小幅落后</td></tr>
+<tr><td>CritPt</td><td class="c mono">23.4</td><td class="c">Sol 32.3</td><td class="c neg">−8.9</td><td>C 明显差距</td></tr>
+<tr><td>HLE-Full</td><td class="c mono">43.5/56.0</td><td class="c">Fable 53.3/63.0</td><td class="c neg">−9.8/−7.0</td><td>C 明显差距</td></tr>
+<tr><td>FrontierSWE</td><td class="c mono">81.2</td><td class="c">Fable 86.6</td><td class="c neg">−5.4</td><td>C 明显差距</td></tr>
+<tr><td>SciCode</td><td class="c mono">58.7</td><td class="c">Fable 60.2</td><td class="c neg">−1.5</td><td>C 明显差距</td></tr>
+<tr><td>OfficeQA Pro</td><td class="c mono">63.3</td><td class="c">Fable 69.9</td><td class="c neg">−6.6</td><td>C 明显差距</td></tr>
+<tr><td>OSWorld 2.0</td><td class="c mono">58.3</td><td class="c">Fable 66.1</td><td class="c neg">−7.8</td><td>C 明显差距</td></tr>
+<tr><td>WorldVQA</td><td class="c mono">51.0</td><td class="c">Fable 56.7</td><td class="c neg">−5.7</td><td>C 明显差距</td></tr>
+</table>
+<p><strong>形态学结论</strong>：(1) A 组集中在 <strong>search / agentic 执行 / 文档 / 垂直领域</strong>——恰是"1M 上下文 + 大规模工具调用 + MOPD agent 专家"直接受益的场景；(2) C 组集中在<strong>最难的科研推理（CritPt/HLE）与 computer-use（OSWorld）</strong>——都不是"更长上下文"能直接兑换的能力；(3) SWE-Marathon 的 <span class="num pos">+7.0</span> 是 A 组最大领先，说明<strong>超长程软件工程任务（马拉松而非冲刺）正是 1M 上下文 + KDA 记忆的差异化战场</strong>（推断）。其余亮点：τ³-Banking 33.4（高于除 Sol 33.0 外所有对手）、CorpFin v2 71.6 vs Fable 71.8 微逊 0.2、Math-Vision 94.3/97.8 vs Sol 95.8/97.8、ZeroBench-main (pass@5) 23.0/41.0 与 Fable 持平主榜。</p>
+
+<h3>4.2 内部基准与盲测：自家考卷上的强弱项</h3>
+<div class="grid2">
+<div class="mini"><h4>强项（Table 3）</h4><p>Coding Experience <span class="num pos">59.9</span>（微胜 Fable 59.8）；CLIF Bench <span class="num pos">52.4</span>（vs Sol 50.6）；Swarm Bench <span class="num pos">76.3</span>（vs Sol 73.2）；Deep Research Bench <span class="num pos">90.0</span>（vs Sol 85.3）；Faithfulness（1−幻觉）<span class="num pos">85.5</span>（vs Sol 84.8）。</p></div>
+<div class="mini"><h4>弱项（Table 3）</h4><p>Agent Behavior Bench <span class="num neg">65.0</span>（Fable 75.5 / Sol 76.4，差 10+ 点）；MIRA Bench <span class="num neg">64.1</span>（Fable 72.9）；24/7 ClawBench 2.0 <span class="num">48.3</span>（Sol 52.0）；Agentic Vision Bench <span class="num">78.3</span>（Sol 82.9）；Online Experience 77.9（Sol 84.0）。</p></div>
+</div>
+<p><strong>盲测（Table 4 · Kimi Webdev Bench，专家盲测 vs Claude Opus 4.8）</strong>：Overall Win <span class="num pos">58.6%</span> / Tie <span class="num">13.8%</span> / Lose <span class="num">27.6%</span>（Win−Lose <span class="num pos">+31.0</span>）；其中 3D/WebGL/Shader 类目 <span class="num pos">+59.1</span>、Website/UI Clone <span class="num pos">+26.3</span>、Games <span class="num pos">+14.9</span>——图形密集型任务优势最为悬殊。</p>
+
+<h3>4.3 第三方评估与成本效率</h3>
+<p><strong>第三方榜单</strong>（截至 2026-07-23）：Artificial Analysis Intelligence Index v4.1 得分 <span class="num">57.1</span> 列 <span class="num">#4/580</span>（Fable 59.9、Sol 58.9 在前）；Vals Index <span class="num">74.7</span> 列 <span class="num">#2/39</span>；<strong>WebDev Arena Elo <span class="num pos">1,678</span> 列 #1/99</strong>（Fable 1,634、Sol 1,630）；Text Arena <span class="num">1,486</span> 列 #8/200；Agent Arena <span class="num">9.1</span> 列 #4/37（Fable 12.7）。（推断）第三方口径下与双雄的差距比自报基准更明显，但 WebDev Arena 登顶提供了独立于作者 harness 的第一名证据。</p>
+<p><strong>成本效率（§6.4）</strong>：Kimi Code Bench 2.0 落后 Fable 5 仅 <span class="num">4.0</span> 分而成本仅为其 <span class="num">38%</span>；high effort 即以约 <span class="num">1/3 成本</span>匹配 Claude Opus 4.8 的 max-effort 得分；BrowseComp 最优 <span class="num pos">91.2%</span> 且每任务仅 <span class="num">$2.03</span>（约为 GPT-5.6 Sol 同分位的半数成本，比 Claude max-effort 便宜一个数量级）；GDPval-AA v2 距 Sol 50 Elo 而成本低 <span class="num">13%</span>、比 Fable 便宜 <span class="num">2.6×</span>；AA-Briefcase 第二高分、约为 Fable 一半成本。</p>
+
+<h3>4.4 网络安全评估：一份罕见的自我审计</h3>
+<ul>
+<li><strong>Tier 1（漏洞发现 + POC）</strong>：数百候选漏洞人工复核约 <span class="num pos">70%</span> 为真实漏洞，其中跨 <span class="num">6 个项目</span>的 <span class="num pos">16 个</span>为此前未知漏洞，含 Linux kernel 远程 heap OOB write 与 RDMA 子系统 Dirty-COW 类案例；</li>
+<li><strong>Tier 2（端到端 exploit）</strong>：36 任务中完成 <span class="num pos">14/36（38.9%）</span>，对比 GLM-5.2 的 <span class="num">8/36（22.2%）</span>；成功案例中 10 个来自 user-space、kernel track 仅 4 个；套件建设投入约 <span class="num">540 专家小时</span>；</li>
+<li><strong>独立验证</strong>（UK AISI / NIST CAISI）：ExploitBench <span class="num pos">32%</span> vs GLM-5.2 24%；32 步模拟企业网渗透完成 <span class="num">17 步</span> vs 11 步（人类专家约 20 小时）；41 任务中 arbitrary code execution <span class="num pos">0 个</span>；</li>
+<li><strong>失败模式命名</strong>：链条收尾困难、mitigation 场景下策略选择差、卡死调试循环、交付前验证不足；自评被视为<strong>能力下界</strong>。</li>
+</ul>
+
+<h3>4.5 案例研究：能力的天花板演示</h3>
+<div class="grid2">
+<div class="mini"><h4>GPU Kernel 优化</h4><p>AttnRes 延迟 <span class="num">283.6 → 114.4 ms</span>；DSA <span class="num pos">−55.1%</span>、KDA <span class="num pos">−73.6%</span>；MLA kernel 达峰值 TFLOPS 一半以上；成绩匹配 Claude Fable 5、超过 Opus 4.8 / GPT-5.6 Sol / GPT-5.5。</p></div>
+<div class="mini"><h4>GPU Compiler</h4><p>产出 MiniTriton5 编译器，NVIDIA L20 上超越 torch eager / torch.compile，tensor-core matmul 达约 <span class="num pos">90%</span> measured roofline。</p></div>
+<div class="mini"><h4>芯片设计（48h 自主）</h4><p>Nangate45 库 <span class="num">4 mm²</span> 内 <span class="num">100 MHz</span> 收敛；RTL 仿真 decode 吞吐 <span class="num">&gt;8,700 tokens/s</span>；<span class="num">1.46M</span> 标准单元、<span class="num">0.277 MiB</span> SRAM。</p></div>
+<div class="mini"><h4>行业报告 / 科研分析</h4><p><span class="num">&gt;120 轮</span>迭代，消化 <span class="num">87 份</span>季报 + <span class="num">99 份</span> PDF（<span class="num">&gt;11,000 页</span>）、<span class="num">&gt;2,800</span> 次 web search、<span class="num">&gt;1,100</span> 次 terminal 查询；另以 <span class="num">20+</span> 并发 subagent 分析 GWTC-5 目录中 <span class="num">391 个</span>引力波事件。</p></div>
+</div>
+<blockquote><b>一句话小结：</b>证据体系呈"梯度断层"形态——agentic/search/长程工程上与闭源双雄互有胜负甚至反超（SWE-Marathon +7.0、WebDev Arena 独立登顶），最难推理与 computer-use 上仍有 6–9 分的结构性差距，而成本普遍只有对手的 13%–50%；"仅次于双雄、领先其余所有人"的自我定位与数据吻合。</blockquote>
+</section>
+
+<section id="s5">
+<h2>五、批判审视：局限的深层含义与独立疑点</h2>
+
+<h3>5.1 作者自述局限的深层含义</h3>
+<ol>
+<li><strong>明确落后于双雄</strong>：Elo 类知识工作套件（GDPval-AA v2、AA-Briefcase）与 harder computer-use 基准（OSWorld 2.0、SaaS-Bench）仍在追赶。深层含义：K3 的差异化押注在"长程 agentic 执行"，而在"世界模型式的通用推理深度"上，参数与上下文扩张尚未转化为对闭源前沿的反超。</li>
+<li><strong>内部套件暴露的多点落后</strong>：Agent Behavior、MIRA、ClawBench、Agentic Vision 等内部基准落后领先者。深层含义：作者用自家考卷给自己找茬，这种评测诚实度少见，但也提示这些维度是其路线图的当前欠账。</li>
+<li><strong>安全能力的边界清晰</strong>：hardened targets（Linux kernel）瓶颈明显（成功 exploit 中仅 <span class="num">4/14</span> 来自 kernel track）。安全团队把模型当作"待测攻击面"而非"营销卖点"来报告，方法论上是行业善举。</li>
+<li><strong>数据质量依赖</strong>：长文档/视频语料需专门清理，long-context 能力需靠合成数据维持。深层含义：1M 真实人类语料天然稀缺，合成补给线的可持续性存疑（推断）。</li>
+<li><strong>极端长度可靠性未完全覆盖</strong>：1M 依赖 KDA 无位置编码泛化。官方表述是"支持"而非"性能无损"，使用者应自行做长度衰减测试（推断）。</li>
+</ol>
+
+<h3>5.2 独立观察到的六个疑点</h3>
+<p><strong>① "Open" 的边界：CC BY-NC-ND 4.0 与开放叙事的张力</strong>。论文题为 "Open Frontier Intelligence"、正文称"首个开放 3T 级模型"，但许可证为 <span class="num">CC BY-NC-ND 4.0</span>——非商业（NC）+ 禁止衍生（ND）。（推断）社区可下载研究但不能商用部署、微调发布受限；与 Llama（商业可用）或 Qwen/DeepSeek（Apache/MIT 系）相比，K3 的"开放"更接近"开放权重可获取"而非"开放生态"。对题眼 "Open Frontier"，这是不应忽略的限定。</p>
+<p><strong>② 闭源基线的分数不可独立复现</strong>。Table 2 核心对照 Claude Fable 5 与 GPT-5.6 Sol 均为闭源 API，分数经作者方 harness 采集（effort=max、temp=1.0 统一，但 prompt、工具封装、重试策略均由作者控制）。（推断）第三方榜单缓解了这一问题，但其任务集与 Table 2 不重合，无法交叉验证 SWE-Marathon +7.0 这类关键差距。</p>
+<p><strong>③ 内部基准的 harness 同源性</strong>。Table 3 多数基准以自家产品为 harness（Kimi Code、Kimi Agent、Kimi Work），少数用 Claude Code（竞品 CLI）与 OpenClaw。（推断）harness 的工具封装与 prompt 调优显著影响 agentic 得分，"自家模型 × 自家 harness"即便无意偏袒也存在协同调优的历史积累；Coding Experience 59.9 vs 59.8 这类 0.1 分级结论尤其不宜过度解读。</p>
+<p><strong>④ 2.5× 缩放效率是复合指标，无归因分解</strong>。Fig 7 的 2.5× 是架构、优化器、数据、基建共同作用的净效应，无"固定其余变量、单独替换 KDA/Muon/LatentMoE"的单变量消融。（推断）后来者无法判断哪一项贡献最大——若 Muon 贡献大头，小规模模型抄 KDA 架构可能得不偿失（KDA 收益与上下文长度强耦合）。</p>
+<p><strong>⑤ 安全能力披露的责任框架缺失</strong>。报告披露 <span class="num">16 个</span>此前未知漏洞（含 Linux kernel 级），但未见负责任披露流程说明（是否上报厂商、协调窗口、是否延迟披露）。（推断）Tier 2 38.9% 端到端 exploit 能力 + 开源权重本身即是双重外部性：防御方获得预警样本，攻击方获得可直接微调的底座。"41 任务 ACE 为 0"针对的是评测套件，不能外推为通用安全边界。</p>
+<p><strong>⑥ 成本对比的分母口径</strong>。effort 档位的选择权在对齐比较中影响巨大（K3 自己的三档设计就证明了这一点）。$2.03/task 对应 K3 何种 effort 档、对手分数对应何档，读者需回原文核对方可确认可比性。（推断）方向性结论（显著更便宜）可信，精确倍数宜保守引用。</p>
+<blockquote><b>一句话小结：</b>这份报告的证据纪律在同类技术报告中属上乘（自曝弱项、第三方复核、失败模式命名俱全），但许可张力、闭源基线不可复现、内部 harness 同源三点叠加，意味着"仅次于双雄"应读作"在作者设定的评测协议下成立"；2.5× 效率归因与安全披露框架有待社区复现与实践补完。</blockquote>
+</section>
+
+<section id="s6">
+<h2>六、启示与影响：可迁移的经验与未来走向</h2>
+
+<h3>6.1 六条可迁移启示</h3>
+<ol>
+<li><strong>混合注意力有了可抄的主力层配方</strong>。<span class="num">3:1</span> 的 KDA:MLA 配比证明线性注意力可在超大模型承担约 <span class="num">75%</span> 注意力层而不牺牲竞争力；<code>g_min=−5</code> 的 decay 下限保证 tile 级 Tensor Core 兼容——<strong>数值稳定性设计与硬件利用率设计可以是同一个决定</strong>。对一切长上下文系统（RAG 替代、视频理解、代码库级助手）都有直接参考价值。</li>
+<li><strong>MoE 稳定化"三板斧"可作为默认配置</strong>：up-projection 前 RMSNorm + 有界激活（|f(x)|≤100）+ 免辅助损失分位数均衡，分别治理"输入漂移、输出爆炸、路由失衡"；在 896 选 16 的激进稀疏下依然稳定，更大稀疏度仍有余量（推断）。</li>
+<li><strong>"专家分治 → 在线蒸馏合一"是多能力模型的后训练范式</strong>：9 个域×强度专家经 MOPD 收敛为单一权重，绕开多目标混训冲突，保住"low effort 便宜、max effort 强"的双端体验。凡存在模式冲突的训练场景皆可复用。</li>
+<li><strong>RL 基建即护城河，且瓶颈在编排而非算力</strong>：sandbox 生命周期 <span class="num">98%</span> 在等推理，于是优化方向变成 133 ms checkpoint、49 ms resume、6.5× 内存超售、fork 验奖。对所有 agentic RL 团队的免费情报：<strong>先把"停/恢复/复制"做便宜，再把"跑"做快</strong>。</li>
+<li><strong>成本效率应作为与分数并列的主张</strong>：专设 §6.4 给出逐基准成本对照（38%、$2.03、1/3、2.6×），把性价比写成可核查数据而非口号。这一报告结构值得所有模型发布者效仿。</li>
+<li><strong>安全自评进入技术报告主章</strong>：Tier 1/Tier 2 分级、人工复核真实率、独立机构复核、失败模式命名、"自评即下界"立场声明——为高能力模型的透明度报告树立新基准。</li>
+</ol>
+
+<h3>6.2 未来走向与观察哨</h3>
+<ul>
+<li><strong>最难推理的追赶</strong>：CritPt（<span class="num neg">23.4 vs 32.3</span>）与 HLE-Full 的差距指向知识深度上限问题。观察哨：下一代能否在不牺牲 agentic 能力的前提下收窄差距，抑或双轴论在此类任务上遇到真正的墙。</li>
+<li><strong>computer-use 闭环</strong>：OSWorld 2.0 落后 <span class="num neg">7.8</span> 分，而 MoonViT-V2 仅 401M 参数——（推断）视觉编码器容量可能是瓶颈之一，ViT 规模化是自然下一步。</li>
+<li><strong>kernel 级攻防</strong>：Tier 2 kernel track 4/14 的成功率与四个失败模式，既是安全团队的 roadmap 也是防御方的布防图。</li>
+<li><strong>许可演进</strong>：CC BY-NC-ND 是否随商业化节奏放宽，将决定 K3 对开源生态的实际影响力半径。</li>
+<li><strong>合成数据维持长上下文的可持续性</strong>：当 1M 真实语料枯竭，合成课程能否撑住极端长度下的可靠性，是 KDA 路线的长期考验。</li>
+</ul>
+</section>
+
+<section id="summary">
+<h2>总结</h2>
+<p>《Kimi K3》是一次把"开源前沿"从口号推进到工程事实的集体作业：用 KDA/Gated MLA 的 <span class="num">3:1</span> 混合注意力与 AttnRes 解决"1M 上下文 + 93 层"的可行性，用 Stable LatentMoE 三板斧解决 2.78T 参数的稳定训练，用 9 专家 RL + MOPD 解决多域能力的组织问题，再以 MoonEP、AgentENV 与 KDA-aware serving 把整条管线落成可运维系统。证据面上，它在 search/agentic/长程工程/文档/垂直领域 <span class="num pos">9 项</span>外部基准登顶、WebDev Arena 独立榜单第一、成本仅为闭源双雄零头，同时在最难科研推理与 computer-use 上保留 6–9 分的诚实差距。批判面上，"Open" 的 NC-ND 许可张力、闭源基线不可复现性、内部 harness 同源性提醒我们：这份成绩单成立于作者设定的评测协议之内。无论后续如何演进，K3 已经改变了"开源模型落后闭源一代"的行业默认叙事——它把战场从"能否追上"移到了"在哪些轴上先追上"。</p>
+</section>
+
+<section id="audit" class="audit">
+<h2>附录 · 报告自检（Self-Audit）</h2>
+<table>
+<tr><th>检查项</th><th class="c">标准</th><th class="c">结果</th></tr>
+<tr><td>编码完整性</td><td class="c">UTF-8 全文无替换字符（U+FFFD）</td><td class="c pass">PASS</td></tr>
+<tr><td>结构配平</td><td class="c">&lt;div&gt; 开闭数量一致（构建期校验）</td><td class="c pass">PASS</td></tr>
+<tr><td>章节完整性</td><td class="c">摘要 + 六层结构 + 总结 + 本自检</td><td class="c pass">PASS（9 sections）</td></tr>
+<tr><td>数字一致性</td><td class="c">关键数字与 00-源数据提取.md 一致</td><td class="c pass">PASS（抽查：2.78T / 104.2B / 3:1 / 2.5× / 91.2 / 42.0 / 38.9% / $2.03 / 1,678 / 133ms / 49ms / 70% / 16 漏洞 / 896 选 16 / g_min=−5）</td></tr>
+<tr><td>推断标注</td><td class="c">非源数据陈述均标「（推断）」</td><td class="c pass">PASS</td></tr>
+<tr><td>排版方式</td><td class="c">单文件 · 内联 CSS · 无外部依赖</td><td class="c pass">PASS</td></tr>
+</table>
+<p class="note" style="color:#8fa8d6;">本页为交付物质量门控记录，随正文一同存档。</p>
+</section>
+
+<footer>Kimi K3 Deep Reading Report · generated 2026-08-26 · B1_P3 analysis series</footer>
+</div>
+</body>
+</html>

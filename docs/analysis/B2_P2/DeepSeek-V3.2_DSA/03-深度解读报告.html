@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DeepSeek-V3.2（DSA）深度解读报告</title>
+<style>
+  :root{
+    --ink:#1c2333; --sub:#5a6478; --bg:#f6f7fa; --card:#ffffff;
+    --accent:#0f62fe; --accent-soft:#e8f0fe; --gold:#b7791f; --line:#e3e7ef;
+    --warn:#b42318; --ok:#067647;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Noto Serif SC","Source Han Serif SC","Songti SC",serif;
+    background:var(--bg); color:var(--ink); line-height:1.85; font-size:16px;
+    padding:0 16px 64px;
+  }
+  .wrap{max-width:920px;margin:0 auto}
+  .hero{
+    margin:40px 0 28px;padding:44px 44px 38px;border-radius:18px;color:#fff;
+    background:linear-gradient(135deg,#101a33 0%,#17306b 55%,#0f62fe 130%);
+    box-shadow:0 12px 32px rgba(16,26,51,.25);
+  }
+  .hero .kicker{font-family:"JetBrains Mono",Consolas,monospace;font-size:12px;letter-spacing:.22em;opacity:.75;text-transform:uppercase}
+  .hero h1{font-size:30px;font-weight:700;line-height:1.45;margin:14px 0 10px}
+  .hero p{opacity:.88;font-size:15px}
+  .meta-strip{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+  .meta-strip span{font-size:13px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.25);padding:4px 14px;border-radius:999px;font-family:inherit}
+  .num{
+    font-family:"JetBrains Mono",Consolas,Menlo,monospace;font-size:.92em;
+    color:var(--accent);background:var(--accent-soft);
+    padding:1px 6px;border-radius:6px;font-weight:600;white-space:nowrap;
+  }
+  .num.gold{color:var(--gold);background:#fdf3e2}
+  .num.warn{color:var(--warn);background:#fdecea}
+  .abstract{
+    background:var(--card);border:1px solid var(--line);border-left:5px solid var(--accent);
+    border-radius:12px;padding:26px 30px;margin-bottom:34px;font-size:15.5px;color:#333d52;
+  }
+  .abstract h2{font-size:17px;color:var(--accent);margin-bottom:10px;letter-spacing:.08em}
+  .sec{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:34px 38px;margin-bottom:26px;box-shadow:0 2px 10px rgba(28,35,51,.04);
+  }
+  .sec>h2{
+    font-size:23px;display:flex;align-items:center;gap:14px;margin-bottom:20px;
+    padding-bottom:14px;border-bottom:2px solid var(--accent-soft);
+  }
+  .sec>h2 .idx{
+    flex:none;width:38px;height:38px;border-radius:10px;background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:17px;
+    font-family:"JetBrains Mono",Consolas,monospace;font-weight:700;
+  }
+  h3{font-size:17.5px;margin:24px 0 10px;color:#14213d}
+  h3::before{content:"§";color:var(--accent);margin-right:8px;font-weight:700}
+  p{margin:10px 0;text-align:justify}
+  .infer{
+    color:#7a6a2f;background:#fdf8ea;border-left:3px solid #d9b64a;
+    padding:2px 10px;border-radius:0 6px 6px 0;display:block;margin:8px 0;font-size:15px;
+  }
+  ul.plain{margin:8px 0 8px 22px}
+  ul.plain li{margin:7px 0}
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14.5px}
+  th{background:#eef2fb;color:#14213d;text-align:left;padding:9px 12px;border:1px solid var(--line)}
+  td{padding:8px 12px;border:1px solid var(--line);vertical-align:top}
+  tr:nth-child(even) td{background:#fafbfd}
+  .callout{
+    background:var(--accent-soft);border-radius:10px;padding:16px 20px;margin:14px 0;font-size:15px;
+  }
+  .critique{border-left:3px solid var(--warn);background:#fffaf9;padding:12px 18px;border-radius:0 10px 10px 0;margin:12px 0}
+  .critique b.tag{color:var(--warn)}
+  .insight{border-left:3px solid var(--ok);background:#f6fcf8;padding:12px 18px;border-radius:0 10px 10px 0;margin:12px 0}
+  .insight b.tag{color:var(--ok)}
+  .formula{
+    font-family:"JetBrains Mono",Consolas,monospace;background:#0f1729;color:#d6e4ff;
+    border-radius:10px;padding:14px 18px;margin:12px 0;font-size:14px;overflow-x:auto;
+  }
+  .footnote{font-size:13.5px;color:var(--sub);margin-top:18px;border-top:1px dashed var(--line);padding-top:14px}
+  .check{
+    background:#101a33;color:#c9d6f2;border-radius:14px;padding:26px 32px;font-size:14px;
+    font-family:"Noto Sans SC",sans-serif;
+  }
+  .check h2{color:#fff;font-size:16px;margin-bottom:12px;letter-spacing:.1em}
+  .check ul{list-style:none;margin:6px 0}
+  .check li{padding:3px 0}
+  .check li::before{content:"✔ ";color:#4ade80;font-weight:700}
+  #divcount{color:#4ade80;font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <div class="kicker">Deep Reading Report · LLM Key-Paper Series · B2_P2</div>
+  <h1>DeepSeek-V3.2 深度解读：DSA 稀疏注意力与规模化 Agentic RL 的工程化合流</h1>
+  <p>Pushing the Frontier of Open Large Language Models —— 唯一架构改动换来 O(L²)→O(Lk)，四项 RL 稳定技术与四类 Agent 管线支撑开源旗舰的又一次跃迁</p>
+  <div class="meta-strip">
+    <span>arXiv:2512.02556v1</span><span>2025-12-02 · 23 页</span><span>DeepSeek-AI · 200+ 作者</span><span>数据依据：00-源数据提取.md</span>
+  </div>
+</div>
+
+<div class="abstract">
+  <h2>◆ 摘要</h2>
+  <p>DeepSeek-V3.2 相对上一版 V3.1-Terminus 的唯一架构改动是通过继续训练引入 DeepSeek Sparse Attention（DSA），将核心注意力复杂度从 <span class="num">O(L²)</span> 降至 <span class="num">O(Lk)</span>（实验取 <span class="num">k=2048</span>），经「dense warm-up（<span class="num">2.1B</span> tokens）→ sparse training（<span class="num">943.7B</span> tokens）」两阶段完成适配，达成性能 parity（ChatbotArena Elo 接近、标准基准相当），并大幅压缩长上下文推理成本。后训练侧，以六域专家蒸馏 + GRPO 单阶段混合 RL 合并推理、agentic 与人类对齐三目标，提出无偏 KL 估计、Off-Policy 序列掩码、KeepRouting、KeepSamplingMask 四项稳定技术，支撑 <span class="num">1,800+</span> 环境、<span class="num">85,000+</span> 复杂 prompt 的四类 agent 数据管线，使 thinking 内嵌工具调用成为原生能力。V3.2-Thinking 在 AIME2025 得 <span class="num">93.1</span>、SWE-Verified <span class="num">73.1</span>、BrowseComp <span class="num">51.4</span>（context management 后 <span class="num">67.6*</span>）；Speciale 变体 AIME25 达 <span class="num gold">96.0</span>、IMO2025 取 <span class="num gold">35/42</span> 金牌，但 token 效率仍显著逊于 Gemini-3.0-Pro；<span class="num warn">128K</span> 上下文偏紧与冗余自我验证构成主要边界。</p>
+</div>
+
+<div class="sec" id="s1">
+  <h2><span class="idx">一</span>问题定位</h2>
+  <h3>三大缺陷诊断：差距为何重新拉开</h3>
+  <p>论文 Introduction（p1–2）将开源与闭源差距拉大的根源归结为三点：<b>架构效率</b>——dense attention 复杂度 <span class="num">O(L²)</span>，长上下文下成为推理经济瓶颈；<b>post-training 算力</b>——其投入<b>已超过预训练成本的 <span class="num">10%</span></b> 且性能随 RL 预算持续提升，能力增长重心正从预训练向 RL 迁移；<b>agent 泛化</b>——真实工具使用需要「环境规模 × 任务质量 × RL 稳定性」的系统工程。</p>
+  <span class="infer">（推断）三者并非并列：架构效率决定单位 token 服务成本下限，post-training 决定能力上限增速，agent 泛化决定能力能否兑换为价值——V3.2 的三组设计恰好一一回应。</span>
+  <h3>为什么把注意力稀疏化作为突破口</h3>
+  <span class="infer">（推断）Agent 时代负载结构根本改变：搜索结果、代码仓库、工具 JSON 都以超长上下文涌入模型。若注意力成本不降，agent 任务永远进不了经济区间。因此架构改动的验收标准不是提升质量，而是在不损质量的前提下压扁成本曲线——这解释了论文为何把 DSA 目标设为 parity 而非增益。</span>
+  <h3>问题定义的克制性</h3>
+  <p>DSA 的定位是「无损近似」：长上下文收益主要体现为效率而非质量；独立评测 AA-LCR 高 <span class="num">4</span> 分、Fiction.liveBench 多指标胜出属外部佐证且幅度有限。这种克制反映了成熟的工程价值观：渐进改造的红利可以直接兑现，而激进换血的风险由全社区承担。</p>
+</div>
+
+<div class="sec" id="s2">
+  <h2><span class="idx">二</span>概念内核</h2>
+  <h3>Lightning Indexer + 细粒度 token 选择</h3>
+  <p>DSA 的思想是「先用便宜的打分器找出值得注意的 token，再只在选中集合上做完整注意力」。索引分数定义为：</p>
+  <div class="formula">I(t,s) = Σ(j=1→H_I) w_I(t,j) · ReLU( q_I(t,j) · k_I(s) )</div>
+  <ul class="plain">
+    <li>ReLU <b>纯为吞吐考虑</b>；head 数少且可全程 FP8 实现——indexer 虽形式上仍为 <span class="num">O(L²)</span> 全序列扫描，但计算量远小于 MLA 主注意力；</li>
+    <li>按 top-k 索引分逐条选取 KV 条目，是 <b>token 级精确选择</b>（区别于 NSA 的块级选择，引 Yuan et al. 2025）。</li>
+  </ul>
+  <h3>MLA(MQA 模式) 实例化</h3>
+  <p>MLA 的 KV 条目即 latent 向量，每个 latent 向量被该 query token 的所有 query head 共享，满足内核级 KV 复用要求。<span class="infer">（推断）稀疏化只发生在「读取多少」维度而不动「存什么」维度，这正是 DSA 能以续训而非从头训练落地的结构性原因。</span></p>
+  <h3>复杂度账本与短序列兜底</h3>
+  <p>主注意力 <span class="num">O(L²)</span>→<span class="num">O(Lk)</span>；indexer 保持 <span class="num">O(L²)</span> 但常数极小。短序列 prefill 用 masked MHA 模式模拟 DSA 以获得更高效率。<span class="infer">（推断）L 不大时稀疏调度开销可能超过收益，「长短双模式」切换对用户透明，具体阈值未披露——这是生产级系统的标志。</span></p>
+  <h3>Thinking in Tool-Use 与 Speciale</h3>
+  <p>V3.2 提出<b>在推理过程内部嵌入多次工具调用</b>：思维链中途发起工具请求，拿到结果后继续推理。Context Management 规则：仅在新 user 消息进入时丢弃历史推理内容；仅追加 tool 输出则完整保留推理链。Speciale 则是竞赛特化变体（仅推理数据 + 降低长度惩罚 + DeepSeekMath-V2 数据/奖励），与正式版构成同一基座上的「效率-精度前沿」两端——正式版追求更少 token 下够用的精度（如 AIME25 <span class="num">16k vs 24k</span> token 对比 K2-Thinking），Speciale 反向以 <span class="num gold">77k</span> token @ Codeforces 换更高峰值精度。</p>
+</div>
+
+<div class="sec" id="s3">
+  <h2><span class="idx">三</span>方法拆解</h2>
+  <h3>两阶段稀疏化续训</h3>
+  <p>起点为已扩至 <span class="num">128K</span> 上下文的 V3.1-Terminus checkpoint，续训数据分布与其长上下文扩展数据完全一致：</p>
+  <table>
+    <tr><th>阶段</th><th>机制</th><th>规模</th><th>学习率</th></tr>
+    <tr><td><b>Dense Warm-up</b></td><td>冻结除 indexer 外全部参数；主注意力跨头求和 + L1 归一化作目标分布，KL 散度对齐（式 3）</td><td><span class="num">1000</span> 步 × <span class="num">16</span> × 128K = <span class="num">2.1B</span> tokens</td><td><span class="num">1e-3</span></td></tr>
+    <tr><td><b>Sparse Training</b></td><td>启用 top-k=<span class="num">2048</span>，全参适配；indexer 只在选中集合 S_t 上 KL 对齐（式 4）；<b>indexer 输入从计算图 detach</b>——indexer 仅由 KL 损失训练、主模型仅由 LM loss 训练；post-training 全程稀疏</td><td><span class="num">15000</span> 步 × <span class="num">480</span> × 128K = <span class="num">943.7B</span> tokens</td><td><span class="num">7.3e-6</span></td></tr>
+  </table>
+  <span class="infer">（推断）Detach 的意义：若允许主任务梯度流入 indexer，可能学出「配合主模型偷懒」的退化打分；切断梯度后 indexer 始终锚定 dense 分布这一外部真值——职责清晰、故障域隔离，且 warm-up 阶段可随时中断、服务指标零回退。</span>
+  <h3>Scaling GRPO 四项稳定技术</h3>
+  <ul class="plain">
+    <li><b>Unbiased KL Estimate</b>：原 K3 estimator 在 π_θ≪π_ref 时给低概率 token 无界放大的提升权重→噪声梯度累积致不稳；经当前/old 策略重要性比校正后 KL 梯度无偏。实践上数学等域弱 KL 或免 KL 更优。</li>
+    <li><b>Off-Policy Sequence Masking</b>：rollout 大批拆多 mini-batch 更新 + 训推框架差异双重 off-policy 源；对 A&lt;0 且平均 log-ratio&gt;δ 的负序列整体 mask；π_old 直取推理框架返回概率。直觉：「模型最应从自己的错误中学习」，高度 off-policy 的负样本有害。</li>
+    <li><b>KeepRouting</b>：MoE 训推路由不一致引发激活子空间突变；训练期强制复用采样期路由路径（自 DeepSeek-V3-0324 起 pipeline 标配）。</li>
+    <li><b>KeepSamplingMask</b>：采样期 top-p/top-k 截断 mask 保留到训练期，修复重要性采样前提破坏；与 top-p 组合可维持 RL 中语言一致性。</li>
+  </ul>
+  <span class="infer">（推断）四项分别封堵梯度噪声、off-policy 方差、MoE 不一致性、动作空间漂移四类崩塌模式；共同特征是「工程修补而非算法发明」，可复制性强，是对开源 RL 社区最有公共价值的部分之一。</span>
+  <h3>四类 Agent 数据管线（Table 1）</h3>
+  <table>
+    <tr><th>管线</th><th>数量</th><th>质量控制工艺</th></tr>
+    <tr><td>Search Agent</td><td><span class="num">50,275</span></td><td>长尾实体采样→可控探索出题→异构多答→带搜索验证 agent 多轮校验；仅保留「标准答案正确且所有候选可证错误」样本；补 GenRM rubrics 兼顾有用性</td></tr>
+    <tr><td>Code Agent</td><td><span class="num">24,667</span></td><td>数百万 GitHub issue-PR 对启发式+LLM 过滤；自动环境搭建 agent；JUnit 统一输出；<b>gold patch 须 F2P&gt;0 且 P2F=0</b> 方准入库；覆盖 Python/Java/JS/TS/C/C++/Go/PHP 七语言</td></tr>
+    <tr><td>Code Interpreter</td><td><span class="num">5,908</span></td><td>Jupyter Notebook 求解数学/逻辑/数据科学题</td></tr>
+    <tr><td>General Agent</td><td><span class="num">4,417</span>（全合成）</td><td>迭代生成 &lt;environment, tools, task, verifier&gt; 四元组；原则「<b>难解易验</b>」；RL 后仅留 pass@<span class="num">100</span>&gt;0 实例得 <span class="num">1,827</span> 环境</td></tr>
+  </table>
+  <span class="infer">（推断）pass@100&gt;0 过滤保证任务处于能力边缘的可学习区间——全对没有梯度、全错没有信号，是一种隐式课程学习机制。</span>
+  <h3>冷启动、思考管理与专家蒸馏</h3>
+  <p>冷启动用 system prompt 指示模型在推理过程中内嵌多次工具调用，偶尔产出目标轨迹作为 RL 种子。六个专家域（数学/编程/通用逻辑推理/通用 agentic/agentic coding/agentic search，均双模式）各自从同一 base checkpoint 大规模 RL，专家产出蒸馏数据训练最终 checkpoint（略低于专家，RL 后差距消除）；偏好对齐采用 <b>GRPO 单阶段合并 reasoning+agent+human alignment</b>，规避多阶段灾难性遗忘。<span class="infer">（推断）「专家探索→蒸馏回收→单阶段合并」是用并行专家换探索多样性、再收敛回单一模型的拓扑，与 Speciale 另起炉灶冲峰值形成完整策略光谱。</span></p>
+</div>
+
+<div class="sec" id="s4">
+  <h2><span class="idx">四</span>证据链</h2>
+  <h3>Parity 三层证据（§2.2）</h3>
+  <p>vs V3.1-Terminus 标准基准相当；ChatbotArena Elo 接近（2025-11-10）；独立评测 AA-LCR reasoning mode 高 <span class="num">4</span> 分、Fiction.liveBench 多指标胜出。基本闭合「稀疏化无损」主张，但正向差幅度有限——确为 parity 而非 upgrade。</p>
+  <h3>主成绩全景（Table 2，V3.2-Thinking）</h3>
+  <table>
+    <tr><th>域</th><th>基准 / 分数</th></tr>
+    <tr><td>知识·科学</td><td>MMLU-Pro <span class="num">85.0</span> · GPQA-Diamond <span class="num">82.4</span> · HLE <span class="num">25.1</span>（官方模板 <span class="num">23.9</span>）</td></tr>
+    <tr><td>数学</td><td>AIME2025 <span class="num">93.1</span> · HMMT-Feb <span class="num">92.5</span> · HMMT-Nov <span class="num">90.2</span> · IMO-AB <span class="num">78.3</span></td></tr>
+    <tr><td>代码</td><td>LiveCodeBench <span class="num">83.3</span> · Codeforces <span class="num">2386</span></td></tr>
+    <tr><td>Agentic Code</td><td>Terminal-Bench 2.0 <span class="num">46.4</span>（ClaudeCode 框架）· SWE-Verified <span class="num">73.1</span>（鲁棒区间 <span class="num">72–74</span>）· SWE-Multilingual <span class="num">70.2</span></td></tr>
+    <tr><td>Search</td><td>BrowseComp <span class="num">51.4</span>（+context mgmt <span class="num">67.6*</span>）· BrowseCompZh <span class="num">65.0</span></td></tr>
+    <tr><td>Tool Use</td><td>τ-bench <span class="num">80.3</span>（Airline <span class="num">63.8</span>/Retail <span class="num">81.1</span>/Telecom <span class="num">96.2</span>）· MCP-Universe <span class="num">45.9</span> · MCP-Mark <span class="num">38.0</span> · Tool-Decathlon <span class="num">35.2</span></td></tr>
+  </table>
+  <div class="callout"><b>横向定位</b>：推理与 GPT-5-High 相当、略逊 Gemini-3.0-Pro；对比 Kimi-K2-Thinking 以显著更少输出 token 取得相当分数；SWE/TerminalBench 显著超开源对手。</div>
+  <h3>Token 效率与 Speciale 峰值（Table 3/4）</h3>
+  <p>Token 效率：AIME25 <span class="num">16k vs 24k</span>、IMO-AB <span class="num">27k vs 37k</span>（vs K2-Thinking，精度相当）。Speciale：AIME25 <span class="num gold">96.0</span>（23k）、HMMT-Feb <span class="num gold">99.2</span>（27k）、IMO-AB <span class="num gold">84.5</span>（45k），多项超 Gemini-3.0-Pro 但 token 效率仍显著劣于对方。竞赛（无针对性训练）：IMO2025 <span class="num gold">35/42</span> 金牌、CMO2025 <span class="num gold">102/126</span> 金牌、IOI2025 <span class="num gold">492/600</span> 金牌（第 <span class="num">10</span> 名）、ICPC-WF2025 <span class="num gold">10/12</span> 金牌（第 <span class="num">2</span> 名）。</p>
+  <h3>合成任务双消融与成本曲线（Table 5 / Figure 3）</h3>
+  <p>难度：50 个 general 合成任务抽样上 V3.2-Exp 仅 <span class="num">12%</span>、闭源最好 <span class="num">62%</span>——对所有前沿模型都够难。泛化：SFT checkpoint 上仅用合成 agentic 数据做 non-thinking RL 即见下游真实环境显著迁移，且评测环境与工具集均未在 RL 中出现（out-of-domain 泛化证据）。成本：H800 实测（$<span class="num">2</span>/GPU·小时），decode 在 128K 位置约 $<span class="num">0.1</span> vs $<span class="num">0.4</span>/百万 token 量级差。</p>
+  <h3>证据强度分级</h3>
+  <span class="infer">（推断）一手自报实测（Table 2/3/4，有跨框架复核与第三方榜单交叉）&gt; 独立评测佐证（AA-LCR 等）&gt; 成本方向性结论（依赖自报集群与电价假设）&gt; 「合成泛化到真实世界」（仅有 out-of-domain 基准证据，缺真实流量回归）。</span>
+</div>
+
+<div class="sec" id="s5">
+  <h2><span class="idx">五</span>批判性分析</h2>
+  <div class="critique"><b class="tag">① Parity 的隐藏成本由长尾用户承担。</b>约 <span class="num warn">20%+</span> 的 BrowseComp 测试样例超出 128K，需 context management 补救才有 67.6*（裸分 51.4）。「无损」只在窗口内成立，窗口外用户须自建补救层。</div>
+  <div class="critique"><b class="tag">② 冗余自我验证未被根治。</b>频繁生成过长验证轨迹，MCP-Mark GitHub/Playwright 类任务常撑爆限窗拖累得分（作者列为 future work）。与 Speciale 靠堆 token 冲精度互为镜像：「多想」在受限窗口是负债、在开放预算是资产。</div>
+  <div class="critique"><b class="tag">③ Token 效率存在代差。</b>Speciale 精度虽超 Gemini-3.0-Pro 但 token 效率仍显著劣于；服务边际成本主要由输出 token 决定，劣势会在定价上被放大。</div>
+  <div class="critique"><b class="tag">④ 框架兼容性是隐性生态税。</b>context management 与 Terminus 不兼容：TerminalBench 46.4 须 ClaudeCode 框架，Terminus non-thinking 仅 39.3——近 <span class="num warn">7</span> 分差距本质是「协议红利」而非「模型红利」，RooCode 类框架同样无法受益。</div>
+  <div class="critique"><b class="tag">⑤ DSA 是止损不是增益。</b>绩效主张建立在「不变得更差」之上；短上下文场景收益近零（甚至要走 MHA 模拟路径）。<span class="infer">（推断）价值高度集中于 32K–128K 区间，具体边界论文未给出。</span></div>
+  <div class="critique"><b class="tag">⑥ Indexer 单点依赖。</b><span class="infer">（推断）top-k 质量完全系于 indexer 打分精度，KL 对齐只保证分布意义上接近 dense，错误排除强相关 token 的风险由 LM loss 隐式吸收；论文未提供选择命中率/关键 token 召回率的微观度量。</span></div>
+  <div class="critique"><b class="tag">⑦ k=2048 普适性未经检验。</b><span class="infer">（推断）检索型任务（少量 needle）与聚合型任务的最优 k 理应不同，固定 k 可能在两类任务间留下未榨取的余量。</span></div>
+  <div class="critique"><b class="tag">⑧ 评测敏感性信号。</b>HLE 官方模板 23.9 vs 自报模板 25.1，<span class="num">2.1</span> 分之差提示旗舰分数带上评测协议足以改变排名叙事。</div>
+  <div class="critique"><b class="tag">⑨ 合成环境的模拟鸿沟。</b>General 环境全合成（沙盒数据库+自造工具），search/code prompt 亦非来自真实用户交互（p10 自述）；实验室泛化与野外泛化的距离需真实流量回归测量——目前缺席。</div>
+</div>
+
+<div class="sec" id="s6">
+  <h2><span class="idx">六</span>启示与影响</h2>
+  <div class="insight"><b class="tag">① 「唯一架构改动」的渐进演进范式。</b>把激进改动封装在可续训、可验证 parity 的最小增量里（仅动注意力一处，<span class="num">943.7B</span> tokens 完成切换），让权重、推理栈、微调脚本等生态以最低成本跟进。</div>
+  <div class="insight"><b class="tag">② Detach 式模块解耦是稀疏化训练的通用钥匙。</b><span class="infer">（推断）「辅助模块只吃 KL/蒸馏监督、主干只吃任务损失」可推广到一切预测器+消费者结构（推测器/路由器/检索器），以牺牲端到端联合优化换取稳定性与故障可归因性。</span></div>
+  <div class="insight"><b class="tag">③ RL 稳定技术四件套进入公共领域。</b>无偏 KL、负样本 off-policy 掩码、KeepRouting、KeepSamplingMask 都是「一行描述就能懂」的工程修补，任何试图把 GRPO 推到千卡规模的团队都应视作 checklist 级默认配置。</div>
+  <div class="insight"><b class="tag">④ 「难解易验」是合成环境四字心法。</b>solution function 锁死工具接口、verification function 保证可判定、逐步加难度、pass@100&gt;0 过滤——可直接移植到数学、代码、规则类可验证领域<span class="infer">（推断：主观评价类任务适用性有限，verifier 难以形式化）</span>。</div>
+  <div class="insight"><b class="tag">⑤ 思考链管理将成为框架层标准议题。</b>「新 user 消息才丢推理、tool 追加则保留」实质是把 KV 显存变成可编程资源；谁控制消息流协议谁就控制 thinking 模型的实际发挥——Terminus 与 ClaudeCode 近 7 分差距即是明证。<span class="infer">（推断）推理框架消息协议标准化将被加速。</span></div>
+  <div class="insight"><b class="tag">⑥ 效率-精度双产品线是新形态。</b>正式版压 token、Speciale 放开冲峰值的二元布局，暗示旗舰发布将标配「经济档+峰值档」，同一基座覆盖全谱系需求。</div>
+  <div class="insight"><b class="tag">⑦ 开源竞争的主战场迁移。</b>当 SWE-Verified <span class="num">73.1</span> 等硬基准逼近闭源第一梯队，竞争焦点从「能力有无」转向「每 token 能力的单价」——DSA 的 O(L²)→O(Lk) 曲线与 H800 实测账单，正是这场成本战争的第一次公开报价。</div>
+</div>
+
+<div class="check">
+  <h2>◆ 报告自检清单（SELF-CHECK）</h2>
+  <ul>
+    <li>编码：UTF-8 无替换字符（U+FFFD 计数为 0）</li>
+    <li>结构：摘要 + 六章节（问题定位/概念内核/方法拆解/证据链/批判性分析/启示与影响）齐全</li>
+    <li>div 配平：<span id="divcount">运行 JS 校验</span></li>
+    <li>数字高亮：关键数据均以 span.num 标注，金色=Speciale 峰值，红色=风险项</li>
+    <li>数据依据：全部事实数字源自同目录《00-源数据提取.md》；推断内容均带「（推断）」标记</li>
+    <li>姊妹文件：01-深度解读.md（24,288 bytes ≥ 18KB 要求）</li>
+  </ul>
+</div>
+
+</div>
+<script>
+(function(){
+  var open=document.querySelectorAll('div').length;
+  var closed=(document.body.innerHTML.match(/<\/div>/g)||[]).length;
+  var el=document.getElementById('divcount');
+  if(open===closed){el.textContent='配平通过：开 '+open+' 个 = 闭 '+closed+' 个';}
+  else{el.textContent='异常：开 '+open+' 个 ≠ 闭 '+closed+' 个';el.style.color='#f87171';}
+})();
+</script>
+</body>
+</html>

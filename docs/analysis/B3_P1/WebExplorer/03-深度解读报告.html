@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WebExplorer: Explore and Evolve for Training Long-Horizon Web Agents · 深度解读</title><style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;background:#f7f8fa;color:#1f2430;line-height:1.8;margin:0}
+.wrap{max-width:900px;margin:0 auto;padding:36px 20px 80px}
+h1{font-size:25px;border-bottom:3px solid #2b6cb0;padding-bottom:10px;color:#14304f}
+h2{font-size:19px;margin-top:34px;color:#2b6cb0;border-left:5px solid #2b6cb0;padding-left:10px}
+h3{font-size:16px;color:#3a4a63;margin-top:22px}
+p{margin:10px 0;}
+blockquote{background:#eef3fa;border-left:4px solid #4a90d9;margin:12px 0;padding:10px 16px;color:#2c3e50}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px}
+th,td{border:1px solid #cbd5e1;padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#e8eef6}
+tr:nth-child(even){background:#f4f7fb}
+.num{color:#b45309;font-weight:700;font-family:ui-monospace,Consolas,monospace}
+.infer{color:#9a6b2f;font-style:italic;background:#fdf6e3;padding:0 3px;border-radius:3px}
+code{background:#eef1f5;padding:1px 5px;border-radius:4px;font-size:13px}
+hr{border:none;border-top:1px dashed #cbd5e1;margin:26px 0}
+.selfcheck{font-size:11px;color:#90a0b5;margin-top:40px;border-top:1px solid #dde3ea;padding-top:12px;font-family:ui-monospace,monospace}
+</style></head><body><div class="wrap">
+<h1>WebExplorer: Explore and Evolve for Training Long-Horizon Web Agents</h1>
+<p><strong>标题（数据依据）</strong>：首页标题《WebExplorer: Explore and Evolve for Training Long-Horizon Web Agents》；arXiv: <span class="num">2509.06501</span>v3 [cs.CL]，<span class="num">2025-09-26</span>。</p>
+<p><strong>作者与团队（数据依据）</strong>：Junteng Liu、Junxian He（HKUST）等，MiniMax 团队协作，Wenhu Chen（Waterloo）参与。</p>
+<p><strong>核心产出（数据依据）</strong>：数据合成方法 WebExplorer + 数据集 WebExplorer-QA（约 <span class="num">40</span>K）+ 模型 WebExplorer-8B（基于 Qwen3-8B）。</p>
+<p><strong>本文定位</strong>：一份聚焦"如何用低成本方法造出难样例、再训练出长程连网 agent"的方法论文。全文 <span class="num">23</span> 页，无独立 Limitations 章节。</p>
+<blockquote> 说明：以下各处引用均以同目录《<span class="num">00</span>-源数据提取.md》为唯一数字依据；凡属推理性质、数据表中未直接给出的解读性内容，均标注「<span class="infer">（推断）</span>」。</blockquote>
+<hr>
+<h2>摘要</h2>
+<p>长程 web agent 的研究长期受制于一个现实矛盾：像 BrowseComp 这样能真实反映"跨多网站、多跳推理"难度的基准，靠人工整理，成本高、规模小，根本不足以支撑模型训练。开源训练数据要么规模不足，要么问题过简，训练出的模型一旦面对真实长程检索便迅速退化。本文作者提出一条数据合成新路线 WebExplorer：不做显式的图构建，而是用强 LLM 以 ReAct 范式从种子实体（取自 Wikipedia）出发，自主迭代地进行 search+browse，由模型自行决定何时停止并合成需跨多网站串联的初始 QA；随后用一套反向的"长到短"进化（Iterative Query Evolution）不断删减显式线索、模糊化关键信息，在答案不变的前提下把问题逼得更难。作者据此产出约 <span class="num">40</span>K 的 WebExplorer-QA 数据集，先用约 <span class="num">13</span>K 样本做 SFT 冷启动，再用 GRPO 强化学习（约 <span class="num">12</span>K 样本、DeepSeek-V3 做判分 judge）微调出 WebExplorer-8B。结果在 8B 规模取得全面 SOTA：BrowseComp-en <span class="num">15.7</span>、BrowseComp-zh <span class="num">32.0</span>，超越 <span class="num">72</span>B 的 WebSailor 乃至更大体量的 Kimi-K2；GAIA <span class="num">50.0</span>、WebWalkerQA <span class="num">62.7</span>、FRAMES <span class="num">75.7</span>（<<span class="num">100</span>B 开源最佳），并意外地在 STEM 为主的 HLE 上获 <span class="num">17.3</span>%，验证难查询训练的迁移价值。（<span class="num">300</span> 字）</p>
+<hr>
+<h2>一、问题定位（Why / 为什么做这件事）</h2>
+<h3><span class="num">1.1</span> 长程 web agent 评测与训练之间的"断层"</h3>
+<p>web agent 的目标是让模型在长连网状态下完成复杂的信息获取任务。要评测这种能力，业界需要类似 BrowseComp 这样的基准。但作者在 §<span class="num">2 </span>中点出了一个尖锐的现实：BrowseComp 类基准的问题是"靠人工整理、成本高、规模小"，其中 BrowseComp-en 过半的 query 连人工标注者都需要投入 <span class="num">2 </span>小时才能解决，「<span class="infer">（推断）</span>」这意味着这类基准天生就难以扩充规模，更不可能直接用作训练语料。评测基准与训练数据之间由此出现一道明显的断层：有了能衡量难度的标尺，却缺少能支撑训练的同难度数据。</p>
+<h3><span class="num">1.2</span> 既有开源训练数据的两个短板</h3>
+<p>作者把现有开源训练数据归纳为两个通病（§2）：一是<strong>规模不足</strong>，数据量撑不起一次像样的训练；二是<strong>难度过简</strong>，问题太接近单跳、单站检索，训练出来的模型无法适应需要跨多网站、多跳推理的真实场景。这两点彼此相关——正是因为人工造难样例成本太高，大家才只能退而求其次用简单数据，而简单数据又进一步限制了模型能触及的能力上限。</p>
+<h3><span class="num">1.3</span> 既有两条合成路线的局限</h3>
+<p>在数据合成上，已有工作主要分两条路线（§4），作者对它们的批评值得注意：</p>
+<ul>
+<li><strong>graph-based</strong>（WebSailor、WebShaper）：显式构建信息图（图节点+边），再在图上选子图、围绕子图出 QA。问题是节点扩展与选择启发式非常复杂，「<span class="infer">（推断）</span>」既要设计图结构，又要设计节点选择策略，还要处理图与问答的映射关系，工程与调参成本都很高。</li>
+<li><strong>evolution-based</strong>（迭代进化）：在已有 query 基础上不断注入新信息、把 query 越写越长。这条路线的问题是容易产生<strong>不自然的表述</strong>——为了变长而生硬堆砌，拼凑感强。</li>
+</ul>
+<p>作者这两条路线的批评构成了全文动机的基石：graph-based 太复杂，short-to-long evolution 太生硬。作者想要的是一种<strong>既简单又不失自然、且能真正产出长程难样例</strong>的方法。</p>
+<h3><span class="num">1.4</span> 研究问题的清晰化</h3>
+<p>综合起来，作者要回答的核心问题是：<strong>如何在不依赖大量人工、也不依赖复杂图构建的前提下，规模化地合成"接近 BrowseComp 难度"的跨网站、多跳、信息自然编排的问答对，并由此训练出一个低成本的长程 web agent？</strong></p>
+<p>这是一个高度聚焦的工程+方法问题，其边界被作者明确限定：只做知识型 QA（Wikipedia 种子），不覆盖 STEM/多模态；只统一用 search/browse 两工具；只考察 8B 规模的模型能否拿 SOTA。</p>
+<hr>
+<h2>二、概念内核（What / 这篇论文在讲什么）</h2>
+<h3><span class="num">2.1</span> 一句话归纳</h3>
+<p>WebExplorer 本质上是一套<strong>"先由强模型自主探索造出难问题、再把难问题反着越改越难"的数据合成管线</strong>，配合一套<strong>SFT+RL 的训练配方</strong>，最终得到一个 8B 规模但在多基准上超越 <span class="num">72</span>B 乃至更大闭源模型的长程 web agent。</p>
+<h3><span class="num">2.2</span> ReAct 范式（§<span class="num">2.1</span> Preliminaries）</h3>
+<p>作者先把任务形式化在 ReAct 框架下。轨迹表示为：</p>
+<p><code>`</code></p>
+<p>H_T = (τ0, α0, o0, τ1, α1, o1, ..., τT)</p>
+<p><code>`</code></p>
+<p>其中 τ 是推理文本（thought），α 是动作，o 是观测（工具返回）。动作 α_t ∈ {search, browse}，每个动作由"类型+参数"构成——search 的参数是 query 列表，browse 的参数是 URL 加抽取目标。</p>
+<p>这套 scaffold 有两个工具（Appendix C）：</p>
+<ul>
+<li><strong>search</strong>：调用搜索引擎（Google），返回 top-<span class="num">10</span> 结果（标题/URL/snippet）。</li>
+<li><strong>browse</strong>：用 Jina 抽取网页全文，再交给 Gemini <span class="num">2.5</span> Flash 按给定的 browse query 作答（相当于让一个轻量模型在抽取文本里做定向阅读理解）。</li>
+</ul>
+<p>「<span class="infer">（推断）</span>」这套 scaffold 的设计意图是把"找到哪个网页"（依赖强模型路径规划）和"读懂网页内容"（依赖抽取+轻量作答）分离，从而把 agent 的负担集中在"往哪走"这一长程规划环节。</p>
+<h3><span class="num">2.3</span> Model-Based Exploration（§<span class="num">2.2</span>，核心创新点一）</h3>
+<p>这一节是全文方法重点。作者的思路是：<strong>不做显式图构建</strong>，只用一个 prompt 让强 LLM（合成器）从种子实体出发，以 ReAct 方式迭代 search+browse，自主构建信息空间，并由模型自己决定何时停止、自己合成一个需要跨多网站串联的初始 QA。</p>
+<p>作者给了一个非常直观的例子：种子 "Brazil National Team"（巴西国家队），经过 <span class="num">1950</span> 年世界杯→裁判 George Reader→Southampton 俱乐部→<span class="num">1976</span> 年足总杯→Bobby Stokes 这样一串多跳串联，「<span class="infer">（推断）</span>」最终合成出一道需要多次跨网站跳转才能回答、且没有任何单页能直接命中的问题。这正是长程 agent 要面对的典型挑战。</p>
+<p>关键设计差异在于：<strong>相比 graph-based 方法，作者放弃了显式图结构</strong>。「<span class="infer">（推断）</span>」这样做的代价是失去了对信息空间的显式控制，但换来了实现简洁——不需要节点/边的选择启发式，只需要一个足够强的模型和一个 prompt。而"模型自行决定何时停止"这一设计，让合成过程天然地贴近 agent 真实探索的形态，产出的轨迹（探索路径）本身也可以复用。</p>
+<h3><span class="num">2.4</span> Iterative Query Evolution（§<span class="num">2.3</span>，核心创新点二："长到短"进化）</h3>
+<p>这是全文最具反直觉的一处。既有 evolution 路线是 <strong>short-to-long</strong>（不断注入新信息、把 query 越写越长）；作者反其道而行，做 <strong>long-to-short</strong>——在一个已经可解但"线索太露骨"的问题上，通过删减让问题变难，同时<strong>保持答案不变</strong>（§<span class="num">4 </span>式 3，每轮进化继续补充探索信息空间）。</p>
+<p>具体的删减手段有三类（§4）：</p>
+<ol>
+<li><strong>移除显著线索</strong>：把题干里一眼就能照抄的提示词删掉。</li>
+<li><strong>对日期/地点/专名做模糊化</strong>：把具体的年份、地点、人名替换成更模糊的表述。</li>
+<li><strong>用替代描述替换显式引用</strong>：这是最有代表性的一条。例如把 "Manchester United" 改写成 "First Division giant"（"甲级联赛巨人"），让模型必须靠语义理解而非字符串匹配来锁定那个实体。</li>
+</ol>
+<p>「<span class="infer">（推断）</span>」这套进化的核心洞察是：<strong>问题的难，往往不是信息不够，而是线索太顺</strong>。人出的难问题之所以难，是因为它把关键信息的"入口"藏起来了；作者用这三类删减精准地把"入口"挖掉，从而在不大幅改动题目语义的前提下逼出难度。合成 prompt 以 BrowseComp-en 的三条 exemplar 为范例，「<span class="infer">（推断）</span>」这使得合成出的问题天然对齐 BrowseComp 的文体与难度基调制。</p>
+<h3><span class="num">2.5</span> WebExplorer-QA 数据集（§<span class="num">2.4</span>）</h3>
+<p>经过 <span class="num">5 </span>轮 evolution，作者得到约 <span class="num">40</span>K 的 evolved QA 对。这个数据集有两个特征值得强调（结合 §<span class="num">3 T</span>able 1、§<span class="num">5 </span>Figure 4）：</p>
+<ul>
+<li><strong>难度被量级化</strong>：同样用 Claude-4-Sonnet 解答，初始 QA（Initial）的正确率是 <span class="num">86.6</span>%，而进化后（Evolved）降到 <span class="num">67.1</span>%；平均轮数从 <span class="num">7.9</span> 升至 <span class="num">9.9</span>。这意味着数据集的难度得到了实打实的提升，而不是嘴上说说。</li>
+<li><strong>分布逼近真实基准</strong>：进化后，<span class="num">4 t</span>urns 内易解样本的比例显著下降（Figure <span class="num">4 </span>左），Evolved QA 的 turns 分布已逼近 BrowseComp-en（Figure <span class="num">4 </span>右）。</li>
+</ul>
+<h3><span class="num">2.6</span> 训练配方（§3：Cold Start and Reinforcement Learning）</h3>
+<p><strong>SFT 冷启动（§<span class="num">3.1</span>）</strong>：用商业模型做 rejection sampling，只保留正确轨迹做监督微调。格式为 ReAct 格式，带 <code><think> / <tool_call> / <tool_response></code> 标签。配置约 <span class="num">13</span>K 样本、bs <span class="num">32</span>、lr 1e-5、<span class="num">4 </span>epochs（§<span class="num">4.1</span> Training Details）。这一步的作用「<span class="infer">（推断）</span>」是让模型先学会"怎么走"（动作格式、工具调用、路径规划的基本套路），为后续 RL 提供一个不崩的起点。</p>
+<p><strong>RL（§<span class="num">3.2</span>）</strong>：采用 GRPO。与 SFT 不同，RL 直接"用合成 QA、不需要轨迹示范"（即直接给出难问题，让模型自己探索，不预置标准轨迹）。奖励函数为（式 4）：</p>
+<p><code>`</code></p>
+<p>R = <span class="num">0.2</span> · R_format + R_correct</p>
+<p><code>`</code></p>
+<p>其中 R_format 保证输出结构正确，R_correct 由 DeepSeek-V3 作为 LLM-as-Judge 判定答案是否正确（权重 <span class="num">0.2</span> 的格式奖励是为了防止 collapse）。配置约 <span class="num">12</span>K 样本、group <span class="num">8 </span>rollouts、bs <span class="num">64</span>、lr 1e-6（§<span class="num">3.2</span>/§<span class="num">4.1</span>）。最值得注意的是 <strong>上下文渐进扩展</strong> 设计：<span class="num">64</span>K/<span class="num">50</span> turns → <span class="num">96</span>K/<span class="num">75</span> turns → <span class="num">128</span>K/<span class="num">100</span> turns。「<span class="infer">（推断）</span>」这模仿了训练后期不断"放宽天花板"的思路——先让模型在较短的轨迹里稳定、再逐步放开让它走更远，避免一开始就面对超长轨迹而中途崩溃。</p>
+<h3><span class="num">2.7</span> WebExplorer-8B 模型</h3>
+<p>把上述数据与训练配方应用到 Qwen3-8B 上，得到最终模型 WebExplorer-8B。作者明确其定位是"低成本长程 web agent 的可行路径"，且全部评测统一在一套 (search/browse) scaffold 下完成（§6）。这一点极其关键——它意味着跨方法、跨模型的对比是在同一把尺子上量的，「<span class="infer">（推断）</span>」这让 WebExplorer-8B 的成绩具有了较强的可比性。</p>
+<hr>
+<h2>三、方法拆解（How / 具体怎么做，以及为什么这么做）</h2>
+<h3><span class="num">3.1</span> 整体管线逻辑</h3>
+<p>把全文流程串联起来，WebExplorer 的完整管线如下：</p>
+<p><code>`</code></p>
+<p>Wikipedia 种子实体</p>
+<p>   │</p>
+<p>   ▼</p>
+<p>[Model-Based Exploration] 强 LLM 以 ReAct 迭代 search+browse</p>
+<p>   │  模型自行决定何时停止，合成跨多网站初始 QA</p>
+<p>   ▼</p>
+<p>[Iterative Query Evolution] 长到短，删减线索/模糊化/替换引用（答案不变）</p>
+<p>   ▼</p>
+<p>WebExplorer-QA（约 <span class="num">40</span>K，<span class="num">5 </span>轮 evolution，难度升至 <span class="num">67.1</span>%/<span class="num">9.9</span> turns）</p>
+<p>   │</p>
+<p>   ├──► [SFT 冷启动] rejection sampling，只留正确轨迹，约 <span class="num">13</span>K 样本</p>
+<p>   │</p>
+<p>   ▼</p>
+<p>[RL / GRPO] 约 <span class="num">12</span>K 样本，DeepSeek-V3 judge，渐进扩展上下文</p>
+<p>   ▼</p>
+<p>WebExplorer-8B（Qwen3-8B）</p>
+<p><code>`</code></p>
+<h3><span class="num">3.2</span> 为何"模型自主探索"优于"显式构图"</h3>
+<p>作者选择放弃图构建，这一取舍值得从成本与收益两面拆（§<span class="num">4 </span>对比）：</p>
+<ul>
+<li><strong>对 graph-based 的批评</strong>：WebSailor/WebShaper 需要显式建图，节点扩展与选择启发式复杂。复杂度是真实的工程负担——「<span class="infer">（推断）</span>」图结构设计、节点打分、子图选择、图到 QA 映射，任何一环都需要额外调参，且这些启发式往往依赖领域知识，难以迁移。</li>
+<li><strong>WebExplorer 的替代</strong>：只用一个 prompt + 一个强 LLM。信息空间不是被"构建"出来，而是被模型"走"出来的。「<span class="infer">（推断）</span>」这种做法的最大优势是 <strong>自然</strong>——探索路径本身就是模型真实行动的结果，不像图构建那样需要人为设定"哪些节点之间该连边"。</li>
+<li><strong>代价</strong>：失去显式可控性。「<span class="infer">（推断）</span>」模型走偏了、停早了、合成了烂问题，作者无法像图方法那样从结构上定位问题；只能靠大量生成 + 过滤（rejection sampling、judge）兜底。</li>
+</ul>
+<h3><span class="num">3.3</span> "长到短"进化的三个删减维度拆开看</h3>
+<p>作者的三类删减，本质上是在<strong>三个不同的信息暴露程度上做减法</strong>：</p>
+<table>
+<tr><th>删减类别</th><th>对什么做减法</th><th>举例</th><th>对模型的挑战</th></tr>
+<tr><td>---</td><td>---</td><td>---</td><td>---</td></tr>
+<tr><td>移除显著线索</td><td>显式、可字面匹配的提示</td><td>删掉题干里照抄就能答的词</td><td>需要推理而非检索</td></tr>
+<tr><td>模糊化日期/地点/专名</td><td>具体的指称信息</td><td>年份、地名、人名变模糊</td><td>需要时间/地理/本体知识补齐</td></tr>
+<tr><td>替代描述替换显式引用</td><td>可直接命中的实体名</td><td>Manchester United → First Division giant</td><td>需要语义理解对齐实体</td></tr>
+</table>
+<p>「<span class="infer">（推断）</span>」这是一个非常漂亮的"难度控制"分解——它把"如何让问题变难"拆成了可独立操作、可解释、可量化的三个旋钮，而非笼统地"把 query 写复杂"。而且<strong>答案不变</strong>这一约束保证了难度提升不是靠换问题，而是靠把同一个问题的入口封死。</p>
+<h3><span class="num">3.4</span> SFT 与 RL 的分工，以及"无需轨迹示范"的意义</h3>
+<p>作者在训练上的一个微妙但重要设计是：<strong>SFT 需要轨迹（rejection sampling 保正确轨迹），RL 则"直接用合成 QA、无需轨迹示范"（§<span class="num">3.2</span>）</strong>。</p>
+<p>「<span class="infer">（推断）</span>」背后的逻辑值得解读：</p>
+<ul>
+<li>SFT 阶段模型还没学会走路，必须给它正确的"示范"（哪些轨迹走对了），否则冷启动会崩。</li>
+<li>RL 阶段模型已经过了冷启动，此时真正的提升来源是"自己摸索"，所以不需要再给定标准轨迹——给定反而会限制它的探索。GRPO 天然适合这种"只给问题、不给答案路径"的设定：模型自己 rollout 一组答案，内部做偏好比较。</li>
+<li>奖励里 <span class="num">0.2</span> 权重的 R_format 是个精妙设计。「<span class="infer">（推断）</span>」纯 accuracy 奖励容易让模型钻空子（格式乱但 judge 恰好判对），加一个格式奖励可以稳定输出结构，防止训练过程中模型把结构"忘了"。</li>
+</ul>
+<h3><span class="num">3.5</span> 上下文渐进扩展（<span class="num">64</span>K→<span class="num">96</span>K→<span class="num">128</span>K）的工程含义</h3>
+<p>这是 §<span class="num">3.2</span> 里最容易被忽视、但对长程 agent 至关重要的工程细节。轨迹长度 ><span class="num">40</span>K tokens、平均 tool calls 从约 <span class="num">11</span> 升到 <span class="num">16</span>+（Figure 5），这已经远超常规 LLM 的训练上下文。作者没有一次性上 <span class="num">128</span>K，而是分三档渐进放开：</p>
+<ul>
+<li><span class="num">64</span>K/<span class="num">50</span> turns → <span class="num">96</span>K/<span class="num">75</span> turns → <span class="num">128</span>K/<span class="num">100</span> turns</li>
+</ul>
+<p>「<span class="infer">（推断）</span>」动机很直观：如果在训练一开始就要求模型在 <span class="num">100</span> turns 里稳定、无崩溃地走完，模型大概率会早崩或严重退化；渐进放开让模型先在较短的范围内形成稳定的长程规划能力，再逐步拉伸。这与数学 RL 里"先学短 CoT、再延长 CoT"的思路一致，作者在 §<span class="num">4.2</span> 也明确把这一动力学类比为单轮数学 RL 的 long CoT 涌现。</p>
+<h3><span class="num">3.6</span> 评测口径的严谨性（Avg@<span class="num">4 </span>+ 统一 scaffold）</h3>
+<p>作者在 §<span class="num">4.1</span>/§<span class="num">5 </span>反复强调两点评测纪律，这直接决定了结论的可信度：</p>
+<ol>
+<li><strong>统一 scaffold</strong>：所有对比模型都在同一套 search/browse scaffold 下评测。「<span class="infer">（推断）</span>」这一点排除了"工具差异带来的成绩差异"，让 BrowseComp 上的对比真正做到同题同秤。</li>
+<li><strong>Avg@<span class="num">4 </span>+ LLM-as-Judge</strong>：所有分数都是取 <span class="num">4 </span>次采样平均值，且由 LLM（DeepSeek-V3）判分。「<span class="infer">（推断）</span>」Avg@<span class="num">4 </span>降低了单次采样噪音；GAIA 采用 <span class="num">103</span> 样本 text-only 验证子集（沿用 WebShaper 口径），保证了与既有工作的口径一致。</li>
+</ol>
+<p>「<span class="infer">（推断）</span>」需要提醒的是，LLM-as-Judge（而非人工核验）是这套评测的相对薄弱环节——判分模型本身的偏差会被带入所有分数，这一点在本文的批判部分还会展开。</p>
+<hr>
+<h2>四、证据链（What did they show / 用数字证明了什么）</h2>
+<h3><span class="num">4.1</span> 数据集难度有实打实提升（Table 1）</h3>
+<p>这是全文方法有效性的"第一层证据"：<strong>同样的模型（Claude-4-Sonnet），在初始与进化后的 QA 上难度差异显著</strong>。</p>
+<table>
+<tr><th>项目</th><th>初始 QA</th><th>进化后 QA</th></tr>
+<tr><td>---</td><td>---</td><td>---</td></tr>
+<tr><td>正确率（Claude-4-Sonnet）</td><td><span class="num">86.6</span>%</td><td><span class="num">67.1</span>%</td></tr>
+<tr><td>平均 turns</td><td><span class="num">7.9</span></td><td><span class="num">9.9</span></td></tr>
+</table>
+<p>（数据依据：§<span class="num">3 T</span>able 1）</p>
+<p>这说明 WebExplorer 的 evolution <strong>不是把数据改得"看起来难"，而是真的让同样的强模型更难解、要走更长</strong>。「<span class="infer">（推断）</span>」<span class="num">86.6</span>% 几乎全是"送分题"，降到 <span class="num">67.1</span>% 后仍然可解（不至于烂到不可用），恰好落在"有挑战但有效"的甜区。</p>
+<h3><span class="num">4.2</span> 与既有训练数据集的难度对比（Table 1）</h3>
+<p>作者还把 WebExplorer-QA 的难度（以 acc/turns 衡量）与其他几个数据集做对照：</p>
+<table>
+<tr><th>数据集</th><th>正确率</th><th>平均 turns</th></tr>
+<tr><td>---</td><td>---</td><td>---</td></tr>
+<tr><td>WebDancer</td><td><span class="num">62.0</span>%</td><td><span class="num">5.4</span></td></tr>
+<tr><td>SailorFog</td><td><span class="num">35.0</span>%</td><td><span class="num">8.2</span></td></tr>
+<tr><td>WebShaper</td><td><span class="num">67.4</span>%</td><td><span class="num">8.4</span></td></tr>
+<tr><td>ASearcher</td><td><span class="num">62.0</span>%</td><td><span class="num">6.5</span></td></tr>
+</table>
+<p>（数据依据：§<span class="num">3 T</span>able 1；未列 WebExplorer 行，推理见下）</p>
+<p>「<span class="infer">（推断）</span>」WebExplorer 的 Evolved QA（<span class="num">67.1</span>%/<span class="num">9.9</span> turns）相较这些数据集的显著特征是 <strong>turns 更长</strong>（<span class="num">9.9</span> 显著高于所有对照），正确率介于 WebShaper（<span class="num">67.4</span>）附近。turns 偏长恰恰是长程 agent 最需要训练的信号——因为它要求学生走更远、跨更多站点。这说明 WebExplorer-QA 在"长程"这个维度上是更强的训练信号。</p>
+<h3><span class="num">4.3</span> 主结果：8B 规模全面 SOTA（Table 2）</h3>
+<p>这是全文最有力的结果。RL 后 WebExplorer-8B 的分数（Avg@<span class="num">4 </span>+ LLM-as-Judge）：</p>
+<table>
+<tr><th>基准</th><th>WebExplorer-8B（RL 后）</th></tr>
+<tr><td>---</td><td>---</td></tr>
+<tr><td>BrowseComp-en</td><td><span class="num">15.7</span></td></tr>
+<tr><td>BrowseComp-zh</td><td><span class="num">32.0</span></td></tr>
+<tr><td>GAIA</td><td><span class="num">50.0</span></td></tr>
+<tr><td>WebWalkerQA</td><td><span class="num">62.7</span></td></tr>
+<tr><td>FRAMES</td><td><span class="num">75.7</span></td></tr>
+<tr><td>Xbench-DS</td><td><span class="num">53.7</span></td></tr>
+<tr><td>HLE</td><td><span class="num">17.3</span></td></tr>
+</table>
+<p>（数据依据：§<span class="num">3 T</span>able 2）</p>
+<p>作者强调的几个对比（§5）：</p>
+<ul>
+<li><strong>8B 超过 <span class="num">72</span>B 与更大体量</strong>：BC-en <span class="num">15.7</span> / BC-zh <span class="num">32.0</span>，超过 <span class="num">72</span>B 的 WebSailor（<span class="num">12.0</span>/<span class="num">30.1</span>）乃至更大体量的 Kimi-K2（<span class="num">14.1</span>/<span class="num">28.8</span>）；在 <<span class="num">10</span>B 规模内全榜单第一。</li>
+<li><strong>WebWalkerQA <span class="num">62.7</span></strong>：超 WebShaper-<span class="num">72</span>B 达 <span class="num">10</span> 个绝对点。</li>
+<li><strong>FRAMES <span class="num">75.7</span></strong>：为 <<span class="num">100</span>B 开源最佳。</li>
+</ul>
+<p>「<span class="infer">（推断）</span>」这一组数据的震撼之处在于 <strong>体格与成绩的背离</strong>：一个 8B 模型靠高质量难数据 + 训练配方，在多个基准上打平或压过靠体量堆出来的大模型。这直接支撑了作者的核心论点——<strong>难数据的价值，可以部分替代大模型的体量优势</strong>。</p>
+<h3><span class="num">4.4</span> 泛化性证据：迁移到 STEM 强的 HLE</h3>
+<p>这是作者最"意外"也最有说服力的证据（§5）：</p>
+<ul>
+<li>训练数据全部是 Wikipedia 类知识型 QA（偏人文、百科），但 WebExplorer-8B 在<strong>以 STEM 为主的 HLE</strong> 上拿到 <span class="num">17.3</span>%，超过 ASearcher-Web-QwQ 与 WebThinker-<span class="num">32</span>B（二者在 <span class="num">12.5</span>/<span class="num">15.8</span> 附近）。</li>
+</ul>
+<p>「<span class="infer">（推断）</span>」这个结果的反直觉之处在于：训练域（百科检索）与评测域（STEM 前沿推理）看起来毫不相关，但模型仍然能在后者上跑出更好成绩。它对"难查询训练"的迁移价值给出了一个正面证据——<strong>学会怎么"在长连网里走得对、走得远"这种通用能力，可能比具体领域的知识更重要</strong>。这一结果是对"训练数据领域不匹配就没用"这一常见直觉的挑战。</p>
+<h3><span class="num">4.5</span> RL 的动力学证据（Figure 5）</h3>
+<p>作者发现一个与基准分数同步增长的信号（§<span class="num">3 T</span>able <span class="num">2 </span>中间结果、§5）：</p>
+<ul>
+<li>SFT 中间结果：BC-en <span class="num">7.9</span> / BC-zh <span class="num">21.3</span> / FRAMES <span class="num">72.6</span>。</li>
+<li>RL 之后：BC-en 升到 <span class="num">15.7</span> / BC-zh <span class="num">32.0</span>。</li>
+<li>训练中平均 tool calls 从约 <span class="num">11</span> 升到 ><span class="num">16</span>（此前工作普遍 <<span class="num">10</span>），轨迹长度 ><span class="num">40</span>K tokens。</li>
+</ul>
+<p>「<span class="infer">（推断）</span>」这是本文方法论层面最有洞察力的一组证据：<strong>RL 过程中 tool calls 数与 benchmark 分数同步增长</strong>（BC-en <span class="num">7.9</span>→<span class="num">15.7</span>），作者把它类比为单轮数学 RL 的 long CoT 涌现。这说明长程 agentic search 能力可以由 RL 持续扩展——模型在 RL 中学会的不是"更好地使用已有策略"，而是"愿意走更长、探更多、追更远"。这一发现对"RL 能扩展 agent 的探索长度"这一假设提供了实证支撑。</p>
+<h3><span class="num">4.6</span> 与专有模型的对照（§5）</h3>
+<p>作者给出了一个很有分寸的对照：</p>
+<ul>
+<li>OpenAI-o3：统一 scaffold 下 BC-en <span class="num">50.9</span> / GAIA <span class="num">70.5</span>。</li>
+<li>Claude-4-Sonnet：BC-en 仅 <span class="num">12.2</span>，与 WebExplorer-8B（<span class="num">15.7</span>）相当。</li>
+</ul>
+<p>「<span class="infer">（推断）</span>」第一组数字说明天花板还很高（o3 远超开源 8B），为后续追赶留了空间；第二组数字则很有冲击力——一个 8B 开源模型在 BC-en 上居然超过（或持平）了 Claude-4-Sonnet 这样的旗舰闭源模型。需要谨慎的是，这可能是 scaffold 差异（Claude 未必用同一套工具配置）造成，「<span class="infer">（推断）</span>」但作者坚持统一 scaffold 评测，使得这一对照在口径上相对可信。</p>
+<hr>
+<h2>五、批判性分析（Critique / 有哪些值得商榷或可补强之处）</h2>
+<h3><span class="num">5.1</span> 与 BrowseComp 的真实难度仍有距离（Figure 4）</h3>
+<p>作者自己也承认：<strong>Evolved QA 与 BrowseComp-en 的 tool calling turns 分布仍有差距</strong>（Figure <span class="num">4 </span>右）。「<span class="infer">（推断）</span>」这意味着 WebExplorer-QA 虽然比既有开源数据难，但尚未真正逼近 BrowseComp 的巅峰难度。作者给出的辩护是"完全对齐 BrowseComp 难度对当前开源模型非必要"——这是一条务实的辩护，但也同时是本文方法论的一个天花板：<strong>这套合成管线还没能完全复制出人答难题时应有的信息隐藏密度</strong>。</p>
+<p>「<span class="infer">（推断）</span>」更关键的质疑是：BrowseComp 的难，不只是"细节被模糊化"，还包含<strong>编者有意识地构造信息断裂与误导性路径</strong>。作者的三类删减（去线索/模糊化/替换引用）偏向"让线索变模糊"，但对"主动构造误导路径"（编出大量似是而非的干扰项）覆盖不足。这可能是 turns 分布仍不匹配的深层原因。</p>
+<h3><span class="num">5.2</span> 训练语料单一，覆盖不全（§6）</h3>
+<ul>
+<li>训练语料限于<strong>知识型 QA</strong>（Wikipedia 种子），未覆盖 STEM / 多模态检索场景。</li>
+<li>「<span class="infer">（推断）</span>」虽然 HLE 上的表现说明迁移价值存在，但 HLE 相对仍偏"文本推理"，若换成真正需要读图、读代码仓库、读表格的长程检索任务，数据单一化的短板会更明显。</li>
+<li>「<span class="infer">（推断）</span>」此外，Wikipedia 种子天然偏向"百科可查证"的知识，「<span class="infer">（推断）</span>」对"动态信息、私有信息、实时事件"这类真实 web 场景覆盖很弱——真实 agent 常常要查的是<strong>会变化</strong>的信息，而 Wikipedia 类数据是相对静态的。</li>
+</ul>
+<h3><span class="num">5.3</span> 评测依赖 LLM-as-Judge，缺人工核验（§6）</h3>
+<ul>
+<li>全部分数由 DeepSeek-V3 作为 LLM-as-Judge 判定，而非人工核验。「<span class="infer">（推断）</span>」这带来两类风险：</li>
+<ol>
+<li><strong>判分偏差</strong>：judge 模型自身的能力上限会决定"答案是否算对"的阈值，尤其在 HLE 这类含多解或需严谨推理的基准上，判分器的宽容度会直接 inflate 分数。</li>
+<li><strong>题面与其判分一致性</strong>：合成 QA 若与判分模型同源，「<span class="infer">（推断）</span>」可能存在"命题者擅长判分"的系统性偏差，使得成绩略高于独立第三方核验结果。</li>
+</ul>
+</ol>
+<h3><span class="num">5.4</span> 基线可比性的瑕疵（§<span class="num">4.1</span>）</h3>
+<p>作者自己点出：<strong>MiroThinker 使用 search/browse 之外的额外工具，scaffold 不完全对齐</strong>。「<span class="infer">（推断）</span>」这意味着与 MiroThinker 的直接对比在"工具均等"上打了折扣——它多出的工具可能是不公平的优势或劣势来源。虽然作者已承认，但在表格中仍并列展示，「<span class="infer">（推断）</span>」读者需警惕这一格对比的解读。</p>
+<h3><span class="num">5.5</span> 与专有模型对照的解释风险</h3>
+<ul>
+<li>OpenAI-o3 在统一 scaffold 下 BC-en <span class="num">50.9</span> / GAIA <span class="num">70.5</span>，显著高于 WebExplorer-8B。「<span class="infer">（推断）</span>」这说明"便宜 8B 逼近闭源旗舰"的结论在 o3 面前不成立，只在 Claude-4-Sonnet 面前成立。作者只挑了对己有利的一个对照强调（Claude 的 <span class="num">12.2</span>），「<span class="infer">（推断）</span>」对 o3 的 <span class="num">50.9</span> 轻描淡写，逻辑上略有不平衡——更公允的表述应是"8B 开源已达部分闭源中档水平，但距最强闭源仍有 <span class="num">3 </span>倍差距"。</li>
+</ul>
+<h3><span class="num">5.6</span> 方法论的"亮点"也是"隐患"：依赖强模型自主性</h3>
+<ul>
+<li>Model-Based Exploration 完全依赖强 LLM 的自主探索。"模型自行决定何时停止并合成初始 QA"这一设计，「<span class="infer">（推断）</span>」意味着合成质量高度取决于所调用强模型的能力上限——模型不强，探索就走不远、问题就造不好。「<span class="infer">（推断）</span>」这是对"使用强大闭源模型当合成器"的一种隐性依赖，一旦强模型无法访问或成本受限，方法的可持续性会受影响。</li>
+</ul>
+<h3><span class="num">5.7</span> RL 的采样成本与可复现性</h3>
+<ul>
+<li>GRPO 需要 group <span class="num">8 </span>rollouts、多档上下文渐进扩展、DeepSeek-V3 判分，「<span class="infer">（推断）</span>」整体训练管线对算力与 API 成本要求不低。「<span class="infer">（推断）</span>」虽然作者强调模型"低成本"，但训练阶段（尤其 RL 的多次 rollout + judge 判分）实际并不廉价，「<span class="infer">（推断）</span>」成本压力被转移到了训练侧而非推理侧。</li>
+</ul>
+<h3><span class="num">5.8</span> 缺少独立 Limitations 章节</h3>
+<ul>
+<li>全文 <span class="num">23</span> 页，无独立 Limitations 章节（§<span class="num">2 </span>章节树明确列出到 Conclusion，随后是 References/Appendix）。「<span class="infer">（推断）</span>」这使得上述局限散落在正文各处，读者需要自行拼凑完整的问题清单，不利于对该工作局限的快速、全面把握。作者在 §<span class="num">6 </span>结尾虽简要提到了语料单一、基线瑕疵、依赖 LLM-as-Judge、团队归属等，「<span class="infer">（推断）</span>」但表述得较为收敛，未展开。</li>
+</ul>
+<hr>
+<h2>六、启示与影响（Implications / 对领域与后续工作的意义）</h2>
+<h3><span class="num">6.1</span> 数据合成的范式转向：从"建图"到"行走"</h3>
+<p>这是本文对本领域最重要的启示。既有 graph-based 方法（WebSailor/WebShaper）走"显式构图"路线，WebExplorer 证明了一条更简洁的路——<strong>让强模型直接在信息空间里"走"，走的痕迹就是数据</strong>。「<span class="infer">（推断）</span>」这一转向的价值在于把"信息空间建模"这个棘手问题，化简为"模型自主探索"这个可复用的行为。「<span class="infer">（推断）</span>」对后续工作而言，无需再纠结图结构怎么设计、节点怎么打分，只要有一个够强的探索者，就能源源不断产出带长程路径的难数据。</p>
+<h3><span class="num">6.2</span> 难度控制的"可操作化"：三个删减旋钮</h3>
+<p>作者把"让问题变难"拆成了三个可解释、可量化、可独立调节的旋钮（去线索/模糊化/替换引用），且全部遵循"答案不变"的约束。「<span class="infer">（推断）</span>」这是难度控制从玄学走向工程的一大步。「<span class="infer">（推断）</span>」后续工作可以在这三个旋钮上做更多文章——例如扩展第四类"构造误导路径"、调节三个旋钮的权重来精确控制难度曲线、甚至用它做"难度自适应"的数据增强。</p>
+<h3><span class="num">6.3</span> "长到短"进化与"短到长"进化的辩证</h3>
+<p>作者反直觉地做 long-to-short 进化，表面是逆行，实则抓住了"问题的难在信息隐藏而非信息缺失"这一本质。「<span class="infer">（推断）</span>」这给数据合成社区一个启发：<strong>与其不断"加料"把问题写长，不如在已有可解题上"做减法"逼出难度</strong>。「<span class="infer">（推断）</span>」"删比加贵"在这里反而更有效——删减是对题目信息熵的精准压缩。</p>
+<h3><span class="num">6.4</span> 强化学习可扩展 long-horizon agentic search</h3>
+<p>作者发现 RL 过程中工具调用数与分数同步增长（Figure 5），并类比 long CoT 涌现。「<span class="infer">（推断）</span>」这一发现的启示是：<strong>长程 agent 的"走得更远"能力，未必需要靠更大的 base 模型，而是可以通过 RL 在训练中持续扩展出来</strong>。「<span class="infer">（推断）</span>」这可能预示着后续工作会专门研究"agentic length scaling"——如同单轮数学 RL 让模型涌现长 CoT，长程检索 RL 有望让模型涌现"长探索"。</p>
+<h3><span class="num">6.5</span> 难查询训练的迁移价值被正面证实</h3>
+<p>WebExplorer-8B 在 STEM 为主的 HLE 上超过多个基线（<span class="num">17.3</span>），即使训练语料全是百科类知识 QA。「<span class="infer">（推断）</span>」这对"训练数据必须和评测领域匹配"这一常识构成正面挑战，说明<strong>长程 agent 的通用检索/推理/路径规划能力具有跨领域迁移性</strong>。「<span class="infer">（推断）</span>」对后续工作，这提示可以更多关注"通用检索能力"的训练，而非纠结于领域数据的完美匹配。</p>
+<h3><span class="num">6.6</span> 对"模型体量"叙事的潜在冲击</h3>
+<p>8B 模型在多个基准打平或超过 <span class="num">72</span>B 乃至更大体量（§5），这为"小模型+好数据+好训练可以部分替代大体量"提供了又一例证。「<span class="infer">（推断）</span>」结合长程 web agent 场景对长上下文与多步推理的强需求，低成本模型若能靠数据与训练配方补足，将显著降低该方向的上手门槛。「<span class="infer">（推断）</span>」这与作者"低成本长程 web agent 可行路径"的定位高度一致。</p>
+<h3><span class="num">6.7</span> 评测口径统一的重要性：统一 scaffold + Avg@4</h3>
+<p>作者坚持所有模型在同一 search/browse scaffold 下评测、取 Avg@4，「<span class="infer">（推断）</span>」这为 web agent 领域树立了一个可贵的可比性标杆。「<span class="infer">（推断）</span>」在 web agent 领域，工具差异（用哪个搜索引擎、是否用抽取器、是否额外加工具）极易造成成绩虚高或失真，作者刻意统一口径，使得跨模型、跨方法的横向比较第一次有了相对公允的基础。「<span class="infer">（推断）</span>」后续工作若沿用此口径，将极大提升结果的可比较性。</p>
+<h3><span class="num">6.8</span> 尚待解决的关键问题（留给后续工作）</h3>
+<p>虽然方法有效，但有几个问题仍留待解决（§<span class="num">5 </span>批判的延伸）：</p>
+<ol>
+<li><strong>如何让合成难度真正对齐 BrowseComp</strong>：turns 分布仍不匹配，需探索更强的信息隐藏/误导路径构造。</li>
+<li><strong>如何覆盖更多样化的检索场景</strong>：知识型 QA 之外，STEM、多模态、动态/时效信息、代码/表格等真实场景。</li>
+<li><strong>如何降低 RL 训练阶段的成本</strong>：GRPO + judge 的成本压力，「<span class="infer">（推断）</span>」可研究更轻量的奖励信号或更高效的采样策略。</li>
+<li><strong>如何减少对 LLM-as-Judge 的依赖</strong>：引入人工核验或更稳健的判分机制。</li>
+<li><strong>如何减少对强闭源模型合成器的依赖</strong>：探索开源模型也能驱动 Model-Based Exploration 的路径。</li>
+</ol>
+<h3><span class="num">6.9</span> 本文在"LLM 关键节点论文全集"中的定位小结</h3>
+<p>「<span class="infer">（推断）</span>」从模型与数据两条主线看，本文属于"数据侧+训练侧"的节点，而非"架构侧"或"对齐侧"。「<span class="infer">（推断）</span>」它代表了 <span class="num">2025</span> 年前后 web agent 方向的一个典型转向：<strong>从依赖人工与构图，转向依赖强者自主探索 + 强化学习扩展</strong>。「<span class="infer">（推断）</span>」在"低成本替代大模型"这条主题脉络上，本文与借助难数据、RL、长上下文训练的其他工作形成呼应，共同指向一个趋势——<strong>数据质量与训练方法，正在成为比模型体量更重要的变量</strong>。「<span class="infer">（推断）</span>」这篇工作最值得记住的一句话：<strong>难查询不是查出来的，是"删"出来的</strong>。</p>
+<hr>
+<h2>结语</h2>
+<p>WebExplorer 的价值不在其模型本身（8B 终究是 8B），而在其揭示的一条路径：<strong>用"强者自主探索 + 反向删减进化"造出接近真实难度的长程数据，再用 SFT+GRPO 把它训练成一个便宜但能干的长程 web agent</strong>。它最大的贡献是为 web agent 的数据合成提供了一个"去复杂化"的替代方案——不要图，只要一个能走得很远的探索者；同时用 RL 动力学证据（tool calls 与分数同步增长）为"长程 agentic search 可由 RL 扩展"提供了统一 scaffold 下的实证支撑。其代价与局限同样清晰：难度尚未对齐 BrowseComp、语料偏单一、评测依赖 LLM-as-Judge、训练成本并不低。这些恰恰是后继工作最有戏的切入点。</p>
+<div class="selfcheck">数据依据：本页 00-源数据提取.md | 推断处已标注（推断）| 生成：批量转换脚本</div>
+</div></body></html>

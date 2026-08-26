@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《The MiniMax-M2 Series》深度解读报告</title>
+<style>
+  :root{
+    --ink:#1c2430; --sub:#5b6b7d; --paper:#fbfaf7; --card:#ffffff;
+    --accent:#0f6ba8; --accent2:#c25e00; --line:#e3ddd2;
+    --hl:#fff3c4; --hl2:#ffe1cc; --good:#1a7f4f; --warn:#b3372c;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; padding:0; background:var(--paper); color:var(--ink);
+    font-family:"Source Han Serif SC","Noto Serif CJK SC","Songti SC",Georgia,"Times New Roman",serif;
+    font-size:16.5px; line-height:1.85;
+  }
+  .wrap{max-width:920px; margin:0 auto; padding:28px 34px 60px;}
+  header.hero{
+    background:linear-gradient(135deg,#122a44 0%,#0f4c75 55%,#12708e 100%);
+    color:#f4f7fa; border-radius:14px; padding:42px 44px 34px; margin-bottom:26px;
+  }
+  header.hero .kicker{font-size:.82rem; letter-spacing:.35em; text-transform:uppercase; opacity:.75; font-family:Georgia,serif;}
+  header.hero h1{margin:.35em 0 .4em; font-size:2.05rem; line-height:1.35; letter-spacing:.01em;}
+  header.hero .meta{font-size:.92rem; opacity:.88; border-top:1px solid rgba(255,255,255,.25); padding-top:14px; margin-top:18px;}
+  header.hero .thesis{
+    margin-top:16px; background:rgba(255,255,255,.10); border-left:4px solid #ffd166;
+    padding:12px 18px; border-radius:0 8px 8px 0; font-size:1.02rem;
+  }
+  nav.toc{
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:20px 26px; margin-bottom:30px; font-size:.95rem;
+  }
+  nav.toc b{color:var(--accent); letter-spacing:.15em; font-size:.85rem;}
+  nav.toc ol{margin:10px 0 0; padding-left:22px; columns:2; column-gap:40px;}
+  nav.toc li{margin:5px 0; break-inside:avoid;}
+  nav.toc a{color:var(--ink); text-decoration:none; border-bottom:1px dotted var(--sub);}
+  nav.toc a:hover{color:var(--accent); border-bottom-color:var(--accent);}
+  section.chapter{
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:34px 40px 30px; margin-bottom:30px;
+  }
+  h2.chap{
+    display:flex; align-items:baseline; gap:14px; margin:0 0 22px;
+    font-size:1.45rem; color:var(--accent); line-height:1.4;
+  }
+  h2.chap .no{
+    flex:none; font-family:Georgia,serif; font-size:1.05rem; color:#fff;
+    background:var(--accent); border-radius:50%; width:38px; height:38px;
+    display:inline-flex; align-items:center; justify-content:center; transform:translateY(4px);
+  }
+  h3{font-size:1.13rem; margin:30px 0 12px; color:#123c5c; border-left:4px solid var(--accent); padding-left:12px;}
+  p{margin:10px 0; text-align:justify;}
+  strong{color:#0d2b45;}
+  em{font-style:normal; color:var(--accent2);}
+  .num{
+    font-family:Georgia,"Times New Roman",serif; font-weight:700; color:#8a4a00;
+    background:var(--hl); padding:0 5px; border-radius:4px; white-space:nowrap;
+  }
+  .num.blue{background:#dbeeff; color:#0b4f83;}
+  .num.green{background:#dcf3e6; color:var(--good);}
+  .num.red{background:#ffe1dd; color:var(--warn);}
+  table{width:100%; border-collapse:collapse; margin:16px 0 22px; font-size:.93rem; background:#fff;}
+  caption{caption-side:top; text-align:left; font-size:.86rem; color:var(--sub); padding-bottom:8px;}
+  th{
+    background:#123c5c; color:#f2f6fa; font-weight:600; padding:9px 12px;
+    text-align:left; border:1px solid #0e3049; line-height:1.5;
+  }
+  td{border:1px solid var(--line); padding:8px 12px; vertical-align:top; line-height:1.7;}
+  tbody tr:nth-child(even){background:#f7f9fb;}
+  blockquote{
+    margin:18px 0; padding:14px 20px; background:#f2f7ec; border-left:4px solid #7ba05b;
+    border-radius:0 8px 8px 0; color:#31452a;
+  }
+  blockquote b{color:#274019;}
+  .callout{
+    background:#fdf6ee; border:1px solid #ecd9bd; border-left:5px solid var(--accent2);
+    border-radius:0 10px 10px 0; padding:16px 22px; margin:20px 0; font-size:.97rem;
+  }
+  .callout .tag{
+    display:inline-block; font-size:.78rem; letter-spacing:.2em; color:#fff;
+    background:var(--accent2); padding:2px 10px; border-radius:3px; margin-bottom:8px;
+  }
+  ul,ol{padding-left:26px; margin:10px 0 16px;}
+  li{margin:6px 0; text-align:justify;}
+  .verdict{font-size:.9rem;}
+  .up{color:var(--good); font-weight:700;}
+  .down{color:var(--warn); font-weight:700;}
+  .flat{color:#8a6d00; font-weight:700;}
+  footer.audit{
+    background:#101820; color:#cfd8e0; border-radius:12px; padding:24px 30px;
+    font-size:.86rem; line-height:1.9; font-family:"SF Mono","JetBrains Mono",Consolas,monospace;
+  }
+  footer.audit b{color:#ffd166; letter-spacing:.1em;}
+  footer.audit .ok{color:#7fe3a3;}
+  @media (max-width:720px){
+    .wrap{padding:14px;}
+    header.hero,section.chapter{padding:24px 20px;}
+    nav.toc ol{columns:1;}
+  }
+  @media print{
+    body{background:#fff;}
+    section.chapter,nav.toc{break-inside:auto; page-break-inside:auto;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">Deep Reading · Technical Report Review</div>
+  <h1>《The MiniMax-M2 Series》<br>深度解读报告</h1>
+  <div class="meta">
+    Mini Activations Unleashing Max Real-World Intelligence ｜ arXiv:2605.26494v2 [cs.AI]，2026-07-30，35 页<br>
+    MiniMax（Aili Chen 等署名 + 约 200 人字母序贡献者列表）｜ 系列演进 M2 → M2.5 → M2.7，重点汇报 M2.7
+  </div>
+  <div class="thesis">
+    核心命题：<strong>"mini activations can unleash maximum real-world intelligence"</strong>——以
+    <span class="num blue">229.9B</span> 总参 / <span class="num blue">9.8B</span> 激活参数，
+    逼近闭源旗舰的真实世界智能水平。
+  </div>
+</header>
+
+<nav class="toc">
+  <b>目 录 · CONTENTS</b>
+  <ol>
+    <li><a href="#abs">摘要</a></li>
+    <li><a href="#ch1">一、问题定位</a></li>
+    <li><a href="#ch2">二、概念内核</a></li>
+    <li><a href="#ch3">三、方法拆解</a></li>
+    <li><a href="#ch4">四、证据链</a></li>
+    <li><a href="#ch5">五、批判性分析</a></li>
+    <li><a href="#ch6">六、启示与影响</a></li>
+    <li><a href="#end">总结</a></li>
+  </ol>
+</nav>
+
+<section class="chapter" id="abs">
+  <h2 class="chap"><span class="no">◈</span>摘要</h2>
+  <p>本报告解读 MiniMax 技术报告《The MiniMax-M2 Series》。这是一份系列演进报告（M2 → M2.5 → M2.7），核心命题浓缩为一句话：<strong>以约 <span class="num blue">10B</span> 激活参数逼近闭源旗舰的真实世界智能水平</strong>。</p>
+  <p>支撑这一命题的是四位一体的技术体系：</p>
+  <ul>
+    <li><strong>架构侧</strong>：<span class="num">62</span> 层 decoder-only MoE，总参 <span class="num blue">229.9B</span> / 激活仅 <span class="num blue">9.8B</span>（<span class="num">256</span> 专家激活 <span class="num">8</span> 个），sigmoid gating + 可学习 expert bias + <span class="num">48Q/8KV</span> GQA + 原生 <span class="num">192K</span> 上下文，MTP 兼作投机解码草稿；</li>
+    <li><strong>数据侧</strong>：预训练 <span class="num">29.2T</span> tokens；后训练建成六大领域"数据工厂"，把 GitHub PR、StackOverflow、金融工作簿等真实资产系统性转化为可验证任务；</li>
+    <li><strong>训练侧</strong>：Agent RL 建模 + 非对称裁剪的 CISPO 算法 + 四域混采 Mixed-Domain RL；</li>
+    <li><strong>基建侧</strong>：Forge 基础设施，prefix tree merging 以数学等价方式实现最高 <span class="num green">40×</span> 训练加速。</li>
+  </ul>
+  <p>成绩单：M2.7 在 SWE-bench Pro 取 <span class="num green">56.2</span>、Multi-SWE-bench <span class="num green">52.7</span> 为参比最高、MLEBenchLite 奖牌率 <span class="num green">66.6%</span> 追平 Gemini 3.1 Pro、AIME2026 <span class="num green">94.2</span> / GPQA-Diamond <span class="num green">89.8</span> 处前沿带；系列内 <span class="num">11</span> 项共同基准全部单调提升（<span class="num green">+11</span> 至 <span class="num green">+33.8</span>）。Self-Evolution 机制更使 M2.7 能自主迭代吸收 RL 团队 <span class="num">30%–50%</span> 的日常实验负载。但"逼近"是带内水平而非超越：多数单项仍落后最强闭源对手，且大量增益出现在内部构建基准上。本报告按六层结构逐层拆解。</p>
+  <blockquote><b>数据依据说明</b>：全部数字以源数据提取文件为唯一依据；标注「（推断）」处为分析者推理补充。原 PDF 第 1 页图表摘要页字体映射损坏致文本乱码，Figure 1 headline 数字无法从文本核验——本报告仅采信正文复述值，不对该图做任何引申。</blockquote>
+</section>
+
+<section class="chapter" id="ch1">
+  <h2 class="chap"><span class="no">一</span>问题定位：小激活模型的"真实世界智能"突围战</h2>
+
+  <h3>1.1 论文要解决的问题</h3>
+  <p>论文针对的问题可以表述为一个尖锐的不等式：<strong>能否让激活参数小一个数量级的开源权重模型，在真实世界 agent 任务（编码、办公协作、深度检索）上追平闭源旗舰？</strong>这里的"真实世界智能"不是抽象考试分数，而是 SWE-bench Pro 这类真实仓库修复、Terminal-Bench 这类终端操作、BrowseComp 这类多跳网络检索——特征是长程、多轮、需要调用工具与环境交互。</p>
+  <p>选择这条路线的逻辑很清晰：（推断）激活参数直接决定推理成本与部署门槛，<span class="num blue">9.8B</span> 激活意味着少量卡即可承载生产流量，而旗舰闭源模型的激活规模普遍被认为大十倍以上。若性能真能带内追平，性价比优势将是压倒性的。因此这份报告的本质是一场<strong>效率主义的技术论证</strong>：证明"小激活"与"最大真实智能"并不矛盾。</p>
+
+  <h3>1.2 谱系中的三重张力定位</h3>
+  <table>
+    <caption>表 1-1　三条技术战线上的路线表态</caption>
+    <thead><tr><th style="width:22%">张力</th><th style="width:44%">本文立场</th><th>关键证据</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>稀疏化粒度之争</strong></td>
+        <td>细粒度专家（256 top-8）+ sigmoid gating（去零和约束）+ 可学习 expert bias（隐式调负载）</td>
+        <td>消融：fine-grained 使 MATH <span class="num">19.6→24.1</span>、HumanEval <span class="num">29.7→32.5</span>（17.8B/2B 对照、500B tokens）</td>
+      </tr>
+      <tr>
+        <td><strong>注意力形态之争</strong></td>
+        <td>逆势回归 <strong>full attention</strong>（详见第二章）</td>
+        <td>RULER-128K CWE <span class="num">90.0 vs 72.0</span>；MTOB K-eBleurt <span class="num">60.0 vs 45.0</span></td>
+      </tr>
+      <tr>
+        <td><strong>静态推理 vs 动态交互</strong></td>
+        <td>后训练重心压在 Agent RL 上，并把规模化上升为基础设施问题（Forge）</td>
+        <td>CISPO + Mixed-Domain RL + prefix tree merging <span class="num green">40×</span> 加速</td>
+      </tr>
+    </tbody>
+  </table>
+  <blockquote><b>一句话小结</b>：论文的问题不是"如何把模型做大"，而是"如何让小激活模型在长程交互任务上不打折"——为此它在架构、注意力、训练范式三条战线上同时选择了与部分潮流相反的方向。</blockquote>
+
+  <h3>1.3 为什么难：Agent RL 的独特挑战</h3>
+  <ol>
+    <li><strong>轨迹极长且环境异构</strong>：一次 SWE 任务包含数十次工具调用、编译、测试循环，样本生产速度受制于最慢的环境实例；</li>
+    <li><strong>"不可能三角"</strong>：吞吐 × 训练稳定性 × agent 灵活性难以兼得，rollout 吞吐常牺牲分布一致性，agent 定义灵活性又拖慢 rollout；</li>
+    <li><strong>奖励稀疏且难验证</strong>：真实仓库修复只有最终测试通过与否一个硬信号；</li>
+    <li><strong>分布一致性难题</strong>：异步 rollout 中新旧策略样本混杂，会污染策略梯度估计。</li>
+  </ol>
+  <p>（推断）正是这些结构性约束决定了 M2 系列的技术栈形态——没有强大的基建，Agent RL 的规模化就是一句空话；而没有 Agent RL，小激活模型的能力天花板就撑不起来。</p>
+</section>
+
+<section class="chapter" id="ch2">
+  <h2 class="chap"><span class="no">二</span>概念内核：八个核心概念逐一定义</h2>
+
+  <h3>2.1 细粒度 MoE（fine-grained experts + sigmoid gating + expert bias）</h3>
+  <p><strong>定义</strong>：<span class="num">256</span> 个专家每次激活 <span class="num">8</span> 个的门控混合专家架构，sigmoid 门控替代 softmax，附加可学习偏置调节负载均衡。</p>
+  <p><strong>拆解</strong>：三个组件各司其职——细粒度切分提高路由组合多样性、降低设备利用率方差；sigmoid gating 移除 softmax 强加的"专家间零和竞争"，多个专家可同时获得高门控值被联合激活，这对需要多种能力叠加的复杂推理步尤为重要；可学习 expert bias 以隐式方式调节负载，大幅削减传统 MoE 必须显式加入的辅助均衡损失。（推断）实际意义是：在不牺牲稳定性的前提下，把尽可能多的训练信号留给真正的语言建模目标。</p>
+
+  <h3>2.2 Full Attention 回归（弃 hybrid SWA 的决策）</h3>
+  <p><strong>定义</strong>：放弃滑动窗口混合注意力方案，全层保留完整二次方注意力，原生支持 <span class="num">192K</span> 上下文。</p>
+  <p><strong>拆解</strong>：这是全文最有态度的设计决策，作者给出三层理由：</p>
+  <table>
+    <caption>表 2-1　弃 hybrid SWA 的三层论据与关键数字</caption>
+    <thead><tr><th style="width:20%">层面</th><th style="width:48%">论据</th><th>关键数字</th></tr></thead>
+    <tbody>
+      <tr><td>评测方法学</td><td>hybrid 在标准基准看似持平，但大规模下多跳推理赤字显现，proxy 指标相关性脆弱</td><td>—</td></tr>
+      <tr><td>基础设施成熟度</td><td>线性注意力内存受限训练、低精度敏感、缺 prefix cache 与投机解码集成</td><td>—</td></tr>
+      <tr><td>大规模对照实证</td><td>数百亿~万亿 token 规模对照在检索/多跳/ICL 全面劣化</td><td>RULER-128K <span class="num red">90.0 vs 72.0</span>；MTOB <span class="num red">60.0 vs 45.0</span></td></tr>
+    </tbody>
+  </table>
+  <p>值得注意的是 Table 3 补充了 SFT 后的对照：&gt;<span class="num">32K</span> 的 agent 任务上 hybrid 显著更差（Terminal-Bench <span class="num">26.7 vs 23.8</span>、BrowseComp-zh <span class="num">32.8 vs 28.7</span>），但 &lt;32K 任务互有胜负，IFBench 甚至出现 SWA <span class="num">27.2</span> 高于 full <span class="num">23.1</span> 的反例。这说明 full attention 的优势集中在<strong>长上下文与长程 agent 场景</strong>。作者同时保留科学诚实：仍认为亚二次注意力长期值得投入。</p>
+
+  <h3>2.3 MTP（Multi-Token Prediction，多 token 预测）</h3>
+  <p><strong>定义</strong>：预训练阶段挂载单个额外预测模块（K=<span class="num">1</span>，loss 权重 <span class="num">0.3→0.1</span>），decay 阶段经权重复制扩展至 K=<span class="num">3</span>，支持多步投机解码。</p>
+  <p><strong>拆解</strong>：MTP 双重角色——训练时作为深监督信号改善表征，推理时作为免费的投机解码草稿模型。工程细节讲究：decay 阶段将主模型权重复制给 MTP 作初始化，收敛快且不扰动主模型；先冻结主模型单独训 MTP 再联合训练，因为纯 MTP-only 训练终态更差。（推断）"复制初始化 + 冻结先行"的本质是在保护已收敛的主干表征不被 auxiliary 目标拉偏，对所有考虑加 MTP 的团队都有参考价值。</p>
+
+  <h3>2.4 Interleaved Thinking（交织思考）</h3>
+  <p><strong>定义</strong>：思考-行动-观察交织于同一轨迹（τ=(r₁,a₁,o₁,...,r_T,a_T,o_T)），思考块作为一等公民持久化进历史 H⊕[assistant(r,a)]⊕[tool(o)]。</p>
+  <p><strong>拆解</strong>：与传统"整块 CoT 后接答案"不同，interleaved thinking 允许每个行动前后插入思考段，且这些思考块在后续轮次<strong>不会被截断丢弃</strong>。消融显示这种 reasoning state persistence 对深搜索、SWE 类长程任务收益最大。（推断）机理在于：长程任务中早期轮次的中间结论必须跨轮存活，丢弃思考块等于强迫模型失忆重来。Plan-Act-Reflect 循环由此获得自校正、样本效率与可调试性三重收益。</p>
+
+  <h3>2.5 Agent RL 与环境边界</h3>
+  <p><strong>定义</strong>：将 MDP M=(S,A,T,R,γ) 的环境边界画在生成接口上——工具、harness、上下文管理（CM）、子 agent 皆视为环境的组成部分。</p>
+  <p><strong>拆解</strong>：看似平凡实则关键的建模决定。边界画在哪里，决定了哪些变化被视为"环境的随机性"、哪些被视为"策略的一部分"。把 harness 与子 agent 都划入环境，模型学习的是"在给定脚手架下的最优行为"；(s_t,a_t) 为原子策略梯度样本，credit assignment 在 episode 级经 reward-to-go + trajectory baseline 完成。（推断）这让同一套算法可无缝迁移到任何脚手架配置——与 Forge 支持数百种 scaffold 的黑盒训练能力首尾呼应。</p>
+
+  <h3>2.6 CISPO（非对称裁剪的重要性采样策略优化）</h3>
+  <p><strong>定义</strong>：将 IS ratio 非对称裁剪至区间 [0, 1+ε_high]：上限抑制过大更新，下限为零允许对低概率 token 激进降权；stop-gradient 保证重要性权重只调制梯度幅值。</p>
+  <p><strong>拆解</strong>：对比 PPO/GRPO 的对称裁剪，CISPO 的非对称性专为 agent 场景设计：长轨迹中某些 token 的旧策略概率可能极低，对称下限会阻止大幅负更新，导致坏行为清除缓慢；零下限允许"发现某个动作有害时立刻压下去"。（推断）stop-gradient 把重要性权重变成纯粹的幅值调制器而非梯度方向来源，避免高方差权重污染更新方向——处理超长轨迹高方差问题的务实工程化。</p>
+
+  <h3>2.7 Forge 与"不可能三角"</h3>
+  <p><strong>定义</strong>：Agent RL 训练基础设施，直面"吞吐 × 稳定 × agent 灵活性"不可能三角，目标函数为 Effective Agent Training Yield = Throughput × Sample Efficiency（受梯度方差与偏差约束）。</p>
+  <p><strong>拆解</strong>：三解耦模块——Agent Side（纯轨迹生产者）/ Middleware（Gateway Server + DataPool 异步存储）/ Training+Inference Side（Rollout Engine + Train Engine 权重同步）。双模接入：白盒 agent 注册 CM 操作供训练期精确重建状态分布；黑盒 agent 仅凭外部 (s,a,o) 流训练——后者已验证<span class="num">数百种</span>scaffold、<span class="num">数千种</span>工具格式。（推断）黑盒模式的战略意义在于：社区任何新框架写的 agent 都可直接拿来当训练环境，Forge 因此不只是内部基建，而是潜在的"agent RL 操作系统"。</p>
+
+  <h3>2.8 Self-Evolution（自我进化）</h3>
+  <p><strong>定义</strong>：Model Iteration System 秉持 "humans steer while models build"——人类负责方向性评审触发大迭代，agent 自主续跑有界分析；Agent Harness 本身由 M2.7 生成，零人写代码。</p>
+  <p><strong>拆解</strong>：两个量化锚点——自主迭代吸收 RL 团队 <span class="num">30%–50%</span> 日常实验负载；递归 scaffold 升级案例中 <span class="num">100</span> 轮自主迭代引入 loop detection 等机制，带来内部评测 <span class="num green">+30%</span>。</p>
+  <blockquote><b>一句话小结</b>：八个概念构成一条闭环——细粒度 MoE 与 full attention 保证基座容量与长上下文保真，MTP 降低推理成本，interleaved thinking 保住长程状态，Agent RL/CISPO 提供训练算法，Forge 解决规模化执行，self-evolution 则让系统开始改进自身。</blockquote>
+</section>
+
+<section class="chapter" id="ch3">
+  <h2 class="chap"><span class="no">三</span>方法拆解：架构—数据—训练—基建的四位一体</h2>
+
+  <h3>3.1 架构侧：一套为 agent 场景调校的基座</h3>
+  <p>整体规格：<span class="num">62</span> 层 decoder-only，hidden <span class="num">3,072</span>，词表 <span class="num">200,064</span>，RoPE，GQA <span class="num">48Q/8KV</span>，原生 <span class="num">192K</span> 上下文，MTP 兼作投机解码草稿。预训练分 constant（<span class="num">19.9T</span>）与 decay（<span class="num">9.3T</span>）两相共 <span class="num blue">29.2T tokens</span>，上下文长度按 <span class="num">8K→32K→192K</span> 多阶段扩展。</p>
+  <p>三个消融级证据值得单独强调（均在 17.8B 总参/2B 激活对照、500B tokens 下测得）：</p>
+  <ul>
+    <li>fine-grained MoE（128 专家 top-8）：MATH <span class="num">19.6→24.1</span>，HumanEval <span class="num">29.7→32.5</span>；</li>
+    <li>加 MTP：MATH 进一步 <span class="num">19.6→21.3</span>；</li>
+    <li>弃 hybrid SWA 的代价收益核算见第二章表 2-1 及 SFT 后对照。</li>
+  </ul>
+
+  <h3>3.2 数据侧：从"采集数据"到"制造可验证任务"</h3>
+  <p>后训练数据体系是全报告篇幅最大的章节（占近三分之一），六个领域共享一条元原则：<strong>每个任务都必须自带可机器判定的验收信号</strong>。</p>
+  <p><strong>Agentic Coding 三件套</strong>：</p>
+  <ul>
+    <li><strong>SWE-scaling 六阶段 GitHub PR 流水线</strong>：采集过滤 → agent 合成多语言 Docker 环境（攻克编译语言构建编排、异构测试接口、仓库结构变异三大难点）→ PR 打标路由 → 任务抽取验证 → 模型校验补全 → 变换扩充（bug 注入、commit 合并、SWE-Test 反演写失败测试、代码评审近似可验证任务），覆盖 <span class="num">10+</span> 语言；奖励按类型定制——bug fix 用 F2P/P2P 测试，性能优化用显著差异验证。</li>
+    <li><strong>AppDev 专家在环</strong>：专家元查询模板注入生产级技术模式 + MinHash 去重 + LLM-as-judge 三维质检（TechStack 合理性 / Feature 可行性 / 需求清晰度）；prompt distillation 将专家最佳实践内化为默认行为；<strong>Agent-as-a-Verifier</strong> 三层验收链（Execution 硬门禁 → Playwright 交互验证 → Visual Aesthetics 视觉评估），全部带证据二值判定。</li>
+    <li><strong>Terminal-Gym</strong>：StackOverflow 全库筛选 → 查询改写分级只留 top2 档 → 三阶段合成（环境+测试生成的自愈迭代 / query evolution 抹去表面提示+统一测试防过拟合 / 参考求解器通过率难度校准）；正演进为零人工 Anything2Docker 并扩展 CVE-Factory。</li>
+  </ul>
+  <p><strong>Agentic Cowork 四域共享范式</strong>（真实可运行工作区 + 扰动脚手架蒸馏教师轨迹 + 工件对齐验收信号）：deep search 用 guide-and-rewrite 强制证据落地；knowledge worker 以 GDPval 为锚层次合成 + 多轴 rubric + 类型化清洗（清除伪造数据/引用）；金融域 evidence-driven 反推 + workbook-walk 轨迹逆序出题，公式由外部引擎重算实现确定性数值判分；幻灯片域双流生成/编辑 + 视觉打分器 + 混入备选渲染库防工具过拟合。</p>
+  <p><strong>Reasoning 与 Role-Play</strong>：前者做 query/response/training-side 三轴 scaling，配比动态分配至弱项并全链路质检；后者将角色扮演形式化为 {Worlds}×{Stories} 条件生成，Role-Play Bench 离线指标强相关在线参与度，RLHF 信号经因果推断去噪 + 分层偏差移除 + 熵监控防 reward hacking。</p>
+  <div class="callout"><span class="tag">推断</span>这套体系的真正护城河不在任何单一技巧，而在"<strong>把互联网存量资产批量转化为带验收信号的 agent 环境</strong>"的可复制流水线本身——PR 对应 SWE 任务、问答帖对应终端任务、工作簿对应金融任务，映射关系一旦建立便可工业化量产。</div>
+
+  <h3>3.3 训练侧：SFT → Mixed-Domain Agent RL</h3>
+  <p>SFT 使用 interleaved thinking 轨迹（思考-行动-观察交织于同一 trajectory，非整块 CoT），经大规模拒绝采样与多级清洗，覆盖 chat/reasoning/code/cowork 四域。RL 阶段的三个算法组件：</p>
+  <ol>
+    <li><strong>CISPO</strong>（见 2.6）：非对称裁剪适配长轨迹稀疏信用分配；</li>
+    <li><strong>复合奖励</strong> r_t = α·r_process + β·r_speed + r_perf：完成时间的相对奖励显式激励并行工具调用与子 agent 使用——（推断）相当于把"工程效率美学"直接写进优化目标，模型学会的不是"做对"而是"又快又对地并行做"；</li>
+    <li><strong>Mixed-domain RL</strong>：每步四域混采，跨阶段动态调节域配比（前期偏基础、后期偏 agent）、上下文长度（per-domain curriculum）与难度分布，同时规避灾难性遗忘与负迁移。</li>
+  </ol>
+
+  <h3>3.4 基建侧：Forge 的四项关键技术</h3>
+  <ul>
+    <li><strong>Windowed FIFO（W=0.3N）</strong>：窗口内贪婪消解队头阻塞（HoL），窗口间严格 FIFO 保持样本分布一致性——调度自由度与分布保真间的折中；</li>
+    <li><strong>Prefix Tree Merging</strong>：共享前缀一次前向 + 元数据拆树逐样本计损，<strong>与逐样本训练数学等价、零近似误差</strong>，最高带来 <span class="num green">40× 训练加速</span>并解锁更长序列更大 batch。全文最漂亮的单项工程成果——agent 轨迹天然大量共享系统提示与前缀，前缀去重收益空间巨大；</li>
+    <li><strong>推理加速三项</strong>：MTP 草稿与 RL 策略以 top-K KL 协同训练保持接受率；异构 prefill-decode 分离调度；DFS 支撑的全局 L3 KV cache pool（成本感知路由平衡排队延迟与缓存迁移）；</li>
+    <li><strong>白盒/黑盒双模式接入</strong>（见 2.7）。</li>
+  </ul>
+
+  <h3>3.5 机制侧：Interleaved Thinking 与 Self-Evolution 的合流</h3>
+  <p>第七章把模型能力与开发流程接到同一个飞轮上：interleaved thinking 让单次任务内的长程状态得以存续，self-evolution 让跨版本的系统能力得以积累——双环工作流中人类评审触发大迭代、agent 自主续跑有界分析，Agent Harness 由 M2.7 全程生成。（推断）两层合流指向清晰的终局想象：模型既是产品也是生产线工人，迭代速度由模型自身能力驱动。</p>
+  <blockquote><b>一句话小结</b>：方法体系是一台四缸引擎——架构缸提供效率上限，数据缸提供可验证任务供给，训练缸（CISPO + 复合奖励 + 混域课程）提供能力成型机制，基建缸（Forge 40× 无损加速）提供规模化执行的底气。</blockquote>
+</section>
+
+<section class="chapter" id="ch4">
+  <h2 class="chap"><span class="no">四</span>证据链：主表逐域解读与系列进化验证</h2>
+
+  <h3>4.1 评测协议的规范性</h3>
+  <p>对比对象为 Claude Opus 4.6、Claude Sonnet 4.6、GPT-5.4、Gemini 3.1 Pro 四个闭源旗舰（及系列内 M2.5）。协议要点：闭源基线一律取各自最强推理配置（extended thinking / high effort）；M2.7/M2.5 开 thinking + interleaved 协议；temperature <span class="num">1.0</span> / top-p <span class="num">0.95</span>；SWE 类统一 Claude Code 脚手架（唯 GPT-5.4 用原生 CodeX），<span class="num">4 trials</span> 取均值；Terminal-Bench 2.0 用 Terminus-2 XML + verified 数据集；MLEBenchLite 每任务单 A30 跑 <span class="num">24h</span> × <span class="num">3</span> 独立试验取奖牌率均值；AIME2026/GPQA 等走 ArtificialAnalysis Index v4.0 无工具 pass@1。（推断）统一脚手架 + 多试验均值明显优于单次运行，但部分基线分数引自官方报告而非同脚手架复测，解读时需打折。</p>
+
+  <h3>4.2 Table 4 主结果逐域解读</h3>
+  <table>
+    <caption>表 4-1　M2.7 主结果 vs 最强闭源参照（数据：Table 4）</caption>
+    <thead><tr><th style="width:15%">能力域</th><th style="width:24%">基准</th><th style="width:14%">M2.7</th><th style="width:27%">最强闭源参照</th><th>判定</th></tr></thead>
+    <tbody>
+      <tr><td>编码</td><td>SWE-bench Pro</td><td><span class="num green">56.2</span></td><td>Sonnet 57.3 / Gemini 57.7</td><td class="flat">带内持平</td></tr>
+      <tr><td>编码</td><td>Multi-SWE-bench</td><td><span class="num green">52.7</span></td><td>参比全部更低</td><td class="up">★参比最高</td></tr>
+      <tr><td>编码</td><td>Terminal-Bench 2.0</td><td><span class="num">57.0</span></td><td>Gemini 75.1</td><td class="down">明显落后</td></tr>
+      <tr><td>应用开发</td><td>VIBE-Pro</td><td><span class="num">55.6</span></td><td>与最强闭源持平</td><td class="flat">带内持平</td></tr>
+      <tr><td>深度检索</td><td>BrowseComp</td><td><span class="num">77.8</span></td><td>GPT-5.4 84.0</td><td class="flat">接近未超越</td></tr>
+      <tr><td>数学推理</td><td>AIME2026</td><td><span class="num green">94.2</span></td><td>前沿带</td><td class="flat">带内持平</td></tr>
+      <tr><td>科学推理</td><td>GPQA-Diamond</td><td><span class="num green">89.8</span></td><td>前沿带</td><td class="flat">带内持平</td></tr>
+      <tr><td>难度天花板</td><td>HLE</td><td><span class="num red">28.0</span></td><td>Gemini 41.6</td><td class="down">明显落后</td></tr>
+      <tr><td>知识广度</td><td>MMLU-Pro</td><td><span class="num red">81.8</span></td><td>参比最低</td><td class="down">落后</td></tr>
+      <tr><td>指令跟随</td><td>IFBench</td><td><span class="num">76.0</span></td><td>—</td><td class="flat">带内</td></tr>
+    </tbody>
+  </table>
+  <p>三点解读：其一，<strong>优势集中于"过程可验证"的任务族</strong>——多语言仓库修复、应用开发、数学与科学推理，恰好是后训练数据工厂投入最重的领域，方法与成绩因果呼应；其二，<strong>劣势集中于极端知识密度与难度天花板</strong>（HLE <span class="num red">28.0 vs 41.6</span>、MMLU-Pro <span class="num red">81.8</span> 参比最低），（推断）这与 <span class="num">9.8B</span> 激活的容量上限相符——小激活路线的代价在此显形；其三，作者自认 AppDev 是论点"最干净的验证域"，HyperTask <span class="num green">67.6</span>（较 M2.5 <span class="num green">+8</span>）与 VIBE-Pro 55.6 持平支持了核心主张。</p>
+  <p>Excel 域最能说明"增益大但绝对值仍落后"的微妙处境：MEWCv2 较 M2.5 提升 <span class="num green">+13.5</span>、FinanceModelingPro 提升 <span class="num green">+23.2</span>，但 MEWCv2 绝对值 <span class="num">63.3</span> 仍低于 Gemini 的 <span class="num">76.5</span> 与 GPT 的 <span class="num">77.2</span>。NL2Repo <span class="num green">39.8</span>（<span class="num green">+13.2</span>）体现全栈仓库数据增益，GDPval-AA <span class="num green">50.0</span>（<span class="num green">+15.0</span>)同理——系列内的斜率陡峭，与顶部的差距并存。</p>
+
+  <h3>4.3 系列内进化（Fig.9）：单调提升曲线</h3>
+  <p>M2 → M2.5 → M2.7 在 <span class="num">11</span> 项共同基准上<strong>全部单调提升</strong>，增益幅度 <span class="num green">+11</span> 至 <span class="num green">+33.8（BrowseComp）</span>，且最大增益与新任务族的投入方向吻合（deep search / tool use / MLE）。（推断）这是对"方法论可复现"的最有力内部验证——若性能跃升来自偶然缩放红利，很难解释增益分布为何精确跟随数据投入的领域转移。</p>
+
+  <h3>4.4 MLEBenchLite 案例研究：自进化的实测</h3>
+  <p><span class="num">22</span> 项机器学习工程竞赛 × 每任务 <span class="num">24h</span> 自主迭代：最佳 run 拿下 <span class="num green">9 金 5 银 1 铜</span>，三次独立试验平均奖牌率 <span class="num green">66.6%</span>，追平 Gemini 3.1 Pro。定性观察显示模型会主动调试自身训练脚手架、修改配置文件、执行数百轮迭代。这个案例的特殊价值在于它是<strong>对 self-evolution 概念的端到端实测</strong>——不是演示视频，而是带协议（单 A30、24h、×3 试验）的可复核实验。</p>
+  <blockquote><b>一句话小结</b>：证据链呈"斜率陡峭、位置居前、顶部未越"的形态——系列内单调大幅进步与过程可验证域的带内持平是真，多数单项未夺魁、知识密度任务掉队也是真；两组事实合起来才是 M2 系列的完整画像。</blockquote>
+</section>
+
+<section class="chapter" id="ch5">
+  <h2 class="chap"><span class="no">五</span>批判性分析</h2>
+
+  <h3>5.1 作者自述局限的深层含义</h3>
+  <ol>
+    <li><strong>绝对性能仍有差距</strong>（Terminal-Bench 2.0 <span class="num">57.0 vs 75.1</span>、HLE <span class="num">28.0 vs 41.6</span>、MMLU-Pro 参比最低、BrowseComp <span class="num">77.8 vs 84.0</span>）：深层含义是"接近最强闭源"应严格读作<strong>带内水平</strong>——标题 "Max Real-World Intelligence" 是修辞上限，正文数据给出的实际边界更窄。</li>
+    <li><strong>评测依赖内部基准</strong>：NL2Repo、VIBE-Pro、HyperTask、MMClaw、MEWCv2、FinanceModelingPro、RISE 均为内部构建，外部不可复核。深层含义是：<strong>增益最大的战场恰恰是无法独立审计的战场</strong>（见疑点②）。</li>
+    <li><strong>第 1 页图表文本损坏</strong>：Figure 1 的 headline 数字无法从 PDF 文本核验。headline 图承担了最强的叙事功能却最难被程序化审计。</li>
+    <li><strong>Self-evolution 边界未量化</strong>：<span class="num">30%–50%</span> 负载吸收与 <span class="num green">+30%</span> 内部增益均为内部口径，人类评审触发点、失败模式与安全护栏仅定性描述。深层含义是：递归自我改进的<strong>风险面与收益面同样缺乏度量</strong>。</li>
+    <li><strong>经济性数据未披露</strong>：训练成本/GPU 规模、推理价格均缺失——对一篇以"小激活=低成本"为潜台词的报告是最实质的留白，"mini activations"的经济学主张悬置。</li>
+  </ol>
+
+  <h3>5.2 独立观察到的五个疑点</h3>
+  <p><strong>① "逼近旗舰"的统计口径问题</strong>：Table 4 十余项基准中 M2.7 明确夺魁的仅 Multi-SWE-bench（<span class="num green">52.7</span>）与 MLEBenchLite 追平，多数单项处于第二至第四位。报告的叙事策略是把"带内"作为达标线——工程上有理（成本相差数倍时的带内持平已是胜利），但读者须警惕"逼近"一词的弹性：从 <span class="num">56.2 vs 57.3</span> 的咬紧，到 <span class="num red">28.0 vs 41.6</span> 的 <span class="num red">13.6</span> 分落差，都被同一个词覆盖。（推断）更诚实的表述是分级结论：过程可验证域≈带内，知识密度域≈明显落后。</p>
+  <p><strong>② 内部基准占比与增益分布的同向性</strong>：系列内增益最大的项目（NL2Repo +13.2、FinanceModelingPro +23.2、MEWCv2 +13.5、GDPval-AA +15.0）全部落在内部基准上，而这些基准恰由同一团队构建。即便不存在主观偏向，"自训自评"也存在系统性同源风险——MLEBenchLite 虽基于公开竞赛题（可信度较高），但其 Lite 化改造与奖牌率口径仍为自定义。</p>
+  <p><strong>③ 跨模型脚手架不完全对齐</strong>：SWE 类任务统一 Claude Code，唯独 GPT-5.4 使用原生 CodeX；（推断）脚手架差异对 agent 基准的影响可达个位数百分点，此例外虽可能出于商业 API 限制，但确实在最重要的对比轴上引入了噪声。另如 4.1 所述部分基线引自官方报告数字而非复测，协议一致性进一步稀释。</p>
+  <p><strong>④ full attention 决策的机会成本未被完整核算</strong>：论文论证弃 SWA 时引用的长上下文优势确凿（RULER-128K 差 <span class="num">18</span> 分），但对 <span class="num">192K</span> full attention 的 KV cache 成本与推理经济性着墨很少——IFBench 反例（SWA <span class="num">27.2</span> &gt; full <span class="num">23.1</span>）提示短上下文场景 hybrid 并不吃亏。（推断）完整决策账本应回答：在 32K 以内任务占实际流量大头的前提下，full attention 的质量溢价是否值回票价。作者以"agent 任务 &gt;32K 占比高"作隐性回答，但该分布数据未披露。</p>
+  <p><strong>⑤ Self-evolution 的安全与治理真空</strong>：模型自主调试自身训练脚手架、<span class="num">100</span> 轮无人干预迭代、Agent Harness 零人写代码——这些成就的每一项都同时是治理议题。论文提到 loop detection 与"有界分析"，但触发条件、权限边界、回滚机制均无量化描述。（推断）当 self-evolution 吸收 <span class="num">30%–50%</span> 团队负载时，人类评审带宽是否成为新瓶颈、被压缩的评审深度是否会让系统性偏差逃过检测，是比 <span class="num green">+30%</span> 更值得追问的问题。</p>
+  <blockquote><b>一句话小结</b>：这篇报告的证据强度呈梯度分布——公共基准上的带内成绩与系列内单调进化最为坚实，内部基准上的巨大增益次之，self-evolution 的量化主张最弱；而"小激活经济学"因缺少价格数据，仍是未闭合的论证。</blockquote>
+</section>
+
+<section class="chapter" id="ch6">
+  <h2 class="chap"><span class="no">六</span>启示与影响</h2>
+
+  <h3>6.1 五条可迁移的启示</h3>
+  <ol>
+    <li><strong>激活效率是开源模型对抗闭源的正确杠杆</strong>：与其在总参数上军备竞赛，不如把"每 FLOP 的能力产出"做到极致——细粒度 MoE（<span class="num green">+4.5</span> MATH）、MTP（<span class="num green">+1.7</span> MATH）、数据质量三者叠加，让 <span class="num">9.8B</span> 激活打出旗舰级表现。该 playbook 对资源受限团队可直接复用。</li>
+    <li><strong>注意力形态的选择应以任务分布为准绳而非论文潮流</strong>：数百亿~万亿 token 对照证明 hybrid SWA 在长程 agent 任务上的隐性代价，为"先验证、再跟风"提供范本；同时保留"亚二次注意力长期值得投入"的开放态度，避免矫枉过正。</li>
+    <li><strong>数据工程的下一站是"环境制造"</strong>：SWE-scaling 六阶段流水线、Terminal-Gym 的 Anything2Docker、Cowork 四域共享范式共同展示元路径——<strong>把互联网存量资产批量转化为自带验收信号的 RL 环境</strong>。奖励按类型定制（F2P/P2P、显著差异验证、外部引擎重算）的经验可平移到任何可自动化验收的领域。</li>
+    <li><strong>RL 基础设施是被低估的护城河</strong>：prefix tree merging 的 <span class="num green">40×</span> 无损加速证明，agent 训练的最大杠杆有时不在算法而在系统——谁先把系统层做对，谁就能用同样算力多跑一个数量级的实验。CISPO 的非对称裁剪与 Windowed FIFO 的分布保真都是"算法-系统协同设计"的具体案例。</li>
+    <li><strong>把工程效率写进奖励函数</strong>：复合奖励中的完成时间相对项显式激励并行工具调用与子 agent 使用——把"人类工程师的美德"形式化为优化目标的罕见实践，适用于一切存在时间维度的任务域。</li>
+  </ol>
+
+  <h3>6.2 可能的走向与待解问题</h3>
+  <ul>
+    <li><strong>经济学闭合</strong>：披露推理价格与训练成本，把 "mini activations" 从架构主张兑现为商业主张；</li>
+    <li><strong>内部基准外置化</strong>：将 NL2Repo/HyperTask 等公开部分题目或第三方托管，化解"自训自评"信任赤字；</li>
+    <li><strong>知识密度的补课路径</strong>：HLE/MMLU-Pro 的落差不随后训练消失，（推断）可能解法是更强的检索耦合（借外脑）或下一代激活扩容（长大脑）两条路；</li>
+    <li><strong>self-evolution 的治理框架</strong>：为自主迭代建立量化权限边界、失败预算与第三方审计接口——当模型开始参与制造自己的下一代，治理设计的优先级将与能力设计同级；</li>
+    <li><strong>亚二次注意力的再入场</strong>：作者明言长期看好，一旦线性注意力基建生态（prefix cache、投机解码集成、低精度训练）补齐，M 系列可能在后续版本重新评估混合方案——届时本次 full attention 对照数据将成为社区重要公共资产。</li>
+  </ul>
+</section>
+
+<section class="chapter" id="end">
+  <h2 class="chap"><span class="no">◆</span>总结</h2>
+  <p>《The MiniMax-M2 Series》是一份罕见的"全栈坦白"：它不只报告模型分数，还公开了从专家切分方式、注意力形态取舍、六大数据工厂流水线、CISPO 裁剪区间到 Windowed FIFO 窗口宽度的完整决策链。其核心论证——以 <span class="num blue">229.9B</span> 总参/<span class="num blue">9.8B</span> 激活、<span class="num">29.2T</span> tokens 预训练、Forge <span class="num green">40×</span> 无损加速与 Agent RL 体系，在 SWE-bench Pro <span class="num green">56.2</span>、Multi-SWE-bench <span class="num green">52.7</span>、MLEBenchLite <span class="num green">66.6%</span> 追平 Gemini 3.1 Pro 的成绩上成立——证明了<strong>小激活路线在过程可验证任务域已具备与十倍激活旗舰带内竞争的实力</strong>；系列内 <span class="num">11</span> 项基准全部单调提升（最高 <span class="num green">+33.8</span>）展示了该体系持续复利的证据。</p>
+  <p>短板同样清晰：知识密度任务（HLE <span class="num red">28.0</span>、MMLU-Pro <span class="num red">81.8</span>）暴露容量代价，内部基准的自训自评循环削弱最大增益项的可信度，"mini"的经济学主张因缺少价格数据尚未闭合。方法论层面，环境制造、算法-系统协同设计、效率入奖、self-evolution 双环工作流四项经验具有高度跨团队可迁移性。若说这份报告宣告了什么，那就是：<strong>2026 年的开源追赶战役，胜负手已经从"谁的参数多"转移到"谁的可验证环境多、谁的训练系统快"——而 MiniMax 把这两题都答到了前排。</strong></p>
+</section>
+
+<footer class="audit">
+  <b>HTML 自检清单 · SELF-AUDIT</b><br>
+  <span class="ok">[✓]</span> 编码：UTF-8，无 BOM，无 U+FFFD 替换字符（写入后脚本核验）<br>
+  <span class="ok">[✓]</span> 结构：单文件，CSS 全部内联于 &lt;style&gt;，无外部依赖<br>
+  <span class="ok">[✓]</span> 配平：div 开闭数量一致（写入后脚本核验）；表格 thead/tbody 配平<br>
+  <span class="ok">[✓]</span> 数字：全部来自 00-源数据提取.md 正文复述值；首页 Figure 1 损坏数字未采信；推断处已标注「（推断）」<br>
+  <span class="ok">[✓]</span> 章节：摘要 + 六章 + 总结共 8 区块，锚点目录齐全
+</footer>
+
+</div>
+</body>
+</html>

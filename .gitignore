@@ -1,0 +1,15 @@
+# 系统/编辑器
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*~
+*.swp
+.Spotlight-V100
+.fseventsd
+# 临时
+/tmp/
+**/tmp/
+# 私密
+.env
+*.key

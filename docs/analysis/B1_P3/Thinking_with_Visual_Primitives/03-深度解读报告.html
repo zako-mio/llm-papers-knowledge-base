@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《Thinking with Visual Primitives》深度解读报告</title>
+<style>
+  :root {
+    --ink: #1f2933;
+    --muted: #52606d;
+    --accent: #0b6e4f;
+    --accent-soft: #e6f4ee;
+    --line: #d9e2ec;
+    --hl-bg: #fff3cd;
+    --code-bg: #f0f4f8;
+    --star: #b45309;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", SimSun, Georgia, serif;
+    color: var(--ink);
+    background: #fbfbf9;
+    line-height: 1.85;
+    font-size: 16.5px;
+  }
+  main { max-width: 880px; margin: 0 auto; padding: 32px 28px 64px; }
+  header.doc-head { border-bottom: 3px double var(--line); margin-bottom: 28px; padding-bottom: 18px; }
+  h1 { font-size: 1.9em; line-height: 1.35; margin: 0 0 10px; letter-spacing: .02em; }
+  h2 {
+    font-size: 1.32em; margin: 44px 0 14px; padding: 6px 14px;
+    background: var(--accent-soft); border-left: 5px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+  }
+  h3 { font-size: 1.08em; margin: 28px 0 10px; color: #243b53; }
+  p { margin: 10px 0; text-align: justify; }
+  strong { color: #102a43; }
+  .knum {
+    font-family: "SF Mono", Consolas, monospace; font-size: .92em;
+    background: var(--hl-bg); color: #7c4a03;
+    padding: 1px 5px; border-radius: 4px; white-space: nowrap;
+  }
+  .en-term { color: var(--accent); font-style: italic; }
+  blockquote {
+    margin: 18px 0; padding: 12px 18px;
+    background: #f7fafc; border-left: 4px solid #9fb3c8;
+    border-radius: 0 8px 8px 0; color: #334e68;
+  }
+  blockquote p { margin: 6px 0; }
+  table {
+    width: 100%; border-collapse: collapse; margin: 16px 0;
+    font-size: .92em; line-height: 1.55;
+  }
+  th {
+    background: #243b53; color: #f0f4f8; font-weight: 600;
+    padding: 8px 10px; text-align: left; white-space: nowrap;
+  }
+  td { padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:nth-child(even) td { background: #f5f7fa; }
+  td.win { color: var(--star); font-weight: 700; white-space: nowrap; }
+  code {
+    font-family: "SF Mono", Consolas, monospace; font-size: .88em;
+    background: var(--code-bg); padding: 1px 5px; border-radius: 4px;
+  }
+  .formula {
+    display: block; text-align: center; margin: 14px auto;
+    font-family: "STIX Two Math", Cambria, Georgia, serif;
+    font-size: 1.05em; background: var(--code-bg);
+    padding: 10px 14px; border-radius: 8px;
+  }
+  .meta-card {
+    background: #fdf6e3; border: 1px solid #ecd9a0;
+    border-radius: 10px; padding: 14px 20px; margin: 18px 0;
+    font-size: .95em; color: #5f4c1c;
+  }
+  .abstract-box {
+    background: linear-gradient(135deg, #f0fdf9, #e6f4ee);
+    border: 1px solid #bce3d1; border-radius: 12px;
+    padding: 18px 24px; margin: 20px 0;
+  }
+  .takeaway {
+    margin-top: 40px; padding: 20px 26px;
+    background: #102a43; color: #e6f0fa;
+    border-radius: 12px; line-height: 1.9;
+  }
+  .takeaway h2 { background: none; border-left-color: #64b5f6; color: #ffffff; margin-top: 0; }
+  footer.doc-foot {
+    max-width: 880px; margin: 30px auto 40px; padding: 0 28px;
+    color: var(--muted); font-size: .85em;
+    border-top: 1px solid var(--line); padding-top: 14px;
+  }
+  ol > li, ul > li { margin: 6px 0; }
+</style>
+</head>
+<body>
+<main>
+
+<header class="doc-head">
+<h1>《Thinking with Visual Primitives》深度解读报告</h1>
+<p><strong>DeepSeek-AI × 北京大学 × 清华大学 · 2026-04-30 · 基座 DeepSeek-V4-Flash（<span class="knum">284B 总参 / 13B 激活</span> MoE）</strong></p>
+</header>
+
+<div class="meta-card">
+<strong>数据依据</strong>：本报告全部数字、引文与事实均取自同目录 <code>00-源数据提取.md</code>（pdf-worker 于 2026-08-22 从原始 PDF 解析，4.7MB、25 页、有文本层）。凡标注「（推断）」处为分析者推理补充，不代表论文原文论断。两点解析限制需预先声明：原文文本层未出现 arXiv 编号；作者-单位上标在文本层丢失，无法逐人对应单位归属。Figure 1 中一处 '97.7%' 数字语义不明，本报告将其作为存疑点保留并在第五章讨论，不做任何引申。
+</div>
+
+<h2 id="abstract">摘要</h2>
+<div class="abstract-box">
+<p>DeepSeek-AI 联合北京大学、清华大学于 <span class="knum">2026-04-30</span> 发布《Thinking with Visual Primitives》。核心论断：多模态大模型的思维链仍被锁死在语言空间，既有的高分辨率裁剪路线只修补了 <span class="en-term">Perception Gap</span>（"看见"），却遗漏了更根本的 <span class="en-term">Reference Gap</span>（"指称"）——自然语言无法在连续视觉空间中充当精确无歧义的指针，密集计数与多步空间演绎因此发生"思维丢失所指实体"式的级联幻觉。解法是将 bounding box 与 point 提升为"最小思维单位"，让模型"边推理边指点"（Point-to-Reason），配合 Compressed Sparse Attention（视觉 KV 再压缩 <span class="knum">4×</span>，756×756 图像全程压缩比 <span class="knum">7,056×</span>）、<span class="knum">97,984</span> 个数据源过滤至 <span class="knum">40M+</span> 样本的数据漏斗、"专才训练—合并"后训练管线。战绩：<span class="knum">12 项基准中 8 项最优/并列最优</span>，拓扑推理（迷宫/路径追踪）领先 GPT-5.4、Claude-Sonnet-4.6、Gemini-3-Flash 等前沿模型约 <span class="knum">13–32 个百分点</span>，而单图视觉 KV 条目仅为对手的约 <span class="knum">1/7–1/32</span>。</p>
+</div>
+
+<h2>一、问题定位：从"看得清"到"指得准"的结构性缺口</h2>
+
+<h3>1.1 论文要解决的具体现象</h3>
+<p>论文瞄准的现象非常具体：当 MLLM 面对"图里有几个苹果"这类密集计数任务，或"迷宫能否从起点走到出口"这类多步空间演绎任务时，即便图像的全部细节都已进入模型，推理过程依然会中途崩塌。典型失败模式是：模型在思维链的前几步还能正确指认实体，随着推理步数增多，"所指"逐渐漂移——"第五个苹果"悄悄换成了另一个，"当前所在的格子"与图中位置脱钩，最终凭空编造出不存在的物体或路径。作者将这一族失败统称为"思维丢失所指实体"的级联幻觉：错误不在单步感知，而在多步推理对实体的持续锚定能力。</p>
+
+<h3>1.2 结构性根因：Reference Gap</h3>
+<p>作者对上述现象给出结构性诊断。语言符号是离散且有歧义的："那个""左边的""它"这类表述在连续的图像坐标空间中无法形成无歧义映射。当推理需要同时追踪多个同类实体时（十来个苹果、迷宫中的候选分支），语言标签无法与物理个体一一对应，思维链中的指称关系便持续退化。（推断）可以把这理解为"语言指针的分辨率不足"问题：代词、量词、方位词都是低分辨率指针，在密集、同构、连续的视觉场景里必然失准。这就是论文提出的核心新概念 <strong>Reference Gap（指称缺口）</strong>——它与"看得见与否"正交：像素全部可见，思维依然够不着实体。</p>
+
+<h3>1.3 在谱系中的缺口</h3>
+<p>论文在 MLLM 研究谱系中划出的裂缝值得完整复述。其一是 <strong>Perception Gap 路线</strong>：高分辨率裁剪、动态 patch 切分等工作证明模型"看不全"时性能崩坏，于是把图像切碎喂饱。论文承认这条路线解决了 Perception Gap，但批评其潜台词"看见 = 推理"并不成立。其二是 <strong>grounding 相关先行工作</strong>（GRIT、Visual CoT 等）：它们只把 grounding 当作事后验证手段（先答对再画框），困在高分辨率"看见型"基准里，且依赖昂贵的人工监督，从未把空间标记当作推理链条的内生成分。</p>
+<p>论文的立意起点是 Kahneman 的 System 2：LLM 内部的语言 CoT 已经很强，但"与视觉域脱节"；通往 System-2 多模态智能的关键不是喂更多像素，而是构建语言与视觉之间精确无歧义的指称桥梁。动机层面，作者援引人类认知类比：人走迷宫、数密集物体时会本能地"用手指点"（deictic pointers）以降低认知负荷。据此提出 Point-to-Reason——让模型边推理边指点，把认知轨迹锚定在图像物理坐标上。</p>
+<blockquote><p><strong>小结</strong>：本文的贡献不是"看得更清楚"，而是重新定义"想的方式"——把视觉原语内化为思维单元，使推理发生在物理坐标之上而非悬浮于语言之中。</p></blockquote>
+
+<h2>二、概念内核：新概念的精确定义与辨析</h2>
+
+<h3>2.1 Reference Gap（指称缺口）</h3>
+<p><strong>定义</strong>（源自论文术语表）：自然语言无法在连续视觉空间充当精确无歧义的指针，导致密集计数/多步空间演绎中思维丢失所指实体、产生级联幻觉。</p>
+<p><strong>辨析</strong>：这个概念的价值在于把两类经常被混为一谈的失败切开——"图像没喂进去"（Perception）与"喂进去了但思维够不着"（Reference）。前者的处方是更高分辨率、更多 patch；后者的处方则完全不同：需要一种能嵌入思维链、可被逐步引用且无歧义的指称介质。这正是视觉原语的登场理由。（推断）Reference Gap 在密集同构实体场景中最致命，因为此时语言的"序数指称"（第 N 个）与视觉的"空间指称"（某坐标处的个体）最容易脱钩。</p>
+
+<h3>2.2 Visual Primitives（视觉原语）与 box/point 的分工</h3>
+<p><strong>定义</strong>：两种标准视觉输出格式——bounding box（边界框）与 point（点）——被提升为"最小思维单位"，直接交织进推理轨迹，而非仅作最终输出的装饰。</p>
+<table>
+<tr><th>维度</th><th>bounding box</th><th>point</th></tr>
+<tr><td>信息含量</td><td>精确位置 + 尺度（含宽高几何信息）</td><td>仅位置，表达更抽象</td></tr>
+<tr><td>标注确定性</td><td>高：紧包对象的框确定性强</td><td>低：存在歧义，遮挡下 point 可能落到前景遮挡物上</td></tr>
+<tr><td>表达能力</td><td>由两点定义，天然内含 point 表示</td><td>支持运动轨迹、拓扑推理等抽象引用</td></tr>
+</table>
+<p>论文据此明确<strong>优先大规模扩充 box 数据</strong>，理由有三：① 标注确定性——这是整个数据质量管线的基石；② 任务泛化——box 天然包含 point 表示，训 box 可顺带获得 point 能力；③ 信息丰富度——box 自带几何信息。point 则被保留用于 box 表达不了的抽象场景（轨迹、拓扑）。这一"用确定性更高的信号做大规模基座"的取舍，为后续一切数据工程定了调。</p>
+
+<h3>2.3 Point-to-Reason 与双范式 TwG/TwP</h3>
+<p><strong>Point-to-Reason（边推理边指点）</strong>：把抽象语言思维锚定到图像物理坐标的协同机制，灵感来自人类的指示手势（deictic pointers）。其操作含义是：思维链的每个推理步都可以携带空间坐标。迷宫任务中思维输出"当前位置 (x,y) → 尝试向右 → 撞墙 → 回溯到 (x,y) → 改向上"式的逐坐标口头链；路径追踪中输出沿目标曲线采样的坐标序列（直段稀疏、高曲率与密集交叉处加密，模拟人"慢下来细看"）。</p>
+<p>由此派生两个范式：<strong>Thinking with Grounding（TwG）</strong> 以 box 为思维原语，对应专家模型 F_TwG/E_TwG；<strong>Thinking with Pointing（TwP）</strong> 以 point 为思维原语，对应 F_TwP/E_TwP。</p>
+
+<h3>2.4 与既有概念的边界</h3>
+<ul>
+<li><strong>vs Perception Gap</strong>：二者正交而非对立。论文局限章节明示未来可与高分辨率方法集成，（推断）理想形态是"看得全"+"想得准"两条正交轴叠加。</li>
+<li><strong>vs 事后 grounding</strong>：先行工作把框当作答案的附赠品或验证器；本文把框/点当作思维过程的组成步骤，这是"内生 vs 外挂"的本质区别。</li>
+<li><strong>vs 语言 CoT（含 Thinking with Images 式裁剪）</strong>：语言 CoT 的推理介质是词元；本文在词元流中混入坐标原语，使"指称"有了机器可校验的形式（坐标可对照真值、格式可规则检查），这也为后续 RL 奖励设计提供了抓手。</li>
+<li><strong>支撑性概念</strong>：Compressed Sparse Attention（CSA，来自 DeepSeek-V4-Flash，把每个视觉 token 的 KV cache 压缩为 1 条，视觉 KV 再压缩 <span class="knum">4×</span>）解决"坐标密集思维"的成本可行性；On-Policy Distillation（OPD，反向 KL 全词表 logit 蒸馏）解决"两个专才合并为一个通才"。五者构成闭环：Reference Gap 提出问题，Visual Primitives 提供答案单元，Point-to-Reason 给出思维形式，CSA 解决成本，OPD 解决能力合并。</li>
+</ul>
+
+<h2>三、方法拆解：架构—数据—后训练的完整技术体系</h2>
+
+<h3>3.1 架构侧：三级压缩链路</h3>
+<p>整体为 LLaVA 式结构：DeepSeek-ViT 提取视觉特征 → 与语言指令拼成交错序列 → 送入 LLM 主干 DeepSeek-V4-Flash（<span class="knum">284B 总参 / 13B 激活</span> MoE）。DeepSeek-ViT 为自研、支持任意分辨率、14×14 patch。</p>
+<p>以 756×756（<span class="knum">571,536 像素</span>）图像为例，压缩链路逐步推导：</p>
+<ol>
+<li><strong>patch 化</strong>：(756/14)² = <span class="knum">2,916</span> 个 patch token；</li>
+<li><strong>3×3 空间压缩</strong>：ViT 输出每 9 个邻域 token 沿通道合并为 1，得 2,916/9 = <span class="knum">324</span> 个视觉 token；</li>
+<li><strong>CSA 压缩</strong>：每个视觉 token 的 KV cache 压缩为 1 条，视觉 KV 再压缩 4×，最终仅 <span class="knum">81 个视觉 KV 条目</span>。</li>
+</ol>
+<p>全程总压缩比 = 571,536 / 81 = <span class="knum">7,056×</span>。ViT 输出视觉 token 数限制在 <span class="knum">81–384</span> 区间，超分辨率图像等比缩放。其工程含义：整张 756×756 图像在注意力层只占 81 个 KV 槽位，为"图像 + 长思维链 + 坐标序列"共存于同一上下文留足预算——这是"坐标密集型思维"得以成立的前提条件。</p>
+
+<h3>3.2 数据侧：97,984 源 → 40M+ 样本的四级漏斗</h3>
+<p><strong>采集</strong>：跨网站大规模 web 爬取，经 HuggingFace API 过滤 ObjectDetection/Grounding 标签的数据集，按点赞/下载量初筛，剔除 val/test 分裂防泄漏；用 LLM agent 解析 README.md 自动统一存储格式，去重后得 <span class="knum">97,984 个 box-grounding 数据源</span>。</p>
+<p><strong>Step I 语义审查（MLLM 驱动）</strong>：每个源采样三图，模型打分 0–10 并给出 KEEP/DISCARD 理由，剔除三类毒数据——① 无意义机器码/乱码标签（纯数字类）；② 不可泛化的私有实体（'MyRoommate'、'ID_Card_1'，名人保留）；③ 有歧义缩写与主观评价（'OK'/'NG'）。通过 <span class="knum">43,141 个</span>（此级剔除约 <span class="knum">56%</span>）。</p>
+<p><strong>Step II 视觉-几何质量审查</strong>：剔除三类几何缺陷——① 严重漏标（漏标率 &gt; 50%）；② 严重截断/偏移（切掉头/轮子不可接受，微松可容忍）；③ MegaBox（框占 &gt; 90% 图面积且三图均如此）。通过 <span class="knum">31,701 个</span>（相对上一级再剔除约 <span class="knum">27%</span>）。</p>
+<p><strong>类别均衡采样</strong>：每类随机取 N = 1,000，全局去重，最终得到 <span class="knum">40M+ 高质量样本</span>。</p>
+<p><strong>统一输出格式</strong>：box 任务 <code>&lt;|ref|&gt;TARGET&lt;|/ref|&gt;&lt;|box|&gt;[[x1,y1,x2,y2],...]&lt;|/box|&gt;</code>，坐标为 <span class="knum">0–999 离散整数</span>、多实例从左到右排序；point 任务 <code>&lt;|point|&gt;[[x1,y1],...]&lt;|/point|&gt;</code>（不输出对象名，支持轨迹等抽象表示）。值得强调的是，通用多模态预训练数据全部为 web 抓取的真实数据，<strong>不用 LLM 蒸馏合成</strong>，预训练总 token 达 trillions 量级。</p>
+
+<h3>3.3 四类冷启动任务：思维协议的最小监督集</h3>
+<p>冷启动数据的作用是注入"视觉原语思维"的可监督范例，四类任务共约 60 万样本（10,000 + 9,000 + 460,000 + 125,000，总数为本报告按源数据加总，（推断）量级正确）：</p>
+<table>
+<tr><th>任务</th><th>数据量</th><th>生成方式</th><th>思维协议 / 关键设计</th></tr>
+<tr><td>Counting（粗/细粒度）</td><td>~10,000</td><td>粗：多密集检测数据集聚合，三维过滤（密度/框大小/recall）；细：GQA 场景图生成问题合成思维</td><td>三步协议：意图分析 → <strong>Batch Grounding</strong>（一次性定位全部候选，防重复枚举）→ 基于视觉原语的统计求和；严格校验框坐标与元数据、语法、数值一致；细粒度构造"目标计数为 0"的对抗负样本抗幻觉</td></tr>
+<tr><td>Spatial Reasoning &amp; General VQA</td><td>9,000</td><td>自然场景用 GQA；合成场景用 CLEVR 工具链（可控密度，3D 坐标投影为 2D box 监督，含对象 ID 级引用）</td><td>思维 = 意图分析 → 对象 grounding → 关系推理；拥挤场景用多属性约束唯一指定目标；负样本训练 faithful refusal（对象/关系不存在时基于视觉证据诚实拒绝）</td></tr>
+<tr><td>Maze Navigation</td><td>460,000</td><td>DFS/Prim/Kruskal 生成；三种拓扑：矩形网格 / 同心环圆形 / 六边形蜂巢</td><td>不可解迷宫 = 在可解路径中段加墙（外观似可解）；难度 = 网格大小（easy 少量局部连通检查 → nightmare 数百步长距离组合回溯），每难度设最小分辨率保证原语可辨——<strong>难度源于推理而非视觉模糊</strong>；思维 = DFS 探索/回溯逐坐标锚定口头链，输出可解性 + 验证路径</td></tr>
+<tr><td>Path Tracing</td><td>125,000</td><td>Bézier 曲线纠缠图</td><td>核心挑战 = 交点消歧（几何连续性原语决定分支）；均匀风格模式（同色同线宽，剔除颜色捷径，强制真正内化原语）；难度 = 曲线数量与曲率振幅；思维 = 沿目标曲线采样坐标序列（直段稀疏、高曲率/密集交叉处更细粒度）</td></tr>
+</table>
+<p>共同的设计哲学：负样本、不可解实例与诚实拒绝被内建进训练数据，从源头对抗幻觉；任务难度全部来自推理复杂度而非感知模糊度，使评测结论能归因到"想"而非"看"。</p>
+
+<h3>3.4 后训练：trains-specialists-then-merge 四阶段</h3>
+<p><strong>阶段一 Specialized SFT</strong>：<span class="knum">70%</span> 通用多模态 + 纯文本数据 + <span class="knum">30%</span> 专项数据；box（F_TwG）与 point（F_TwP）<strong>分开训练</strong>以防两种原语模式冲突。</p>
+<p><strong>阶段二 Specialized RL（GRPO，沿用基座超参）</strong>：关键决策是 <strong>RL 阶段不监督思维中的视觉原语</strong>——因为冷启动阶段已严格校验过格式，RL 只需（图像, 问题, 最终答案）三元组即可扩展数据。三类奖励模型并发：</p>
+<ul>
+<li><strong>Format RM（规则式，0–1）</strong>：校验视觉原语表示格式；对 grounding 额外检查冗余（重复框），防止 SFT 模型无限循环生成框。</li>
+<li><strong>Quality RM（LLM 生成式 GRM）</strong>：考察冗余度、思维与最终回答一致性、自相矛盾、框引用对象是否有意义实体，并防 reward hacking（伪造假 ground truth 骗奖励）；打分三档 [0.0, 0.5, 1.0]。</li>
+<li><strong>Accuracy RM（按任务定制）</strong>：计数 = 规则式平滑指数衰减 R = α·exp(−β·|ŷ−y|/(|y|+1))，α=0.7、β=3（按相对误差计，接近正确轻罚）；空间/VQA = LLM GRM 对思维与回答分别打分取平均；迷宫 = 规则式加权（因果探索进度 / 探索完整性 / 墙违规惩罚 / 最终路径有效性 / 答案正确性；可解迷宫前两项恒 1，不可解迷宫后两项恒 1）；路径追踪 = 规则式加权（双向轨迹精度 = 预测点→真值多段线最小距离的前向 + 真值点→预测线的反向取平均、端点精度、轨迹连续性惩罚、答案正确性）。</li>
+</ul>
+<p><strong>RL 数据难度分档</strong>：每样本 rollout N 次，全对 = Easy、部分对 = Normal、全错 = Hard；<strong>只选 Normal 进入 GRPO</strong>（保证有效梯度信号）。</p>
+<p><strong>阶段三 Unified RFT</strong>：以专家模型 E_TwG/E_TwP rollout 生成 RFT 数据，保留 Normal 并随机抽 <span class="knum">5% Easy</span>（防简单场景灾难性遗忘）；从基础预训练 checkpoint 训练增强 SFT 模型 F_U，配置与 Specialized SFT 完全一致、仅换数据。</p>
+<p><strong>阶段四 On-Policy Distillation</strong>：反向 KL 蒸馏，全词表 logit 级：</p>
+<span class="formula">L<sub>OPD</sub> = Σ<sub>i</sub> w<sub>i</sub> · D<sub>KL</sub>(π<sub>θ</sub> ∥ π<sub>E<sub>i</sub></sub>)</span>
+<p>教师为 E_TwG 与 E_TwP，把两个专家的能力合并进单一统一模型。</p>
+<p><strong>实现细节</strong>：训练框架为 HAI-LLM（PyTorch 轻量分布式框架，训练与评测同用）；预训练序列长度 <span class="knum">64K + FP8</span>，后训练 <span class="knum">256K</span>；Specialized SFT/RL 用 FP8，Unified RFT/OPD 用 FP4（MXFP4）。</p>
+<blockquote><p><strong>小结</strong>：方法体系"两头硬"——数据侧以 56% + 27% 两级剔除造出干净基座并配套四类带思维协议的冷启动；训练侧"分治（SFT+RL）→ RFT → 反向 KL 合并"让专才复合成通才；CSA 压缩则让这一切在 token 预算上可行。</p></blockquote>
+
+<h2>四、证据链：评测协议、主结果与定性证据</h2>
+
+<h3>4.1 实验设置与评测协议</h3>
+<p>对比对象共六个模型：Gemini-3-Flash、GPT-5.4、Claude-Sonnet-4.6、Gemma4-31B、Qwen3-VL-235B-A22B-Thinking 与 Ours-284B-A13B-Thinking。基准分双轨：公共基准覆盖计数（CountQA EM/RA@10、Pixmo-Count EM）与空间 VQA（SpatialMQA、CV-Bench、EmbSpatial、OmniSpatial、MIHBench，均 ACC）；自建基准四项——DS_Finegrained_Counting（600 高质量用例，含同类别不同属性的硬负样本）、DS_Spatial_Reasoning（CLEVR 验证集 1,000 判断 + 1,000 开放式转多选）、DS_Maze_Navigation（2,000 实例）、DS_Path_Tracing（2,000 实例）。</p>
+<p>协议公平性设计：所有模型走各自 API 使用同一提示集；小于 <span class="knum">640,000 像素</span>的图统一放大到该阈值且保持等比；可配置 thinking budget 的模型（GPT/Gemini-3-Flash 等）统一设 low。（推断）thinking budget 设 low 既避免对手高预算刷分，也可能压缩了对手在长链推理任务上的发挥，这一点在第五章再议。</p>
+
+<h3>4.2 主结果：Table 1 全表</h3>
+<table>
+<tr><th>基准</th><th>Gemini-3-Flash</th><th>GPT-5.4</th><th>Claude-Sonnet-4.6</th><th>Gemma4-31B</th><th>Qwen3-VL-235B-A22B</th><th>Ours</th><th>判定</th></tr>
+<tr><td>CountQA (EM/RA@10)</td><td>66.1/75.1</td><td>48.3/60.3</td><td>34.8/46.6</td><td>43.2/54.6</td><td>42.7/54.8</td><td>64.9/74.1</td><td>居次（差 1.2）</td></tr>
+<tr><td>Pixmo-Count (EM)</td><td>88.2</td><td>76.6</td><td>68.7</td><td>82.9</td><td>77.2</td><td class="win">89.2</td><td class="win">★ 最优</td></tr>
+<tr><td>DS_Finegrained_Counting (EM)</td><td>79.1</td><td>84.2</td><td>82.6</td><td>79.5</td><td>87.2</td><td class="win">88.7</td><td class="win">★ 最优</td></tr>
+<tr><td>MIHBench (ACC)</td><td>83.2</td><td>83.5</td><td>81.7</td><td>82.2</td><td>75.1</td><td class="win">85.3</td><td class="win">★ 最优</td></tr>
+<tr><td>SpatialMQA (ACC)</td><td>67.0</td><td>61.9</td><td>58.2</td><td>60.6</td><td>54.5</td><td class="win">69.4</td><td class="win">★ 最优</td></tr>
+<tr><td>EmbSpatial (ACC)</td><td>82.6</td><td>80.9</td><td>75.1</td><td>82.1</td><td>83.7</td><td class="win">83.7</td><td class="win">★ 并列最优（与 Qwen3-VL）</td></tr>
+<tr><td>CV-Bench (ACC)</td><td class="win">88.6</td><td>87.5</td><td>85.1</td><td>87.5</td><td>88.1</td><td>88.4</td><td>微逊 0.2</td></tr>
+<tr><td>OmniSpatial (ACC)</td><td class="win">59.6</td><td>58.8</td><td>53.2</td><td>49.4</td><td>55.3</td><td>59.5</td><td>微逊 0.1</td></tr>
+<tr><td>DS_Spatial_Reasoning (ACC)</td><td>93.2</td><td>81.1</td><td>97.2</td><td>77.2</td><td>96.8</td><td class="win">98.7</td><td class="win">★ 最优</td></tr>
+<tr><td>DS_Maze_Navigation (ACC)</td><td>49.4</td><td>50.6</td><td>48.9</td><td>49.8</td><td>49.6</td><td class="win">66.9</td><td class="win">★ 大幅领先（+16.3～+18.0）</td></tr>
+<tr><td>DS_Path_Tracing (ACC)</td><td>41.4</td><td>46.5</td><td>30.6</td><td>33.9</td><td>24.5</td><td class="win">56.7</td><td class="win">★ 大幅领先（+10.2～+32.2）</td></tr>
+</table>
+
+<h3>4.3 结果的三层解读</h3>
+<ol>
+<li><strong>"8/12 登顶"的结构</strong>：Ours 在 12 项中最优 7 项 + 并列最优 1 项（EmbSpatial 83.7），覆盖计数、多实例幻觉（MIHBench）、多数空间 VQA 与两大拓扑推理——优势横切多个任务类型，而非集中于单一任务。（推断）这说明视觉原语思维带来的是横切收益，而非对某个基准的特化。</li>
+<li><strong>拓扑推理的断层</strong>：迷宫上所有对手挤在 48.9–50.6 区间（近似随机水平），Ours 66.9；路径追踪上对手 24.5–46.5，Ours 56.7。源数据归纳口径为领先 <span class="knum">13–32 个百分点</span>（逐项精算：迷宫 +16.3～+18.0，路径追踪 +10.2～+32.2）。原因恰与 Reference Gap 论断呼应：拓扑推理需要的不是看清，而是逐坐标锚定的持续演绎——对手在语言空间里"想不进去"，Ours 的坐标序列天然嵌入思维链，命中任务的核心矛盾。这是全文最有说服力的证据。</li>
+<li><strong>落后三项的代价核算</strong>：CountQA 差 Gemini 1.2、CV-Bench 差 0.2、OmniSpatial 差 0.1。三者更依赖细节感知而非结构推理，对应论文自述的输入分辨率限制。（推断）以 ≤1.2 点的细节代价换取最高 32 点的拓扑收益，trade-off 明显划算，且这三项落差均远小于拓扑优势。</li>
+</ol>
+
+<h3>4.4 Token 效率：Figure 1 双卖点</h3>
+<p>以 800×800 图像为例：Ours 压缩前约 361 token，经 CSA 后仅约 <span class="knum">90 个视觉 KV 条目</span>；同期对手为 Gemma-4-31B 约 <span class="knum">2,896</span>、Gemini-3-Flash 约 <span class="knum">1,100</span>、Claude-Sonnet-4.6 约 <span class="knum">870</span>、GPT-5.4 约 <span class="knum">740</span>、Qwen3-VL 约 <span class="knum">660</span>。即 Ours 约为 Qwen3-VL 的 <span class="knum">1/7</span>、Gemma4-31B 的 <span class="knum">1/32</span>。性能端，7 项选定公共基准（不含自建）平均分：Ours <span class="knum">77.2%</span> &gt; Gemini 76.5% &gt; GPT 71.1% &gt; Gemma 69.7% &gt; Qwen 68.1% &gt; Claude 65.3%——<strong>以最少的 token 拿最高的平均分</strong>，构成"效率 × 性能"双卖点。⚠️ 存疑点：图内另有 '97.7%' 数字语义不明（疑为某模型压缩率或标注错位），第五章详述。</p>
+
+<h3>4.5 定性结果与涌现能力</h3>
+<p>Boxes 系列（Fig 7–9）展示：宝可梦计数（6）、反常识天平称重（彩虹熊更重）、吉娃娃计数（6）、世界知识融合 VQA（金门大桥→勇士队 NBA，中文问答）、拿铁制作步骤（带坐标的可执行建议）、云南古镇定位（中文）、幽默理解（水果像猫）、密室逃脱指引、人群计数（29）。Points 系列（Fig 10）展示迷宫 DFS 逐步探索轨迹与路径追踪（终点编号 5）。</p>
+<p>两项涌现尤其值得记录：其一，<strong>世界知识 + 空间原语的融合推理</strong>（地标识别接体育常识）；其二，<strong>中文思维与作答</strong>——尽管后训练无中文语料，模型继承了基础模型的多语能力。（推断）后者侧面暗示"坐标锚定"这一思维格式本身语言无关，是被论文当作配菜、实则可作主菜的涌现证据。</p>
+
+<h3>4.6 关于消融的说明</h3>
+<p>源数据显示论文<strong>无独立消融表</strong>，而以对照逻辑替代：F_TwG/F_TwP（SFT 模型）与 E_TwG/E_TwP（专家模型）的性能差距由 RFT/OPD 弥合，佐证后训练各阶段的必要性；RL 数据三档难度分档与各 RM 分量设计作为设计验证。这意味着"去掉视觉原语思维的对照组"不存在——组件级因果归因依赖读者的善意解读，详见第五章。</p>
+
+<h2>五、批判性分析：强项、弱点与未验证假设</h2>
+
+<h3>5.1 强项</h3>
+<ol>
+<li><strong>问题形式化的概念贡献</strong>：Reference Gap 给长期存在的"数着数着就编造"现象一个可命名、可传播、可检验的病理学名称，其启发价值可能超过具体方法本身。</li>
+<li><strong>数据工程的透明度</strong>：两级审查的剔除类别（乱码标签、私有实体、MegaBox 等）具体到可直接照抄，97,984 → 43,141 → 31,701 → 40M+ 的漏斗数字齐全，是罕见的工业化数据管线全景披露。</li>
+<li><strong>评测协议规范性</strong>：统一提示、thinking budget 统一 low、图像放大阈值对齐——防刷分细节完备，且低 token 预算本身不利于 Ours，方向上无明显偏袒。</li>
+<li><strong>诚实的局限陈述</strong>：三条局限（分辨率受限、显式 trigger、拓扑泛化有限）均为实质性弱点而非免责声明，尤其第三条直指自家最强卖点的边界。</li>
+<li><strong>效率与性能并列为一等卖点</strong>：把 "~90 KV 条目 vs 对手 660–2,896" 放进 headline 图，是对领域"只卷分数不卷成本"风气的纠偏。</li>
+</ol>
+
+<h3>5.2 弱点</h3>
+<ol>
+<li><strong>自建基准占 4/12 且全部大幅领先（基准偏向风险）</strong>：DS_Finegrained_Counting、DS_Spatial_Reasoning、DS_Maze、DS_Path 四项自建基准均由 Ours 登顶，其中迷宫/路径追踪正是冷启动训练的同源任务域（460K/125K 样本）。尽管生成流程校验严格（不可解迷宫、uniform 风格剔除颜色捷径、硬负样本），"在自家生成的题上碾压"仍有系统性偏向——训练域与评测域同源，模型可能在"背题"而非"懂题"。这不是假设而是现实：评测任务形式与训练任务形式完全一致。</li>
+<li><strong>无独立消融表</strong>：没有"相同数据与训练、但思维中不含坐标"的对照组，性能提升究竟来自坐标思维还是来自更大更干净的数据 + 更强后训练，无法单独归因；CSA 的独立贡献同样未做单变量验证。对一篇主打方法论的论文，这是证据链上最明显的缺口。</li>
+<li><strong>显式 trigger 依赖</strong>：视觉原语思维需要触发词激活，不是默认策略——模型尚未学会自主判断"何时该用坐标思维"，这限制了其在开放对话中的自发适用。</li>
+<li><strong>分辨率代价真实存在</strong>：CountQA/CV-Bench/OmniSpatial 三项微逊虽小，却指向结构性约束（81–384 个视觉 token 的上限），密集细粒度场景仍是短板。</li>
+</ol>
+
+<h3>5.3 未验证假设</h3>
+<ul>
+<li><strong>坐标思维的因果有效性</strong>：Table 1 的强势是"整套体系"的结果，坐标原语本身的边际贡献未被分离验证。</li>
+<li><strong>跨域拓扑泛化</strong>：迷宫/路径追踪的优势限于训练同源任务形式，作者亦自述"跨场景泛化有限"；"general-purpose 拓扑推理"尚未被证明。</li>
+<li><strong>Quality RM 的可靠性</strong>：用 LLM GRM 防 reward hacking，但 GRM 自身被 hacking 的风险未量化讨论。</li>
+<li><strong>'97.7%' 疑点</strong>：headline 图 Figure 1 内该数字语义不明（源数据明确标注），若为关键指标则缺乏解释，若为标注错位则暴露图表制作瑕疵。无论哪种，都应在阅读时保持存疑，不应引申为任何结论。</li>
+</ul>
+
+<h3>5.4 与竞争路线的对比</h3>
+<ul>
+<li><strong>vs 高分辨率裁剪路线（Perception 系）</strong>：正交互补。本文在拓扑推理上的断层优势与细节场景的微弱劣势恰好互证两条路线的分工；作者明示未来集成方向。（推断）短期看"Reference 桥 + Perception 补丁"的混合系统可能是最优形态。</li>
+<li><strong>vs 同为思考型的 Qwen3-VL-235B-A22B-Thinking</strong>：后者在 EmbSpatial 打平（83.7）、DS_Spatial_Reasoning 达 96.8，但在两大拓扑任务上仅 49.6/24.5——说明纯语言思考预算买不来指称锚定，侧面强化 Reference Gap 论断。</li>
+<li><strong>vs GRIT/Visual CoT 系</strong>：它们证明了 grounding 可以联合训练，但仍停在"输出对齐"层面；本文推进到"推理中介"层面，是同一方向的质变而非量变。</li>
+</ul>
+
+<h3>5.5 可复现性评估</h3>
+<p>有利因素：数据管线、格式模板、RM 公式（含 α=0.7、β=3 等超参）、四类冷启动的生成算法（DFS/Prim/Kruskal、Bézier 参数）披露充分，方法论复现门槛主要在算力而非信息。不利因素：（推断）基座 DeepSeek-V4-Flash 与 CSA 为 DeepSeek 内部资产，第三方难以完整复刻；源数据未提及权重、代码或自建基准的公开发布安排，评测集若不可获取，外部验证只能依赖 API 复测公共基准部分；作者-单位对应关系因文本层丢失也无法核验贡献分工。</p>
+
+<h2>六、启示与影响</h2>
+
+<h3>6.1 对领域走向的三个判断</h3>
+<ol>
+<li><strong>竞争轴心将从"感知军备竞赛"部分转向"指称桥梁"</strong>：当各家分辨率与 patch 策略趋同后，"思维能否锚定坐标"成为新的分化点；本文证明了该轴心上 13–32 点的差距空间。</li>
+<li><strong>非语言思维单元是可泛化的方法论</strong>：box/point 只是空间域的实例。（推断）时间戳之于视频、音符事件之于音频、AST 节点之于代码——凡有精确索引结构的模态，都可构造各自的"最小思维单位"，这一配方大概率会被快速移植。</li>
+<li><strong>token 效率将成为 System-2 叙事的必要组成</strong>：长思维链 + 富视觉输入只有在极致压缩下才经济可行；CSA 式 KV 压缩与"原语思维"是互相成就的一对技术。</li>
+</ol>
+
+<h3>6.2 对从业者的五条实操启示</h3>
+<ol>
+<li><strong>数据工程优先选确定性高的信号</strong>：宁可用确定性强但表达略弱的 box 做大规模基座，也不要用歧义的 point 直接铺量——"标注确定性优先"是可迁移的数据治理原则。</li>
+<li><strong>负样本与诚实拒绝要内建进冷启动</strong>：计数为零的对抗样本、不可解迷宫、faithful refusal，都是从数据侧直接抑制幻觉的低成本手段。</li>
+<li><strong>RL 阶段放宽对中间过程的监督</strong>：中间格式已在 SFT 校验过，RL 只奖最终答案可大幅提升数据可扩展性；配合 Format/Quality/Accuracy 三 RM 分工与"只取 Normal 难度"筛选，是一套可直接套用的 RL 工程模板。</li>
+<li><strong>专才—合并范式化解模式冲突</strong>：当多种输出协议（box vs point）互相干扰时，先各自练到最强，再用 RFT 数据 + 反向 KL 蒸馏合并，优于混训硬凑。</li>
+<li><strong>评测报告的规范细节值得抄</strong>：统一提示、thinking budget 对齐、图像尺寸归一——这些低成本约定显著提升跨模型对比可信度。</li>
+</ol>
+
+<h3>6.3 开放问题</h3>
+<ol>
+<li><strong>自主触发</strong>：如何让模型根据上下文自行决定何时切换到坐标思维（从 explicit trigger 到 self-gating）？（推断）可能需要"何时该 grounding"的元决策训练信号。</li>
+<li><strong>与 Perception 路线的融合</strong>：Reference 桥接与高分辨率裁剪叠加后，收益是相加还是相互干扰，尚待实验回答。</li>
+<li><strong>拓扑推理的跨域泛化</strong>：从训练同源的迷宫/曲线任务走向开放世界的拓扑结构（电路图、流程图、社交网络图），需要比"几何连续性命中"更一般的原语理论。</li>
+<li><strong>消融补全</strong>：坐标思维的净贡献、CSA 的独立收益，都需要受控实验澄清——这也是后续复现研究最该补的第一块板。</li>
+</ol>
+
+<div class="takeaway">
+<h2 style="margin-bottom:10px;">总结</h2>
+<p style="color:#e6f0fa;">《Thinking with Visual Primitives》把 MLLM 推理研究的争论从"看得够不够清楚"推进到"想得够不够精确"：以 Reference Gap 命名病灶，以视觉原语（box/point）为思维单元，以 Point-to-Reason 为思维形式，以 CSA（7,056× 压缩）保成本，以 97,984→40M+ 数据漏斗与"专才—合并"管线完成能力注入。证据呈断层形态——公共基准互有胜负且差距极小（≤1.2），拓扑推理领先 13–32 点；后者既是最强卖点，也因"自建基准 + 训练同源 + 无消融"三点叠加而须限定解读为"已训练任务域上的有效验证"。其对领域的持久影响可能不在某个具体分数，而在一个范式的确立：推理不必只发生在语言里，凡有精确索引之处，皆可思维。</p>
+</div>
+
+</main>
+
+<footer class="doc-foot">
+<p>《Thinking with Visual Primitives》深度解读报告 · 数据来源：00-源数据提取.md（pdf-worker 解析，2026-08-22）· 本页为独立单文件 HTML，无外部依赖，UTF-8 编码。</p>
+</footer>
+
+</body>
+</html>

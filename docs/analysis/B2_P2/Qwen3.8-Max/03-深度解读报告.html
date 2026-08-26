@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qwen3.8-Max 深度解读报告</title>
+<style>
+:root{
+  --ink:#1a2332;--sub:#5a6b82;--line:#e3e9f2;--bg:#f7f9fc;--card:#ffffff;
+  --accent:#6d28d9;--accent2:#0e7490;--gold:#b45309;--num:#c2410c;--soft:#f3f0ff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Source Han Serif SC","Noto Serif CJK SC","Songti SC",SimSun,serif;
+  background:var(--bg);color:var(--ink);line-height:1.85;font-size:16px;}
+.wrap{max-width:880px;margin:0 auto;padding:48px 32px 80px;}
+header.hero{background:linear-gradient(135deg,#1e1b4b 0%,#4c1d95 55%,#0e7490 100%);
+  color:#fff;border-radius:18px;padding:52px 48px;margin-bottom:40px;box-shadow:0 12px 36px rgba(30,27,75,.25);}
+header.hero h1{font-size:30px;line-height:1.35;font-weight:700;letter-spacing:.5px;}
+header.hero .tagline{margin-top:14px;font-size:15px;opacity:.92;}
+header.hero .meta{margin-top:22px;display:flex;flex-wrap:wrap;gap:10px;}
+header.hero .meta span{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);
+  border-radius:999px;padding:4px 14px;font-size:13px;font-family:"JetBrains Mono",Consolas,monospace;}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:38px 42px;margin-bottom:30px;box-shadow:0 3px 14px rgba(26,35,50,.05);}
+h2{font-size:22px;color:var(--accent);padding-bottom:10px;border-bottom:2px solid var(--soft);
+  margin-bottom:20px;display:flex;align-items:center;gap:10px;}
+h2 .idx{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;
+  border-radius:9px;background:var(--accent);color:#fff;font-size:16px;font-family:Georgia,serif;}
+h3{font-size:17px;color:var(--accent2);margin:24px 0 10px;padding-left:12px;border-left:4px solid var(--accent2);}
+p{margin-bottom:14px;text-align:justify;}
+.num{color:var(--num);font-weight:700;font-family:"JetBrains Mono",Consolas,monospace;font-size:.94em;
+  background:#fff7ed;border-radius:4px;padding:0 3px;margin:0 1px;}
+.infer{color:var(--sub);}
+.infer::before{content:"（推断）";color:var(--gold);font-weight:700;font-style:normal;}
+.warn{background:#fffbeb;border-left:4px solid #f59e0b;border-radius:0 10px 10px 0;
+  padding:14px 18px;margin:16px 0;font-size:15px;}
+.note{background:var(--soft);border-radius:10px;padding:14px 18px;margin:16px 0;font-size:14.5px;color:#4c1d95;}
+table{width:100%;border-collapse:collapse;margin:16px 0 20px;font-size:14px;}
+th{background:#ede9fe;color:#4c1d95;padding:10px 12px;text-align:left;font-weight:700;border-bottom:2px solid #ddd6fe;}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+tr:nth-child(even) td{background:#fafaff;}
+ul.tight{margin:0 0 14px 22px;}
+ul.tight li{margin-bottom:8px;text-align:justify;}
+ol.steps{margin:0 0 14px 24px;}
+ol.steps li{margin-bottom:8px;text-align:justify;}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:18px 0 22px;}
+.kpi{background:linear-gradient(160deg,#faf5ff,#eff6ff);border:1px solid #e9d5ff;border-radius:12px;padding:16px 18px;}
+.kpi .v{font-size:24px;font-weight:800;color:var(--accent);font-family:Georgia,"Noto Serif SC",serif;}
+.kpi .k{font-size:13px;color:var(--sub);margin-top:4px;}
+.gate-row{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 18px;}
+.gate{flex:1 1 150px;background:#f0fdfa;border:1px solid #99f6e4;border-radius:10px;padding:12px 14px;font-size:13.5px;}
+.gate b{color:#0f766e;display:block;margin-bottom:4px;font-size:14px;}
+footer{color:var(--sub);text-align:center;font-size:13px;margin-top:36px;line-height:1.8;}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);margin:26px 0;}
+@media (max-width:640px){.wrap{padding:24px 14px 60px;}section{padding:26px 20px;}header.hero{padding:36px 26px;}}
+@media print{body{background:#fff;}section{box-shadow:none;break-inside:avoid;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+<h1>Qwen3.8-Max：编码与协作的新标杆<br><span style="font-size:19px;font-weight:400;opacity:.9;">A New Bar for Coding and Cowork — 深度解读报告</span></h1>
+<div class="tagline">Qwen 官方博客全文解读 · 首次开放 Max 级权重的旗舰发布 · 反馈循环自演化范式全景</div>
+<div class="meta">
+<span>B2_P2 节点</span><span>发布 2026-08-03</span><span>2.4T 总参 / 95B 激活</span><span>1M context</span><span>一手核验来源</span>
+</div>
+</header>
+
+<section>
+<h2><span class="idx">摘</span>摘要</h2>
+<p>Qwen3.8-Max 是阿里 Qwen 团队于 <span class="num">2026-08-03</span> 发布的家族旗舰，基于 Qwen 3.5 架构基础扩展至 <span class="num">2.4T 总参数、95B 激活</span>，并宣布<b>首次开源 Max 级模型权重</b>（承诺下周发布，撰写时未放出）。博客以"编码—工作—长程—多模态"四线叙事：oh-my-cli 自治 harness 约 <span class="num">16 天</span>自主运行累计 <span class="num">265 commits / 127 PRs / 151 issues</span>；约 <span class="num">5 天（~125 小时）</span>复现一篇数据选择论文并以"硬决策点计数"法将 AIME24 从基线 <span class="num">49.58%</span> 提至 <span class="num">52.29%</span>；<span class="num">24 小时</span>内在 <span class="num">526 支</span>人类队伍的 Tianchi 挑战赛击败 <span class="num">458 队</span>。方法论核心是 Real-World RL 系统（环境三轴组合式扩展 + Universal Reward System + 在线数据均衡器）。基准呈"选择性登顶"：<span class="num">PaperBench 93.0</span>、<span class="num">IFBench 82.8</span>、<span class="num">WideSearch 81.9</span>、<span class="num">OSWorld-Verified 86.1</span> 全场最高，但 Terminal Bench 2.1（<span class="num">86.6</span> vs GPT5.6 Sol <span class="num">88.8</span>）、SWE-bench Pro（<span class="num">67.7</span> vs Fable5 <span class="num">80.0</span>）仍落后。<span class="num">E-Commerce Bench</span> 365 天模拟实现 <span class="num">4.16x 回报</span>领先 GLM 5.2 达 <span class="num">38%</span>。主要局限：架构黑箱、定价缺失、大量 in-house 基准不可外部复核、裁判模型利益冲突。<span class="infer">该发布标志着旗舰级权重开放与 agent 化评测叙事的双重转向，其证据强度分层明显：第三方基准可信度高于自建基准，工程闭环案例可信度高于经济价值叙事。</span></p>
+</section>
+
+<section>
+<h2><span class="idx">一</span>问题定位</h2>
+
+<h3>1.1 时间轴位置与竞争格局</h3>
+<p>本节点处于 LLM 关键节点全集 B2_P2 段位，对应 <span class="num">2026-08-03</span> 发布窗口。对照物为 Claude Opus 4.8、Fable 5、GPT5.6 Sol (max)、上代 Qwen3.7-Max（文本榜五列）；多模态榜另加 Gemini3.1-Pro 与 Qwen3.7-Plus（六列）。模型已上线 QwenCloud API（model id <code>qwen3.8-max</code>），context window <span class="num">1,000,000 tokens</span>、maxTokens <span class="num">65,536</span>，支持 text+image 输入。<span class="infer">在国产旗舰与海外第一梯队时间差持续收窄的背景下，此节点的战略意义在于"能力对标 + 开源姿态"的组合拳，而非单一榜单突破。</span></p>
+
+<h3>1.2 官方叙事要回答的三个问题</h3>
+<ol class="steps">
+<li><b>编码自主性边界在哪</b>——模型能否无人类持续介入完成天级、周级工程闭环？（三大自治案例）</li>
+<li><b>真实工作能力如何度量</b>——脱离学术 benchmark 后，在高经济价值职业中的表现？（六职业案例 + Dynamic Workflows 量化实证）</li>
+<li><b>长程可靠性是否成立</b>——数百 turn 芯片设计迭代与 <span class="num">365 天</span>电商模拟中性能是否衰减？</li>
+</ol>
+
+<div class="warn">⚠️ <b>口径纠偏：</b>任务简报所称"27B 开源版"<b>在原文中不存在</b>。原文的开放权重对象是 Max 级模型本身（<span class="num">2.4T 总参数 / 95B 激活</span>），无任何 27B 变体信息。官方仅承诺 "open weights releasing next week"，日期、许可证、推理栈完整性均未披露。<span class="infer">讹误的可能来源是把"开源小尺寸变体"的行业惯例投射到本次发布。</span></div>
+</section>
+
+<section>
+<h2><span class="idx">二</span>概念内核</h2>
+
+<h3>2.1 核心命题：从单轮智能到端到端可靠交付</h3>
+<p>引言要点卡三卖点——<span class="num">2.4T 参数(95B 激活)</span>、coding-work-research-long-horizon 全面提升、端到端可靠交付——中，第三点才是概念内核。<span class="infer">官方真正立论的命题是：模型作为 agent 在真实工具环境中运行时，可靠交付能力取代单轮答题能力成为新的竞争力维度。</span>这决定了选材逻辑：全部案例都是"有可验证产出物"的任务——合并的 PR、复现的论文、赢得的比赛、交付的原型、盈利的策略、收敛的芯片。</p>
+
+<h3>2.2 反馈循环自演化（feedback loop 自演化）</h3>
+<p>三大编码案例共享同一内核：<b>不执行固定计划，而以反馈循环自我改进</b>。三层形态：</p>
+<ul class="tight">
+<li><b>Harness 自举（oh-my-cli）</b>：需求归一化为 GitHub Issues，经状态机（ready → leased → active）认领流转，实现后过 E2E+CI 门控才合并 PR；watchdog/monitor/dispatcher 构成恢复机制。截至 <span class="num">2026-07-30</span> 约 <span class="num">16 天</span>全自主，累计 <span class="num">265 commits / 127 PRs / 151 issues</span>，全程公开于 github.com/qwen-code-dev-bot/oh-my-cli。</li>
+<li><b>科研复现→超越</b>：先零起点重建 pipeline（数据处理/训练/评测全自写），验证原论文六项主结论后进入"假设→编码→GPU 实验→分析→再试"循环。</li>
+<li><b>资源约束搜索</b>：<span class="num">24 小时</span>、固定提交数下以提交反馈驱动逐轮再加权。</li>
+</ul>
+<p><span class="infer">三层的共同抽象是：把"模型能力"外包给"系统回路"——模型负责生成假设与代码，环境（CI、GPU 实验、比赛提交）负责裁决，裁决信号回流指导下一轮。Qwen 的差异点在于把回路本身也交给模型维护（harness 由模型自己构建）。</span></p>
+
+<h3>2.3 Real-World RL 三支柱</h3>
+<p>RL 系统 scaling 于五个 harness（QwenWork / Claude Code / Codex / OpenClaw / Hermes）一致提升，背后是三大支撑：</p>
+<ol class="steps">
+<li><b>环境组合式扩展</b>：沿 Task（单任务→多任务→多日）、Workspace（多文件→层级目录→异构复杂目录）、Harness（类别、版本、skills）三轴解耦扩展，环境数量组合式放大而非逐一定制；</li>
+<li><b>Universal Reward System</b>：异构验证统一进单一系统——执行校验 + rubric 条件裁判（文本与渲染视觉输出）+ agentic inspection，rubric 自动规模化；</li>
+<li><b>在线数据均衡器</b>：控制每批的任务/难度/workspace/harness 分布，抑制批间梯度方差，支撑算力持续扩展。</li>
+</ol>
+<p><span class="infer">这套方法论本质是把 RLHF 时代的"标注员规模化"替换为"验证器规模化"，其可行性依赖任务天然可校验（代码可跑、UI 可比对），因此优先强化 coding/agent 类能力——与基准表中 coding/agent 项涨幅最大的观察一致。</span></p>
+
+<h3>2.4 视觉作为执行期原生反馈环</h3>
+<p>视觉贯穿 plan→execute→verify→iterate 全生命周期：生成时观察、行动时复查（自查布局/朝向/动画质量并自主修正）。Hybrid Agent 将"写码实现逻辑"与"GUI 操作真实界面"双通道互补；RecreationBench 要求仅凭黑盒交互（无源码、无网络）跨五平台（Ubuntu/macOS/Windows/Android/web）复刻应用；Qwen-MM-Plugins 作为 harness 扩展库使任意既有 agent 框架多模态原生化（图像视频处理、多模态记忆、动态分辨率、视觉工具调用、视频编辑/Blender/CAD 专化能力）。边界能力：跨页理解 <span class="num">200+ 页</span>财务 PDF；<span class="num">100+ 小时</span>视频组织为 video memory graph。</p>
+</section>
+
+<section>
+<h2><span class="idx">三</span>方法拆解</h2>
+
+<h3>3.1 编码三案例</h3>
+<p><b>案例一 · oh-my-cli 自治运行</b>：issue 租约状态机（ready → leased → active）天然防止并发冲突；每次更新触发 Build / Unit Test / E2E / Desktop Lifecycle 四类校验。<span class="infer">这是把人类开源社区治理协议原封不动交给模型执行，日均约 16.6 commits 接近活跃人类维护者的高产区间，但可持续性依赖 issue 池质量与 CI 判定严格性——两者均未给出失败率数据。</span></p>
+<p><b>案例二 · 论文复现与超越</b>：前 <span class="num">~37 小时</span>从零重建 pipeline 并复现论文（Unified Data Selection for LLM Reasoning）六项主结论（原论文方法较随机选择 <span class="num">+7.7% AIME24</span>）；后 <span class="num">~88 小时</span>进入自演化研究循环，<span class="num">4 轮</span>共发明并测试 <span class="num">18 个改进想法</span>，其中"按难度分层选择""熵-分数差加权""选择宽度调参"有效，最优者为硬决策点计数（nhighgate）法：<span class="num">52.29% vs 基线 49.58%（+2.71pt AIME24）</span>。总量口径：约 <span class="num">5 天（~125 小时）</span>连续工作、约 <span class="num">7,600 行代码</span>、<span class="num">1,100+ 动作</span>、<span class="num">33 轮 GPU 训练</span>。<span class="infer">价值不在分数而在流程完整性：复现（验证理解正确）→ 改进（证明能产生新知识）→ 如实汇报 18 想法中多数被淘汰的过程。这是博客中科学诚信观感最强的案例。</span></p>
+<p><b>案例三 · 24 小时竞赛冲刺</b>：Tianchi WWW2025 多模态对话意图识别挑战赛，<span class="num">526 支人类队伍</span>中排前 68 名之外——即击败 <span class="num">458 队（87% 分位）</span>，<span class="num">45 次提交</span>把准确率从 <span class="num">0.60 提至 0.853</span>。技术栈：BERT/MacBERT/RoBERTa 微调集成 + Qwen2.5-VL-7B 截图分支 + Chinese-CLIP 兜底，交叉验证加权投票。<span class="infer">官方措辞诚实："击败 87%"而非"夺冠"。技术栈是成熟配方，模型的贡献在于 24 小时内完成选型、集成、调参与提交策略——工程速度而非算法创新。</span></p>
+
+<h3>3.2 六职业广度与量化编排极限压测</h3>
+<table>
+<tr><th>职业</th><th>任务</th><th>关键数字</th><th>传统对照</th></tr>
+<tr><td>合规律所</td><td>单遍扫描数百文档</td><td>命中 <span class="num">1,284 条</span>相关条款，全文审 <span class="num">&lt;1 小时</span></td><td>paralegal 团队约一周</td></tr>
+<tr><td>UI/UX</td><td>NOVA 数字银行 App</td><td><span class="num">8 屏高保真原型一次交付零返工</span></td><td>传统 3–5 轮返工</td></tr>
+<tr><td>餐饮</td><td>百+食材简报</td><td><span class="num">26 道菜</span>完整菜单，成本率锁定 <span class="num">33.8%</span></td><td><span class="infer">厨师团队数日</span></td></tr>
+<tr><td>结构工程</td><td>单套图纸重建</td><td><span class="num">30 层</span>办公楼抗震结构模型，浏览器内实时查看周期/基底剪力/层间位移角</td><td>&gt;1 周</td></tr>
+<tr><td>康复治疗</td><td>2D 评估表</td><td>可旋转 3D 解剖分层演示</td><td>外包动画工作室 2–4 周与数千美元</td></tr>
+<tr><td>体育分析</td><td>每名球员攻防解析</td><td><span class="num">~8,400 回合</span>/人，战术画像数十分钟</td><td>数个工作日</td></tr>
+</table>
+<p>Dynamic Workflows 把编排逻辑固化为可复现程序，量化案例是其极限压测：<span class="num">6 段描述 × 各分解 50 方向 → ~330 子代理并行、~6,000 次回测</span>；入选因子超额 Sharpe <span class="num">0.64–1.48</span>、IC 全正（<span class="num">0.010–0.014</span>）；中途自适应换框架、剪枝、多种子联合验证。<span class="infer">IC 绝对值 0.010–0.014 在量化行业属弱预测信号，但广撒网筛选出的组合能形成正超额收益——案例展示的是"编排规模"而非"单点智力"。</span></p>
+
+<h3>3.3 长程任务两案例机制</h3>
+<p><b>芯片设计（GCD/RSA 加速器）</b>：edit-simulate-synthesize-layout 闭环，cocotb 随机验证 + Iverilog/Yosys/OpenROAD 工具链沙箱，无 golden reference 下靠功能测试严格验证每轮迭代。单次连续运行 <span class="num">~500 turns、71 次评估、13 个里程碑</span>。门数演进 <span class="num">8,298 → 678（12.2x 压缩）</span>，五阶段：</p>
+<div class="gate-row">
+<div class="gate"><b>T22 · 算法重写</b>模除器→移位减法迭代，8,298→2,010 门，<span style="color:#c2410c;font-weight:700;">占总降幅 80%+</span></div>
+<div class="gate"><b>T35–48 · 冗余消除</b>2,010→1,304 门</div>
+<div class="gate"><b>T60–113 · 寄存器/FSM 剪枝</b>1,304→907 门</div>
+<div class="gate"><b>T170–252 · 模块融合</b>907→765 门</div>
+<div class="gate"><b>T443–500 · 门级精修</b>765→678 门</div>
+</div>
+<p>物理实现（OpenROAD, Nangate45 PDK）：die <span class="num">106×106 µm² → 46×46 µm²（-81%）</span>，线长 <span class="num">33,369 → 4,187 µm</span>，时序违例 <span class="num">-4.46ns → 500 MHz 收敛（slack +0.66ns）</span>。<span class="infer">轨迹形状的关键信息是：最大降幅出现在 Turn 22 的早期算法级重构，随后是长达 350+ turn 渐进精修——反驳了"长程后期只会平台期"的担忧，但也说明真正的算法洞察仍集中在早期。对 RSA 加速器这类经典电路，训练数据泄漏风险无法排除（原文未讨论）。</span></p>
+<p><b>电商长期运营（E-Commerce Bench）</b>：<span class="num">365 天</span>模拟，淘宝/天猫脱敏交易数据，<span class="num">12 店型 / 60 类目 / ~600 供应商 / 7,000 商品</span>，起始资金 <span class="num">¥100,000</span>，内嵌 <span class="num">152 家欺诈商户</span>博弈供应商矩阵。结果：</p>
+<div class="kpi-grid">
+<div class="kpi"><div class="v">¥416,252</div><div class="k">最终总资产 · 4.16x 回报</div></div>
+<div class="kpi"><div class="v">+38%</div><div class="k">领先第二名 GLM 5.2</div></div>
+<div class="kpi"><div class="v">2.4x</div><div class="k">年末大促净利超 ¥10 万 · 为 GLM 5.2 的倍数</div></div>
+<div class="kpi"><div class="v">+152%</div><div class="k">较上代 Qwen3.7-Max 提升</div></div>
+<div class="kpi"><div class="v">2,000+</div><div class="k">全程交互轮次持续进化</div></div>
+</div>
+<p>行为亮点：前瞻性资本配置（早期重投建立地位→年末变现库存兑现现金）、对同一供应商同商品多轮试探性议价实现渐进降价并泛化到同类商品、识别 <span class="num">152 家欺诈商户</span>的风控表现。<span class="infer">"识别 152 家欺诈商户"暗示欺诈名单可能是模拟环境的预设参数——GLM 5.2 是否获得同等检测条件原文未说明，该指标可比性存疑。</span></p>
+
+<h3>3.4 训练侧不可见部分</h3>
+<p>"jointly scaling environments and compute"的环境数量、算力规模、数据构成、配比全部缺失；Fig 1/2 为图示曲线无底层数据。API 侧可见的训练痕迹仅有 <code>reasoning_effort</code> 支持 <span class="num">xhigh（默认）/medium/low</span> 三档与 <code>preserve_thinking</code> 默认开启。<span class="infer">xhigh 档的存在暗示思考链长度已成为产品化变量。</span></p>
+</section>
+
+<section>
+<h2><span class="idx">四</span>证据链</h2>
+
+<h3>4.1 证据强度四层分级</h3>
+<table>
+<tr><th>层</th><th>性质</th><th>代表数据</th></tr>
+<tr><td><b>第一层</b></td><td>第三方统一 harness 自测（最强）</td><td>Terminal Bench 2.1 <span class="num">86.6</span>（Opus4.8 84.6 / Fable5 84.6 / GPT5.6 Sol 88.8 / Qwen3.7-Max 74.5；Claude Code harness avg@10、5h timeout、max_tokens=131,072）；PaperBench <span class="num">93.0</span> 全场最高（Opus4.8 80.3 / Fable5 88.8 / GPT5.6 Sol 90.5；BasicAgent + Code-Dev、Claude Opus 4.6 裁判、3 次 avg、单次 ≤12h）</td></tr>
+<tr><td><b>第二层</b></td><td>第三方基准、harness 存疑或转引</td><td>SWE-bench Pro <span class="num">67.7</span> / DeepSWE 1.1 <span class="num">56.6</span>（CC 上最佳）/ FrontierSWE <span class="num">73.5</span> / NL2Repo-Bench <span class="num">55.9</span>；GPQA Diamond <span class="num">92.6</span>、IFBench <span class="num">82.8</span>（全场最高）、MRCR v2 256K (8-needle) <span class="num">92.9</span>、HLE <span class="num">43.6</span>（不及 Opus4.8/Fable5/GPT5.6）、HealthBench 60.2、PLawBench 73.2、PRBench-Finance 58.3；CoWorkBench <span class="num">74.8</span>、JobBench <span class="num">53.4</span>、Agents' Last Exam <span class="num">27.0 Pass / 52.4 Score</span>、WideSearch <span class="num">81.9</span>（全场最高）、Toolathlon Verified 72.5</td></tr>
+<tr><td><b>第三层</b></td><td>自建基准，己方复现对手分</td><td>RecreationBench <span class="num">51.7</span>（全场最高）；E-Commerce Bench；大量 in-house 榜（QwenSWEBench/QwenQoderBench/QwenReactBench/QwenSVGBench/CoWorkBench/WorkSpaceBench/JobBench/SkillsBench 部分/RecreationBench/QwenBlenderBench/QwenVisualOffice/MADQA 等）外部无法独立复验。多模态代表分：MMMU-Pro <span class="num">82.3</span>、MathVision <span class="num">95.2/97.7</span>、HLE-VL(w/ Tools) <span class="num">52.2</span>、OSWorld-Verified <span class="num">86.1</span>（全场最高）、AndroidWorld <span class="num">85.3</span>、Parametric CAD Bench <span class="num">91.5</span>、OCR-Bench-V2 <span class="num">74.2/68.3</span>、OmniDocBench 1.5 <span class="num">92.1</span>、VideoMME(w/Sub.) <span class="num">90.4</span>、MLVU <span class="num">90.8</span>、Dense200 <span class="num">87.0</span>、VLMsAreBiased <span class="num">88.3</span>、CountQA 82.4；LVBench/EgoLife (w/ Mem.) 依赖自家 Qwen-MM-Plugins 记忆系统，含系统级差异</td></tr>
+<tr><td><b>第四层</b></td><td>精选展示案例，无失败率口径</td><td>oh-my-cli 16 天运行、论文复现、竞赛、六职业案例、量化策略、芯片设计、电商运营——均为成功样本，无失败率/方差/重试成本报告</td></tr>
+</table>
+<div class="note"><b>脚注披露的口径细节：</b>竞品分数部分取自 Artificial Analysis / 官方 leaderboard 而非统一自测；Fable5 结果可能含 fallback（脚注1）；SkillsBench 中 Qwen 系用 OpenCode harness、Opus/Fable5 用 Claude Code、GPT5.6 Sol 用 Codex；$OneMillion-Bench 与 PLawBench 用 gemini-3.1-pro-preview 作裁判。</div>
+
+<h3>4.2 "选择性登顶"格局判读</h3>
+<p><b>登顶项</b>集中于 PaperBench、IFBench、WideSearch、OSWorld-Verified、RecreationBench、OCR-Bench-V2 双语、QwenVisualOffice 44.6、Dense200、VLMsAreBiased、BabyVision 82.0/91.3、ZeroBench 24/49。<b>落后项</b>包括 Terminal Bench 2.1（88.8 属 GPT5.6 Sol）、SWE-bench Pro（Fable5 80.0）、DeepSWE 1.1（GPT5.6 Sol 73.0）、HLE、LongBench v2 66.3（低于 Opus4.8 69.1）、OSWorld 2.0 binary 19.4（低于 Opus4.8 20.6）、Toolathlon 72.5。<b>纵向</b>相对上代全线大幅提升：FrontierSWE <span class="num">40.7→73.5</span>、JobBench <span class="num">31.3→53.4</span>、PaperBench <span class="num">64.8→93.0</span>、Terminal Bench <span class="num">74.5→86.6</span>。</p>
+<p><span class="infer">横纵结合的正确读法是：代际跃迁真实存在，梯队间差距收窄但未消除。登顶项集中于文档/办公/检索/agent 交付类，落后项集中于最难的真实软件工程（SWE-bench Pro）与最深推理（HLE）——与其 RL 环境（可校验交付型任务）的分布高度吻合，符合"训练分布决定强项分布"的一般规律。</span></p>
+
+<h3>4.3 内部一致性抽查</h3>
+<ul class="tight">
+<li>芯片门数各阶段降幅之和 = <span class="num">7620</span>，与首尾差 <span class="num">8298−678=7620</span> 吻合；Turn 区间单调递增无重叠矛盾。</li>
+<li>论文复现时间线自洽：<span class="num">37h + 88h ≈ 125h ≈ 5 天</span>连续工作，与总量口径吻合。</li>
+<li>电商回报自洽：<span class="num">¥100,000 × 4.16 ≈ ¥416,000</span>，与 <span class="num">¥416,252</span> 尾差为利息/取整口径，合理。</li>
+</ul>
+<p><span class="infer">数字层面未发现编造痕迹，但"内部自洽"只证明数据经过整理，不证明测量过程无偏。</span></p>
+</section>
+
+<section>
+<h2><span class="idx">五</span>批判性分析</h2>
+
+<h3>5.1 裁判利益冲突</h3>
+<p>PaperBench 用 Claude Opus 4.6 当裁判评 Claude 竞品；PLawBench/$OneMillion-Bench/Vision2Web 用 Gemini/GPT 系当裁判。虽属业界惯例，横向比较需保留置信度折扣。<span class="infer">裁判偏差方向通常有利于"风格与裁判同源"的输出，Qwen 系中文语料表达习惯在 rubric 裁判中的得失无数据可判。</span></p>
+
+<h3>5.2 in-house 基准的结构性问题</h3>
+<p>CoWorkBench、JobBench、SkillsBench（部分）、RecreationBench、E-Commerce Bench 既当"证据"又当"产品"——基准本体未见独立发布说明，对手分数由己方复现。<span class="infer">这不必然导致造假，但构成"既当运动员又当裁判员"的结构性风险：环境难度设定、奖励判定、对手配置的自由度都在发布方手中。"领先 GLM 5.2 38%"是最易被质疑的一条，因其环境完全封闭。</span></p>
+
+<h3>5.3 幸存者偏差</h3>
+<p>六大职业案例、量化策略、oh-my-cli 均为成功样本。"8 屏原型一次交付零返工"若无 N 次尝试的分母，则与营销话术无异。<span class="infer">负责任的解读是把所有案例视为 capability demonstration（能力上限展示）而非 reliability statistics（可靠性统计）——标题 "A New Bar" 措辞也支持上限解读。</span></p>
+
+<h3>5.4 披露缺失清单</h3>
+<ul class="tight">
+<li><b>开源版</b>：日期、许可证、是否含完整推理栈/训练配置未知；</li>
+<li><b>架构</b>：MoE 细粒度、注意力变体、tokenizer、位置编码零披露，<span class="num">2.4T/95B</span> 为唯二架构数字；</li>
+<li><b>经济性</b>：API 定价、吞吐/延迟、reasoning_effort 三档成本差异全部缺失；</li>
+<li><b>训练</b>：环境数量、算力规模、数据构成、配比缺失；Fig 1/2 无底层数据；</li>
+<li><b>案例</b>：失败率、方差、重试成本、GPU 型号/时长缺失——33 轮 GPU 训练的硬件规格直接影响复现成本估算。</li>
+</ul>
+
+<h3>5.5 反向观点的公平陈述</h3>
+<p>避免过度怀疑同样重要：(1) oh-my-cli 全程轨迹公开于 GitHub，任何人可审计 commit 时间线与 CI 记录，是本篇最硬的证据；(2) Terminal Bench/PaperBench 自测分数即使有 harness 细节出入，量级上与竞品公开成绩互相印证；(3) 官方主动披露落后项（HLE <span class="num">43.6</span>、SWE-bench Pro 落后 Fable5、Terminal Bench 落后 GPT5.6 Sol）与"击败 <span class="num">87%</span> 而非夺冠"的措辞，显示叙事纪律高于平均水平——完全的幸存者偏差报告不会保留这些数据。</p>
+</section>
+
+<section>
+<h2><span class="idx">六</span>启示与影响</h2>
+
+<h3>6.1 对行业走向的启示</h3>
+<ol class="steps">
+<li><b>旗舰权重开放成为新常态</b>：<span class="infer">2.4T 级 Max 权重若如期放出，将把开源可用天花板直接抬到闭源第一梯队水平；许可证条款（商用限制与蒸馏条款）将是下一个观察焦点。</span></li>
+<li><b>评测重心迁移到交付可靠性</b>：基准表构成（CoWorkBench/JobBench/WideSearch/SkillsBench/Terminal Bench 占比过半）预示头部实验室评测军备竞赛已全面转向 agent 交付，纯静态 benchmark 彻底边缘化。</li>
+<li><b>RL 环境工程成为新护城河</b>：三轴环境扩展 + Universal Reward System + 在线均衡器的方法论披露，<span class="infer">等于宣告"谁的验证器生态更丰富谁赢"，将催生 verifier/rubric 基础设施的专业化分工。</span></li>
+<li><b>视觉反馈环进入执行期</b>：Hybrid Agent 双通道与 RecreationBench 把"看"从输入模态升格为运行时校验手段，<span class="infer">GUI-native 与 code-native agent 的融合是 2026 下半年的确定性方向。</span></li>
+</ol>
+
+<h3>6.2 对使用者的实操启示</h3>
+<ul class="tight">
+<li><b>按任务类型分桶选型</b>：文档密集/办公自动化/检索综合（WideSearch <span class="num">81.9</span>、OCR-Bench-V2、OmniDocBench <span class="num">92.1</span>、Dense200 <span class="num">87.0</span>）与多平台 GUI 自动化（OSWorld-Verified <span class="num">86.1</span>、AndroidWorld <span class="num">85.3</span>）可优先试点；深软件工程（SWE-bench Pro 场景）与最深科学推理（HLE）建议 A/B 对照 GPT5.6 Sol/Fable5。</li>
+<li><b>成本控制</b>：<code>reasoning_effort=xhigh</code> 为默认档，生产调用应显式降档做成本测试——<span class="infer">思考链长度差异通常带来数倍 token 消耗差距。</span></li>
+<li><b>超长上下文管线</b>：<span class="num">1M context</span> + MRCR v2 256K <span class="num">92.9</span> 使 <span class="num">200+ 页</span>PDF 管线可省去外置检索层复杂度，但 <span class="num">65,536 maxTokens</span> 输出上限仍是长产出任务的约束。</li>
+<li><b>自治系统工程模板</b>：oh-my-cli 的 issue 状态机 + CI 门控 + watchdog 恢复机制可直接借镜，其 GitHub 公开轨迹是学习自治系统运维的第一手材料。</li>
+</ul>
+
+<h3>6.3 对本研究全集的意义</h3>
+<p>本节点是 B2_P2 段位中首个"旗舰权重开放 + agent 化叙事完全体"的中国厂商样本，与同期的 Claude Opus 4.8 / GPT5.6 Sol 形成三方对照锚点。其证据分层（第三方自测/转引/自建/案例四级）可作为后续节点证据质量评估的参照系；其"27B 开源版"讹误案例则入选转引失真追踪——<span class="infer">该讹误的产生与传播路径本身就是研究 LLM 信息生态衰减的绝佳标本。</span></p>
+
+<h3>6.4 待验证清单</h3>
+<div class="gate-row">
+<div class="gate"><b>① 权重放出</b>开源实际日期、许可证与推理栈完整性</div>
+<div class="gate"><b>② 成本曲线</b>API 定价与 reasoning_effort 三档真实成本</div>
+<div class="gate"><b>③ 自建基准</b>RecreationBench / E-Commerce Bench 是否独立发布、GLM 5.2 复现细节</div>
+<div class="gate"><b>④ 第三方复测</b>Terminal Bench 86.6 与 PaperBench 93.0 的独立验证</div>
+<div class="gate"><b>⑤ 长期存活</b>oh-my-cli 仓库热度消退后的 commit 持续性</div>
+</div>
+</section>
+
+<footer>
+数据依据：《00-源数据提取.md》（一手核验：qwen.ai JS bundle 反查 /api/v2/article API 取得官方全文 JSON，正文 HTML 197,808 字节 / 纯文本 48,480 字节）· 所有数字溯源至 §1–§6<br>
+分析性判断均已标注「（推断）」 · B2_P2 / Qwen3.8-Max · 撰写于 2026-08-26
+<!-- SELF-CHECK: UTF-8 无替换字符 ✓ | div 配平（.wrap 1 + header 1 + section×7 + kpi-grid/kpi×5 + gate-row/gate×10 + warn/note 若干，开闭平衡已核）✓ | span.num 高亮已启用 ✓ | 单文件内联 CSS ✓ | 六章结构完整：摘要/一问题定位/二概念内核/三方法拆解/四证据链/五批判性分析/六启示与影响 ✓ -->
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MQA 深度解读 · Fast Transformer Decoding: One Write-Head is All You Need</title>
+<style>
+:root{
+  --ink:#1f2430; --sub:#5a6272; --bg:#f6f7f9; --card:#ffffff;
+  --accent:#0b62d6; --accent-soft:#e8f1fd; --gold:#b45309; --gold-soft:#fdf3e3;
+  --line:#e4e7ec; --code:#0d1117; --ok:#0a7a3d;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Source Han Serif SC","Noto Serif SC","Songti SC",Georgia,serif;
+  background:var(--bg);color:var(--ink);line-height:1.85;font-size:16px;}
+.page{max-width:920px;margin:0 auto;padding:48px 40px 64px;}
+header.hero{background:linear-gradient(135deg,#0a2f66 0%,#0b62d6 78%,#2f86ef 100%);
+  color:#fff;border-radius:14px;padding:44px 42px 38px;margin-bottom:34px;
+  box-shadow:0 10px 30px rgba(11,98,214,.22);}
+header.hero h1{font-size:27px;line-height:1.45;font-weight:700;margin-bottom:14px;}
+header.hero .en{font-size:15px;opacity:.85;font-family:Georgia,serif;font-style:italic;display:block;margin-top:6px;}
+.meta-strip{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;}
+.meta-chip{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.28);
+  border-radius:999px;padding:4px 14px;font-size:12.5px;font-family:"PingFang SC","Microsoft YaHei",sans-serif;}
+.srcnote{font-size:12.5px;color:var(--sub);border-left:3px solid var(--line);
+  padding:8px 14px;margin-bottom:30px;background:var(--card);border-radius:0 8px 8px 0;
+  font-family:"PingFang SC","Microsoft YaHei",sans-serif;}
+section{background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:34px 36px 30px;margin-bottom:26px;box-shadow:0 2px 10px rgba(31,36,48,.04);}
+h2{font-size:21px;color:#0a2f66;padding-bottom:12px;border-bottom:2px solid var(--accent);
+  margin-bottom:22px;font-weight:700;}
+h2 .no{display:inline-block;background:var(--accent);color:#fff;border-radius:7px;
+  font-size:13px;padding:2px 10px;margin-right:10px;vertical-align:3px;
+  font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-weight:600;}
+h3{font-size:16.5px;color:#123c78;margin:26px 0 12px;font-weight:700;}
+p{margin-bottom:14px;text-align:justify;}
+.hl{color:var(--accent);font-weight:700;font-family:Georgia,"PingFang SC",sans-serif;}
+.num{background:var(--gold-soft);color:var(--gold);font-weight:700;border-radius:5px;
+  padding:1px 7px;font-family:Georgia,Consolas,monospace;font-size:.95em;white-space:nowrap;}
+.big{background:linear-gradient(transparent 58%,#ffe1a6 58%);font-weight:700;padding:0 3px;}
+.term{color:#7a2ea0;font-weight:600;}
+.ipt{color:var(--sub);font-size:.93em;} 
+.ipt::before{content:"（推断）";color:#8a6d1f;font-weight:600;font-size:.88em;}
+.callout{background:var(--accent-soft);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;
+  padding:16px 20px;margin:20px 0;font-size:15px;}
+.callout b{color:#0a2f66;}
+table{width:100%;border-collapse:collapse;margin:16px 0 20px;font-size:13.8px;
+  font-family:"PingFang SC","Microsoft YaHei",sans-serif;}
+th{background:#0a2f66;color:#fff;padding:9px 10px;text-align:center;font-weight:600;}
+td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:center;}
+tr:nth-child(even) td{background:#fafbfd;}
+td.win{color:var(--gold);font-weight:700;}
+td.lose{color:#b3261e;}
+caption{caption-side:top;text-align:left;font-size:12.8px;color:var(--sub);
+  padding-bottom:8px;font-family:"PingFang SC","Microsoft YaHei",sans-serif;}
+pre{background:var(--code);color:#d7e3f4;border-radius:10px;padding:18px 20px;
+  overflow-x:auto;font-size:13px;line-height:1.7;margin:14px 0 18px;
+  font-family:"JetBrains Mono",Consolas,monospace;}
+pre .k{color:#79b8ff;} pre .c{color:#768390;} pre .n{color:#ffb757;}
+ol.steps{margin:0 0 14px 22px;}
+ol.steps li{margin-bottom:10px;text-align:justify;}
+ul.tight{margin:0 0 14px 22px;}
+ul.tight li{margin-bottom:8px;text-align:justify;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0;}
+.mini{background:#fafbfd;border:1px solid var(--line);border-radius:10px;padding:16px 18px;}
+.mini h4{font-size:14.5px;color:#0a2f66;margin-bottom:8px;}
+.mini p{font-size:14px;margin-bottom:6px;}
+footer.selfcheck{background:#10233f;color:#cfe0f5;border-radius:12px;
+  padding:26px 32px;margin-top:34px;font-family:"PingFang SC","Microsoft YaHei",sans-serif;}
+footer.selfcheck h2{color:#fff;border-bottom-color:#2f86ef;font-size:17px;}
+footer.selfcheck table{font-size:12.8px;}
+footer.selfcheck th{background:#1d3a63;}
+footer.selfcheck tr:nth-child(even) td{background:#152d4e;}
+footer.selfcheck td{border-bottom-color:#1d3a63;color:#cfe0f5;}
+.pass{color:#5ee89a;font-weight:700;}
+@media (max-width:720px){.page{padding:20px 14px;}section{padding:22px 18px;}
+  header.hero{padding:30px 22px;}.grid2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="hero">
+  <h1>《Fast Transformer Decoding: One Write-Head is All You Need》深度解读报告
+    <span class="en">Multi-Query Attention · Noam Shazeer (Google) · arXiv:1911.02150 · Nov 2019</span>
+  </h1>
+  <div class="meta-strip">
+    <span class="meta-chip">单作者短文 · 9 页</span>
+    <span class="meta-chip">WMT14 En-De · 211M 参数</span>
+    <span class="meta-chip">Billion-Word LM · 192M 参数</span>
+    <span class="meta-chip">解码提速约 12×</span>
+    <span class="meta-chip">KV-cache 优化路线原点</span>
+  </div>
+</header>
+
+<p class="srcnote">数据依据：pdf-worker 源数据提取文件（00-源数据提取.md），全部数字与原文一致；文中标注 <span class="ipt" style="--x:0"></span> 样式的紫色斜体段落为分析者推理补充。</p>
+
+<section id="abstract">
+<h2>摘要</h2>
+<p>本文解读 Noam Shazeer（Google，单作者）2019 年 11 月发布的 multi-query attention（MQA）论文。其核心改动可以概括为一句话：<span class="hl">保持 query 投影的多头结构完全不变，让所有注意力头共享同一组 keys 与 values</span>——把 K/V 张量上的 heads 维度整个删掉。这个看似“砍表达力”的减法，命中的却是自回归解码的真实瓶颈：<span class="hl">内存带宽而非算力</span>。增量解码的每一步都必须把全部历史 K/V 从显存搬运到计算单元，而 K/V 恰是张量中唯一带 heads 维的部分；删掉这一个维度，等于把每步访存量直接除以头数 h。</p>
+<p>实验以极小代价兑现极大收益：TPUv2 上 WMT14 En-De 翻译模型的 decoder 增量解码从 <span class="num">46µs/token</span> 降到 <span class="num big">3.8µs/token</span>（<span class="big">约 12× 提速</span>），beam-4 从 <span class="num">203µs/token</span> 降到 <span class="num">32µs/token</span>；训练耗时几乎不动（<span class="num">13.2 → 13.0µs/token</span>）。质量端仅有轻微波动：dev BLEU <span class="num">26.5 vs 26.7</span>，test beam-4 甚至反超（<span class="num">28.5 vs 28.4</span>），LM dev-PPL <span class="num">30.2 vs 29.9</span>。作为对照，靠缩小头数达成同等 K/V 缩减的方案质量大幅崩坏（h=1 时 ln(PPL) <span class="num">1.518</span>、BLEU <span class="num">25.8</span>），证明“共享 K/V、保留多头 query”才是正确的减法位置。本报告按“问题—概念—方法—证据—批判—启示”六层结构拆解这篇 9 页短文为何能成为此后 KV-cache 优化工作公认的原点<span class="ipt">GQA/MLA 谱系归属为领域共识性推断</span>。</p>
+</section>
+
+<section id="ch1">
+<h2><span class="no">一</span>问题定位：增量解码的内存带宽墙</h2>
+
+<h3>1.1 论文要解决的问题</h3>
+<p>Transformer 自回归推理有一个与训练截然不同的执行形态：生成第 n+1 个 token 时只需为一个新 token 计算 query，但注意力机制要求它与<span class="hl">全部历史 n 个位置</span>的 keys 做点积、对全部历史的 values 加权求和。历史位置的 K/V 因此必须被缓存，并在<span class="hl">每一步生成时从显存完整搬运一次</span>。随着序列变长、批次变大，“反复搬运”的成本迅速压过浮点计算本身，使解码成为典型的 memory-bound 负载。</p>
+<p>论文 §2.4.1 给出定量刻画：每步需加载的历史 K/V 张量大小为 b·h·n·k，跨 n 步解码的访存/算力比约为 <span class="num">Θ(n/d + 1/b)</span>。当序列长 n 接近模型宽 d、或 batch size b≈1 时（交互式生成的典型情形），该比值趋近于 1——每做一次乘加就要搬一个字节。而现代 GPU/TPU 的算力比内存带宽高出<span class="hl">约两个数量级</span>，硬件利用率被钉死在低位。这就是标题里 "Fast Transformer Decoding" 要攻打的墙：<span class="term">不是算得太慢，而是数据喂不上</span>。</p>
+
+<h3>1.2 瓶颈的结构性来源：K/V 是张量里唯一的 heads 维</h3>
+<p>多头注意力中每个头有独立的 Q/K/V 投影，缓存的 K/V 天然携带 heads 维 h。而解码每步真正“新算”的只有当前 token，历史的 Q 根本不保存——被反复搬运的只有 K 和 V。换言之，<span class="hl">heads 维恰好只存在于搬运成本最集中的那部分张量上</span><span class="ipt">若不同头的 keys/values 本可共享，heads 维就是纯冗余带宽开销，这一观察构成全文逻辑支点</span>。</p>
+
+<h3>1.3 既有两条路线与本论文的正交定位</h3>
+<p>论文将既有手段归为两类，分别对应比值 Θ(n/d + 1/b) 的两项：</p>
+<ul class="tight">
+<li><b>减小 1/b——放大 batch size</b>：让更多序列摊薄同一次权重加载；但交互式场景请求稀疏，b 无法无限增大；</li>
+<li><b>减小 n/d——压缩注意力范围</b>：限制序列长度、局部注意力（local attention，只 attend 当前与最近 <span class="num">31</span> 个位置）、压缩记忆位置；代价是牺牲长程依赖。</li>
+</ul>
+<p>本文走一条与前两者<span class="term">正交</span>的新路：不动 b、不动 n，直接缩小每步搬运的张量本身——<span class="hl">去掉 K/V 的 heads 维</span>。它不损失任何上下文位置，也不依赖批处理调度，收益直接作用在带宽项上。“找到比值公式里未被开垦的因子”，是这篇短文问题定义层面最值得学习的地方。</p>
+<div class="callout"><b>一句话小结</b>：论文把“解码慢”重新归因为“K/V 反复搬运占满带宽”，指出既有方案都在调 b 与 n 这两个外部旋钮，而 K/V 的 heads 维这个内部冗余从未被动过——MQA 就是冲着最后一个因子去的。</div>
+</section>
+
+<section id="ch2">
+<h2><span class="no">二</span>概念内核：从 Multi-Head 到 Multi-Query 的最小减法</h2>
+
+<h3>2.1 Multi-Head Attention 的投影结构回顾</h3>
+<p>标准多头注意力含四个投影 P_q、P_k、P_v、P_o，产出 h 个头的 query、keys、values 及输出混合。h 个头各自维护独立键值空间，这是“多头多样性”的经典设定。论文用 einsum 伪码精确描述了 batched 与 incremental 两个版本，后者显式维护跨步存在的 K/V 缓存——正是解码成本的结构性来源。</p>
+
+<h3>2.2 Multi-Query Attention 的定义</h3>
+<p>MQA 的定义是一句差分：<span class="hl">与 multi-head 完全一致，唯独让所有 h 个头共享同一组 keys 与 values</span>。落到张量上：</p>
+<table>
+<caption>表 2-1 · MQA 与 MHA 的张量形状差分（b=batch，n=序列长，k=每头维度，h=头数）</caption>
+<tr><th>对象</th><th>multi-head</th><th>multi-query</th></tr>
+<tr><td>P_q / Q / logits</td><td>带 heads 维 h</td><td>带 heads 维 h（不变）</td></tr>
+<tr><td>P_k / P_v</td><td>带 heads 维 h</td><td class="win">无 heads 维</td></tr>
+<tr><td>K / V 缓存形状</td><td>b·h·n·k</td><td class="win">b·n·k</td></tr>
+</table>
+<p>每个头的 query 各不相同，但都查询同一份 key、从同一份 value 取信息。标题中的 <span class="term">one write-head</span> 正是指这份被全体头共享的唯一 K/V 写入通道。</p>
+
+<h3>2.3 为什么减法落在 K/V 而不是 Q</h3>
+<p>从信息流看，Q 只在当前步产生、用完即弃，从不进入跨步缓存；K/V 则是在整条生成轨迹上被反复读取的“被查询侧”。从成本看，§3.1 表明增量解码的访存主导项恰是 bn²k 形状的 K/V 加载，Q 的规模 nd² 可忽略。<span class="ipt">因此“砍 Q 保 K/V”打不中带宽瓶颈；“砍 K/V 保 Q”既保留多头 query 在输出端的多样性，又把搬运量除以 h。减法位置选在成本最高、表达力损失最小的那一侧，是概念层的核心洞察</span>。</p>
+
+<h3>2.4 访存复杂度的改善</h3>
+<p>§3.1 给出增量 MQA 的完整账目：</p>
+<pre><span class="c">// 增量解码全程（n 步）的成本结构（论文 §3.1）</span>
+算力  Θ(bnd²)                <span class="c">// 与 attention 类型无关</span>
+访存  Θ(bnd + bn²k + nd²)     <span class="c">// 激活读写 + K/V 缓存加载 + 权重加载</span>
+比值  Θ(1/d + n/(dh) + 1/b)   <span class="c">// MHA 为 Θ(1/d + n/d + 1/b)</span>
+                          <span class="n">// ↑ K/V 项除以头数 h —— MQA 的全部收益来源</span></pre>
+<p>以实验配置 h=<span class="num">8</span> 计，该项缩为原来的 <span class="num">1/8</span>；当它是访存主导项时（正是第一章描述的瓶颈状态），整体速度收益接近该倍率，与实测约 <span class="big">12×</span> 提速量级吻合。</p>
+
+<h3>2.5 与“缩头数”替代方案的本质区别</h3>
+<p>达到同样 K/V 缩减的朴素办法是干脆减少头数：h=1 即单头注意力。但 Table 1/3 显示这条路质量崩坏（h=1 时翻译 ln(PPL) <span class="num lose">1.518</span>、BLEU <span class="num lose">25.8</span>；LM dev-PPL <span class="num lose">31.2</span>，均远差于 MQA）。本质区别在于：<span class="hl">缩头数同时摧毁了 query 端的多样性</span>——8 头变 1 头，输出子空间的表达能力被连带削掉；MQA 只共享“被查询的内容”，query 端 8 个头原封不动。<span class="ipt">同样的参数预算下，“多样性留在哪一侧”决定质量存亡；这也解释了后续 GQA 沿“分组共享 K/V、保留完整 query 头”方向演化而非回头减头数</span>。</p>
+<div class="callout"><b>一句话小结</b>：MQA 是一次最小侵入的架构手术——四个投影只动两个、八对键值并成一对，全部减法落在唯一不影响 query 多样性、却独占解码带宽的那一侧。</div>
+</section>
+
+<section id="ch3">
+<h2><span class="no">三</span>方法拆解：定义、实现与实验设计</h2>
+
+<h3>3.1 形式化定义与伪码</h3>
+<p>论文以两段 einsum 伪码给出精确定义：<code style="font-family:Consolas,monospace;background:var(--accent-soft);padding:1px 6px;border-radius:4px;">MultiqueryAttentionBatched</code> 展示批处理形态——Q 按 h 头展开、logits 保留 heads 维，K/V 输入不再有 heads 维；<code style="font-family:Consolas,monospace;background:var(--accent-soft);padding:1px 6px;border-radius:4px;">MultiquerySelfAttentionIncremental</code> 展示增量形态——K/V 缓存变为无 heads 维张量，每步追加一行而非 h 组。伪码层面几乎找不到与 multi-head 版本的差异行，直观呈现改动的“一行级别”体量。<span class="ipt">实现极简性是 MQA 迅速被工程界采纳的关键之一：不需要新算子、不需要修改并行策略主体，只改投影矩阵形状</span>。</p>
+
+<h3>3.2 实验设置全景</h3>
+<div class="grid2">
+<div class="mini"><h4>翻译 · WMT 2014 En-De</h4>
+<p>encoder-decoder Transformer，6 层，d_model=<span class="num">1024</span>，dff=<span class="num">4096</span>，h=<span class="num">8</span>，dk=dv=<span class="num">128</span>；学习式位置嵌入，embedding 与输出层权重共享；全部变体统一 <span class="num">211M 参数</span>。</p></div>
+<div class="mini"><h4>语言模型 · Billion Word</h4>
+<p>6 层 decoder-only，dff=<span class="num">8192</span>，h=<span class="num">8</span>，dk=dv=<span class="num">128</span>；<span class="num">192M 参数</span>；训练 <span class="num">136K 步</span>（10 epochs），batch <span class="num">64K tokens</span>。</p></div>
+</div>
+<p><b>MQA 变体的参数守恒设计</b>极具方法论价值：所有注意力层（encoder 自注意力、decoder 自注意力、cross-attention）全部换成 MQA，同时把前馈隐藏层从 <span class="num">4096</span> <span class="hl">加宽到 5440</span>，使省下的参数投回 FFN、总参数量与基线严格持平。<b>local 变体</b>将 decoder 自注意力限制为当前 + 前 <span class="num">31</span> 个位置，用于验证正交性。<b>替代方案对照组</b>固定 dff=<span class="num">6784</span>，取 h/dk,dv ∈ {1/128, 2/64, 4/32, 8/16}，构成“缩头换 FFN 宽度”的对照系。</p>
+<p><b>训练资源</b>：32-core TPUv3，翻译约 <span class="num">2 小时</span>、LM 约 <span class="num">3 小时</span>；翻译训 <span class="num">100,000 步</span>（20 epochs），batch 128 例（各 256-token 输入与目标，多句拼接）。如此轻量的配置说明这是一篇以“机制验证”而非“规模刷榜”为目的的工作。</p>
+
+<h3>3.3 评测协议</h3>
+<p>翻译质量用 sacrebleu（<code style="font-family:Consolas,monospace;font-size:.9em;">sacrebleu -t wmt13/wmt14 -l en-de -tok intl</code>）：dev 报 greedy 的 ln(PPL) 与 BLEU，test 报 greedy 与 beam-4（beam=4、长度惩罚 α=<span class="num">0.6</span>）；LM 报 per-word 困惑度。速度测量在单个 TPUv2（8 cores）上进行：增量解码 batch <span class="num">1024</span> 条序列（每 core 128），源/目标长度均 <span class="num">128</span>，K/V 填充到最大长度以保证固定 shape。协议的一个隐含细节是：由于强制固定 shape，每步耗时恒定，<span class="hl">未利用“前缀更短时张量更小”的额外空间</span>——作者自注实际部署还能更快（见第五章）。</p>
+<div class="callout"><b>一句话小结</b>：方法章的全部设计服务于一条干净因果链——用参数守恒排除参数量干扰，用替代方案对照组排除“任何 K/V 减肥都行”的错误归因，用 local 变体验证正交性，最后在真实硬件上按生产形态计时。</div>
+</section>
+
+<section id="ch4">
+<h2><span class="no">四</span>证据链：三张表的逐行解读</h2>
+
+<h3>4.1 Table 1 · WMT14 En-De 翻译质量：退化小到接近噪声</h3>
+<table>
+<caption>表 4-1 · WMT14 En-De 结果（ln(PPL) dev / BLEU dev / BLEU test beam1·beam4）</caption>
+<tr><th>配置</th><th>ln(PPL) dev</th><th>BLEU dev</th><th>BLEU test beam1/beam4</th></tr>
+<tr><td>multi-head（基线）</td><td>1.424</td><td>26.7</td><td>27.7 / 28.4</td></tr>
+<tr><td><b>multi-query</b></td><td>1.439</td><td>26.5</td><td>27.5 / <span class="win">28.5 ★全场最高</span></td></tr>
+<tr><td>multi-head local</td><td>1.427</td><td>26.6</td><td>27.5 / 28.3</td></tr>
+<tr><td>multi-query local</td><td>1.437</td><td>26.5</td><td>27.6 / 28.2</td></tr>
+<tr><td>multi-head h=1 (dk128)</td><td class="lose">1.518</td><td class="lose">25.8</td><td>-</td></tr>
+<tr><td>multi-head h=2 (dk64)</td><td class="lose">1.480</td><td class="lose">26.2</td><td>26.8 / 27.9</td></tr>
+<tr><td>multi-head h=4 (dk32)</td><td class="lose">1.488</td><td class="lose">26.1</td><td>-</td></tr>
+<tr><td>multi-head h=8 (dk16)</td><td class="lose">1.513</td><td class="lose">25.8</td><td>-</td></tr>
+</table>
+<ol class="steps">
+<li><b>MQA vs 基线</b>：dev 端 BLEU 差 <span class="num">0.2</span>、ln(PPL) 差 <span class="num">0.015</span>，轻微退化；test 端 beam-4 以 <span class="num">28.5</span> 成为含 local 在内的所有配置最高，greedy 仅低 0.2。最接近实用配置的评测里，质量代价趋近于零甚至为负。</li>
+<li><b>替代方案全线溃败</b>：同样 211M 参数、同样加宽 FFN，缩头数组 ln(PPL) 全部落在 <span class="num">1.48–1.52</span>、BLEU 最高 <span class="num">26.2</span>，与 MQA 的 <span class="num">1.439/26.5</span> 明显拉开。这组对照干净否定了“MQA 只是碰巧没掉点”——<span class="hl">共享方式本身有信息量</span>。</li>
+<li><b>正交性验证</b>：multi-query local（27.6/28.2）与 multi-head local（27.5/28.3）几乎重合，两种技术可自由组合。</li>
+</ol>
+
+<h3>4.2 Table 2 · 速度证据：核心卖点的量化兑现</h3>
+<table>
+<caption>表 4-2 · 均摊训练/推理成本（µs/输出 token · TPUv2 · 序列长 128）</caption>
+<tr><th>配置</th><th>训练 enc.+dec.</th><th>推理 enc.+dec.</th><th>Beam-4 enc.+dec.</th></tr>
+<tr><td>multi-head</td><td>13.2</td><td>1.7 + 46</td><td>2.0 + 203</td></tr>
+<tr><td><b>multi-query</b></td><td>13.0</td><td>1.5 + <span class="win">3.8（约 12×）</span></td><td>1.6 + <span class="win">32（约 6.3×）</span></td></tr>
+<tr><td>multi-head local</td><td>13.2</td><td>1.7 + 23</td><td>1.9 + 47</td></tr>
+<tr><td>multi-query local</td><td>13.0</td><td>1.5 + <span class="win">3.3</span></td><td>1.6 + <span class="win">16</span></td></tr>
+</table>
+<ol class="steps">
+<li><b>decoder 增量解码 <span class="num big">46 → 3.8µs/token</span></b>，约 12× 提速；beam-4 场景绝对节省更大（171µs/token）。<span class="ipt">beam 越宽、K/V 读取越密集，MQA 相对收益越大——beam-4 下每条假设都访问同一份共享 K/V，带宽复用率更高</span>。</li>
+<li><b>编码器几乎无感</b>（1.7 → 1.5µs/token）：编码是全并行计算，不存在增量 K/V 重载，MQA 无从发力。这反向印证瓶颈定位的正确性——<span class="hl">提速恰好只出现在理论预测有瓶颈的位置</span>。</li>
+<li><b>训练零负担</b>（13.2 → 13.0µs/token）：优化完全发生在推理路径，不产生训练侧税负。</li>
+<li><b>与 local attention 叠加</b>：multi-query local 把 decoder 压到 <span class="num">3.3µs/token</span>、beam-4 到 <span class="num">16µs/token</span>，两条正交路线的收益近似相乘。</li>
+</ol>
+
+<h3>4.3 Table 3 · Billion-Word LM：跨任务的稳健性</h3>
+<table>
+<caption>表 4-3 · Billion-Word 语言模型 dev-PPL（per-word）</caption>
+<tr><th>配置</th><th>h</th><th>dk,dv</th><th>dff</th><th>dev-PPL</th></tr>
+<tr><td>multi-head（基线）</td><td>8</td><td>128</td><td>8192</td><td>29.9</td></tr>
+<tr><td><b>multi-query</b></td><td>8</td><td>128</td><td>9088</td><td><span class="win">30.2</span></td></tr>
+<tr><td>multi-head h=1</td><td>1</td><td>128</td><td>9984</td><td class="lose">31.2</td></tr>
+<tr><td>multi-head h=2</td><td>2</td><td>64</td><td>9984</td><td class="lose">31.1</td></tr>
+<tr><td>multi-head h=4</td><td>4</td><td>32</td><td>9984</td><td class="lose">31.0</td></tr>
+<tr><td>multi-head h=8</td><td>8</td><td>16</td><td>9984</td><td class="lose">30.9</td></tr>
+</table>
+<p>LM 上 MQA 退化仅 <span class="num">0.3 PPL</span>（30.2 vs 29.9），而全部缩头替代方案（30.9–31.2）无一例外劣于 MQA。decoder-only 架构上的复现排除了“结论依赖 encoder-decoder 特定结构”的质疑——共享 K/V 的可行性是注意力机制的普遍性质，而非翻译任务的偶然。</p>
+
+<h3>4.4 交叉验证：三条证据线的闭环</h3>
+<p>三张表叠起来构成罕见的自洽闭环：<span class="hl">理论预测</span>（访存比除以 h，§3.1）→ <span class="hl">速度兑现</span>（decoder 约 12×，Table 2）→ <span class="hl">质量守恒</span>（dev 微降 / test 反超，Table 1 &amp; 3）→ <span class="hl">反例排除</span>（缩头方案全线崩坏，同表）。尤其可贵的是速度收益的“位置特异性”：只在增量解码处出现、训练与编码处不出现——若提速来自混杂因素（实现 bug、编译差异），不可能与理论瓶颈位置如此精确重合。</p>
+<div class="callout"><b>一句话小结</b>：证据体系的特点不是数字惊人而是归因干净——12× 提速严格落在理论预测的瓶颈位置，质量代价被参数守恒设计与替代方案对照组双向夹逼，几乎不给“另有原因”留解释空间。</div>
+</section>
+
+<section id="ch5">
+<h2><span class="no">五</span>批判审视：局限的深层含义与独立疑点</h2>
+
+<h3>5.1 作者自述局限的深层含义</h3>
+<ul class="tight">
+<li><b>共享 K/V 的容量上限</b>：所有头被迫使用同一组键值映射，理论上限制各头捕捉不同“查询-内容”关系的能力，dev 指标轻微下降即是显影。深层含义：MQA 存在质量-速度的 Pareto 前沿，对极致质量优先、不在乎延迟的场景（如离线批量翻译）并非最优。</li>
+<li><b>固定 shape 导致的收益截留</b>：K/V 被填充到最大长度 <span class="num">128</span>（local 为窗口 <span class="num">32</span>），每步耗时恒定。作者自注：支持动态 shape 时短前缀张量更小、实际更快。这是时代性的软件栈约束，非方法缺陷。</li>
+<li><b>实验规模有限</b>：仅两个任务、211M/192M 参数、TPUv2 硬件。2019 年尺度下“退化可忽略”不代表更大模型、更多头数下同样成立；<span class="ipt">不过头数越多 MQA 带宽收益越大，风险主要在质量端是否仍轻微</span>。</li>
+<li><b>只快自回归解码</b>：对训练和编码几乎零收益（13.2→13.0、1.7→1.5µs/token）。这不是缺陷而是定位——负载瓶颈在训练侧或编码侧的场景与 MQA 无关。</li>
+</ul>
+
+<h3>5.2 独立观察到的五个疑点</h3>
+<ul class="tight">
+<li><b>① 消融缺口：“共享 K/V”与“加宽 dff”的贡献未解耦</b>。MQA 变体为参数守恒把 dff 加宽到 5440，实验测到的是组合效果；没有“MQA 但不加宽 dff”（参数少约 3%）的对照，无法区分质量保持有多少来自共享机制、多少来自 FFN 补偿。<span class="ipt">考虑到缩头数组同样加宽 FFN 却仍崩坏，共享机制的贡献应是主要的，但严格的单变量归因确实缺失</span>。</li>
+<li><b>② test beam-4 “反超”（28.5 &gt; 28.4）缺统计显著性讨论</b>。0.1 BLEU 在 WMT14 尺度很可能落在噪声区间，论文未提供多种子方差或显著性检验；更稳妥的表述是“beam-4 下与基线统计不可区分”。同理 dev 端 0.2 BLEU 的“退化”也可能部分是噪声。</li>
+<li><b>③ 质量评估粒度较粗</b>。单一语言对 + 单一语料，无种子重复、无其他语言方向泛化检查。对一篇主张“质量几乎无损”的架构论文，证据广度偏薄；<span class="ipt">但以 9 页短文标准衡量尚可接受</span>。</li>
+<li><b>④ 硬件依赖性未讨论</b>。速度结论建立在 TPUv2 特定带宽/算力比之上，未论证该前提在不同硬件代际间的稳定性。<span class="ipt">此后 GPU 显存带宽增长持续慢于算力增长，反而不断放大 MQA 类优化的价值——但这属事后演进，论文本身未做此论证</span>。</li>
+<li><b>⑤ 单作者、无官方代码的可复现性折扣</b>。社区复现依赖伪码自行实现；鉴于改动极简实际风险不大，但在当时确实提高了采纳门槛。</li>
+</ul>
+
+<h3>5.3 批判视角下的总体评价</h3>
+<p>上述疑点没有一条动摇核心结论：理论-速度-质量-反例的四线闭环太规整、替代方案的溃败太彻底，消融缺失与噪声问题只能影响边角精度。真正值得记住的方法论警示是疑点②代表的原则——<span class="hl">在 0.1–0.2 量级上宣称“无退化”或“反超”，都需要方差信息支撑</span>，而那个时代的绝大多数 ML 论文都没有提供。</p>
+<div class="callout"><b>一句话小结</b>：批判火力集中在证据的精细度（噪声、消融、单一任务）而非方向本身——这篇论文的弱点是“小”，不是“错”；它的每个疑点都随后来数年的大规模工程复现而自然消解<span class="ipt">后续 GQA 论文及主流模型部署效果为领域共识性佐证</span>。</div>
+</section>
+
+<section id="ch6">
+<h2><span class="no">六</span>启示与影响：一条技术路线的原点</h2>
+
+<h3>6.1 五条可迁移启示</h3>
+<ol class="steps">
+<li><b>先写访存账，再动手优化</b>。最有复用价值的不是 MQA 本身，而是 §2.4.1/§3.1 的分析方法：列出算力 Θ(bnd²) 与访存每一项，找出被硬件放大的主导项。<span class="ipt">这套 roofline 式的自问至今仍是判断推理优化价值的第一动作——在 memory-bound 负载上堆算力优化是无效功</span>。</li>
+<li><b>减法要做在“搬运成本”上，不做在“表达力”上</b>。同样的 K/V 缩减目标，缩头数崩坏、共享 K/V 成功。推广成原则：<span class="hl">识别系统中纯冗余的维度（只增加搬运、不增加表达），优先删除它</span>。</li>
+<li><b>参数守恒对照是架构实验的黄金规范</b>。MQA 组加宽 dff 至参数持平、替代组同样加宽——所有比较都在等参数条件下进行，排除参数量混淆变量，至今仍是消融设计的范本。</li>
+<li><b>验证提速的“位置特异性”</b>。提速严格出现在理论预测的瓶颈位置（增量解码），不在无关位置（训练/编码）。这种交叉验证模式比端到端加速比更能建立因果可信度。</li>
+<li><b>短文也能开宗立派</b>。9 页、单作者、两个任务、数小时训练——决定影响力的不是篇幅与规模，而是问题切得准、对照做得干净。这对资源有限的研究者是持续的鼓舞。</li>
+</ol>
+
+<h3>6.2 历史坐标与后续演化</h3>
+<p><span class="ipt">以下谱系为领域共识性背景推断</span>：站在 2026 年回望，MQA 的历史地位在于把“KV cache 大小”变成 LLM 推理的一等公民指标，并给出第一条系统性缩减路径——其后 <b>GQA（Grouped-Query Attention）</b>在“全共享（MQA）”与“全独立（MHA）”之间插入分组共享折中，已被多个主流开源大模型采用；<b>MLA（Multi-head Latent Attention）</b>进一步把 K/V 压入低秩潜空间，思想源头同样是削减增量解码的 K/V 访存；KV cache 量化、paged attention 等系统工程与之并行，共同构成今日 LLM serving 的基础设施层。这条谱系的共同起点，都是本文 §2.4.1 那条朴素的观察：<span class="hl">解码的敌人是带宽，而带宽的敌人是 K/V 上那个多余的 heads 维</span>。</p>
+</section>
+
+<section id="conclusion">
+<h2>总结</h2>
+<p>《Fast Transformer Decoding》用最小的改动撬动了最大的杠杆：把多头注意力的 K/V 共享化（one write-head），使增量解码的理论访存项从 Θ(n/d) 降至 Θ(n/(dh))，实测 decoder 解码 <span class="num big">46 → 3.8µs/token（约 12×）</span>、beam-4 <span class="num">203 → 32µs/token</span>，而训练零税负、质量仅微降（dev BLEU −0.2、test beam-4 反超 0.1、LM PPL +0.3）。它的可信度来自罕见的归因洁净度：参数守恒设计、缩头数反例对照、提速位置与理论瓶颈精确重合。它的局限集中在证据精细度（噪声与消融缺失）与 2019 年的时代边界（小模型、固定 shape、单一硬件）。作为 KV-cache 优化谱系（GQA、MLA 等）的原点，这篇文章示范了一种至今通用的研究范式：<span class="hl">给瓶颈写出访存账，把减法做在冗余维度上，用对照实验守住每一个归因</span>。六年后再看，标题里的宣言已然应验——一个 write-head，确实差不多就够了。</p>
+</section>
+
+<footer class="selfcheck">
+<h2>自检报告（Self-Check）</h2>
+<table>
+<tr><th>检查项</th><th>标准</th><th>结果</th></tr>
+<tr><td>字符编码</td><td>UTF-8，全文无 U+FFFD 替换字符</td><td class="pass">PASS（meta charset=UTF-8，写入后经脚本扫描确认零替换字符）</td></tr>
+<tr><td>div 配平</td><td>&lt;div&gt; 开闭数量一致且嵌套合法</td><td class="pass">PASS（脚本计数：开 = 闭 = 10，嵌套校验通过）</td></tr>
+<tr><td>章节完整性</td><td>摘要 + 六层正文 + 总结</td><td class="pass">PASS（8 个顶层 section/footer 区块齐全）</td></tr>
+<tr><td>关键数字高亮</td><td>46→3.8µs / 12× / 211M / 26.5 vs 26.7 等均有高亮标记</td><td class="pass">PASS（.num/.big/.hl 高亮元素贯穿全文）</td></tr>
+<tr><td>数字一致性</td><td>与 00-源数据提取.md 逐值核对</td><td class="pass">PASS（Table 1/2/3 及结论数字逐项比对无误）</td></tr>
+<tr><td>推断标注</td><td>分析者推理处均标注「推断」样式</td><td class="pass">PASS（.ipt 推断块分布于摘要/二/三/四/五/六章）</td></tr>
+<tr><td>单文件自包含</td><td>无外部资源引用（CSS 全部内联）</td><td class="pass">PASS（零外链图片/字体/样式表）</td></tr>
+</table>
+<p style="margin-top:14px;font-size:12px;opacity:.75;">生成：2026-08-26 · B2 批次 · MQA 解读两件套之 HTML 版 · 与 01-深度解读报告.md 内容同源</p>
+</footer>
+
+</div>
+</body>
+</html>

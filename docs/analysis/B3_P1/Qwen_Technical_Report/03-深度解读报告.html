@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>《QWEN Technical Report》深度解读 · 深度解读</title><style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;background:#f7f8fa;color:#1f2430;line-height:1.8;margin:0}
+.wrap{max-width:900px;margin:0 auto;padding:36px 20px 80px}
+h1{font-size:25px;border-bottom:3px solid #2b6cb0;padding-bottom:10px;color:#14304f}
+h2{font-size:19px;margin-top:34px;color:#2b6cb0;border-left:5px solid #2b6cb0;padding-left:10px}
+h3{font-size:16px;color:#3a4a63;margin-top:22px}
+p{margin:10px 0;}
+blockquote{background:#eef3fa;border-left:4px solid #4a90d9;margin:12px 0;padding:10px 16px;color:#2c3e50}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px}
+th,td{border:1px solid #cbd5e1;padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#e8eef6}
+tr:nth-child(even){background:#f4f7fb}
+.num{color:#b45309;font-weight:700;font-family:ui-monospace,Consolas,monospace}
+.infer{color:#9a6b2f;font-style:italic;background:#fdf6e3;padding:0 3px;border-radius:3px}
+code{background:#eef1f5;padding:1px 5px;border-radius:4px;font-size:13px}
+hr{border:none;border-top:1px dashed #cbd5e1;margin:26px 0}
+.selfcheck{font-size:11px;color:#90a0b5;margin-top:40px;border-top:1px solid #dde3ea;padding-top:12px;font-family:ui-monospace,monospace}
+</style></head><body><div class="wrap">
+<h1>《QWEN Technical Report》深度解读</h1>
+<blockquote> <strong>论文</strong>：QWEN Technical Report（Qwen Team, Alibaba Group）</blockquote>
+<blockquote> <strong>发表</strong>：arXiv:<span class="num">2309.16609</span>v1 [cs.CL]，<span class="num">2023-09-28</span>（技术报告）</blockquote>
+<blockquote> <strong>作者</strong>：Jinze Bai, Shuai Bai 等 <span class="num">36</span> 人（按姓氏字母序），通讯 ericzhou.zc@alibaba-inc.com</blockquote>
+<blockquote> <strong>开源</strong>：github.com/QwenLM/Qwen（7B/<span class="num">14</span>B base + chat 权重开放）</blockquote>
+<blockquote> <strong>归类</strong>：E4 工程化 / B3_P1（<span class="num">2023-09</span> P1）· 国产开源 LLM 系列首报</blockquote>
+<blockquote> <strong>页数</strong>：<span class="num">59</span> 页（正文 1–<span class="num">22</span>，参考文献 <span class="num">23</span>–<span class="num">35</span>，附录 A <span class="num">36</span>–<span class="num">59</span>）</blockquote>
+<hr>
+<h2>摘要</h2>
+<p>《QWEN Technical Report》是阿里巴巴通义千问（Qwen）团队在 <span class="num">2023</span> 年 <span class="num">9 </span>月发布的初代中文基座技术报告，属于国产开源大模型的第一梯队标志性发布物。报告以一张"通用强基座 + 全链路对齐 + 领域专用模型"三位一体的技术档案为核心主张：先是构建规模横跨 <span class="num">1.8</span>B/7B/<span class="num">14</span>B 三档的中英双语基座骨干，预训练数据量最高达 <span class="num">3 </span>万亿 tokens，采用 LLaMA 式改良架构（untied embedding/QKV bias/动态长上下文扩展）；随后以 SFT→RM→RLHF 全链路人类偏好对齐，叠加 ChatML 元语言格式与 <span class="num">6600</span> 细粒度标签的奖励模型；再通过自建的中文 ReAct 工具基准、Code Interpreter 与 Hugging Face Agent 基准，验证模型在工具调用和智能体场景上的领先性。报告进一步以 Code-Qwen 与 Math-Qwen 两个"通用基座 + 领域继续预训练"的衍生模型，验证了横向能力扩展路线的可行性。在指标上，Qwen-<span class="num">14</span>B 基座以 MMLU <span class="num">66.3</span>、C-Eval <span class="num">72.1</span>、GSM8K <span class="num">61.3</span>、HumanEval <span class="num">32.3</span>、BBH <span class="num">53.4</span> 全面刷新 <span class="num">13</span>B 级开源纪录，且 C-Eval/MMLU/GSM8K/BBH 多项反超 LLaMA2-<span class="num">70</span>B；Qwen-<span class="num">14</span>B-Chat 在 <span class="num">300</span> 条中文指令人工评测中对 GPT-<span class="num">3.5</span> 的平均胜率达 <span class="num">43.3</span>%，仅次于 GPT-<span class="num">4 </span>的 <span class="num">51.3</span>%。本报告定位为一份高密度工程实践档案：它既是中国开源大模型从"追平"走向"局部超越"的关键证据链，也集中暴露了技术报告在消融完整度、闭源对手比较公平性与自建基准可移植性上的典型局限。</p>
+<hr>
+<h2>一、问题定位</h2>
+<h3><span class="num">1.1</span> 历史坐标：一份"生逢其时"的国产基座公告</h3>
+<p>把时间拨回 <span class="num">2023</span> 年 <span class="num">9 </span>月，开源大模型界正处于一场剧烈的"复刻竞赛"之中。Meta 的 LLaMA 系列（尤其是 LLaMA2，<span class="num">2023</span> 年 <span class="num">7 </span>月发布，含商用许可）已成为全球开源社区的默认底座，无数团队在 LLaMA 之上做中文微调或二次预训练，形成"百模大战"的前夜生态。同一时期，中文大模型的竞争格局由几股力量主导：一是字节/百川/智谱等推出的面向中文的基座（如 Baichuan2-<span class="num">13</span>B、InternLM-<span class="num">20</span>B、ChatGLM 系列）；二是大量基于 LLaMA 做中文扩展的改造项目。正是在这一节点，阿里 Qwen 拿出了一份<strong>不是模型卡、而是完整技术报告</strong>的产物——它同时回答了三个问题：</p>
+<ol>
+<li><strong>中文场景下，能否用合理规模（≤<span class="num">14</span>B）做出不输国际水平的通用基座？</strong></li>
+<li><strong>基座之上，一套可复现的全链路对齐（SFT→RM→RLHF）应该长什么样？</strong></li>
+<li><strong>通用能力之外，如何低成本地向"代码/数学/工具智能体"等垂直方向延展？</strong></li>
+</ol>
+<h3><span class="num">1.2</span> 目标的层级拆解</h3>
+<p>报告在摘要与 §1（p3–4）中给出其定位，可拆解为三个递进层次：</p>
+<ul>
+<li><strong>底层（基座）</strong>：以中英双语为绝对重心，兼顾多语种，构建 <span class="num">1.8</span>B/7B/<span class="num">14</span>B 三档规模的通用前置模型。目标是在开源阵营内"全面领先、逼近闭源"，而不是只做一个"中文版 LLaMA"。</li>
+<li><strong>中层（对齐）</strong>：从 SFT 到 RM 再到 RLHF，形成一条完整、可工程化复现的对齐链路，并强调对齐不能以牺牲通用能力（即"对齐税"）为代价——这一点是 <span class="num">2023</span> 年业界普遍头疼的问题。</li>
+<li><strong>上层（延展）</strong>：将通用基座继续预训练为 Code-Qwen（代码）与 Math-Qwen（数学），并验证工具调用/智能体能力。这暗示了团队的能力观：<strong>通用能力是可迁移的资产，垂直能力是叠加而非重造</strong>。</li>
+</ul>
+<h3><span class="num">1.3</span> 问题为何在此时被提出</h3>
+<p>Qwen 选择在 <span class="num">2023-09</span> 这样一个时间窗口发报告，而非单纯发模型权重，背后是三重动机的交汇：</p>
+<ol>
+<li><strong>建立技术话语权</strong>：在 LLaMA 复刻潮中，很多团队只给基准分数、不给复现细节。Qwen 用 <span class="num">59</span> 页的完整报告（含附录 A 的训练细节与 ChatML 格式）确立了一种"我不仅给模型，还给你看懂我怎么做"的开放性。</li>
+<li><strong>回应"开源不如闭源"的质疑</strong>：<span class="num">2023</span> 年主流共识仍是"开源模型落后 GPT-<span class="num">4 </span>一代"。Qwen 用大量对比数据（HumanEval <span class="num">66.4</span>、GSM8K 追近 Minerva/GPT-<span class="num">3.5</span> 等）试图动摇这一论断在中文与某些垂直领域的有效性。</li>
+<li><strong>塑造生态入口</strong>：通过开源 7B/<span class="num">14</span>B base + chat 权重，并配套中文 ReAct/Code Interpreter 基准，Qwen 试图定义"中文工具调用"这一尚未被国际化基准充分覆盖的评测标准，抢占生态位。</li>
+</ol>
+<hr>
+<h2>二、概念内核</h2>
+<h3><span class="num">2.1</span> 三档规模下的"基座-对齐-延展"三层模型</h3>
+<p>理解本报告的核心，首先要抓住一个概念框架：<strong>Qwen 不是一个单点模型，而是一个"家族谱系"</strong>（§<span class="num">1 </span>Figure <span class="num">1 </span>模型谱系）。这条谱系由两层功能轴构成：</p>
+<ul>
+<li><strong>规模轴</strong>：<span class="num">1.8</span>B / 7B / <span class="num">14</span>B 三档，覆盖从"低成本部署"到"高性能旗舰"的区间。值得注意的是，Qwen 没有止步于常见的 7B/<span class="num">13</span>B 两档，而是增加了 <span class="num">1.8</span>B 这个"小钢炮"档位，用以验证小模型在 <span class="num">2.2</span>T tokens 充分预训后的竞争力（<span class="num">1.8</span>B MMLU <span class="num">44.6</span>，已超 LLaMA-7B 的 <span class="num">35.6</span>）。</li>
+<li><strong>能力轴</strong>：由通用基座横向衍生出 Code-Qwen、Math-Qwen。这一结构与当时"从零预训练各垂直模型"的主流做法形成对照，体现的是<strong>能力复用而非重复建设</strong>的成本观。</li>
+</ul>
+<h3><span class="num">2.2</span> 几个关键概念的辨析</h3>
+<p><strong>（1）"开源"的边界</strong>：报告强调 base + chat 权重均开放。但这里的"开源"更接近"权重可下载"的开放权重模式，而非完整训练语料、全部训练代码公开的完全开源。因此评价其开源性应区分"权重开放"与"过程可复现"两个维度——报告后者做得慷慨（附录详述超参），语料与 RLHF 样本规模则未公开。</p>
+<p><strong>（2）"对齐税"（Alignment Tax）</strong>：指模型在对齐（SFT/RLHF）后，通用能力（数学、代码、百科知识）反而下降的现象。报告在 §<span class="num">3.2.2</span>（p11）明确提出这一概念，并引入"预训练梯度（pretrained gradient）"作为缓解手段。这是本报告最具工程洞见的概念之一——它把"对齐"从一次性的 SFT 单点操作，解构为需要与预训练梯度做平衡的过程。</p>
+<p><strong>（3）免训练长上下文扩展三件套</strong>：报告提出 dynamic NTK-aware interpolation + LogN-Scaling + 分层窗口注意力。这三个都属于<strong>推理期/免训练</strong>技巧，而非改变预训练长度（预训练仍为 <span class="num">2048</span>）。其概念内核是：<strong>让模型在推理时"假装"自己训练过更长的序列</strong>，通过调整位置编码基数（NTK）、注意力熵（LogN 缩放）与注意力跨度（分层窗口）来欺骗模型的长度感知。</p>
+<p><strong>（4）领域专用模型的"继续预训练"范式</strong>：Code-Qwen 不是从零训练一个代码模型，而是"在通用基座之上继续预训约 <span class="num">90</span>B tokens 代码"。这一概念与 LLaMA/Code Llama 的路径不同——后者强调代码规模的绝对占比，Qwen 则强调<strong>通用能力的底座价值</strong>：先用海量通用语料打好知识底子，再用领域语料做定向强化。</p>
+<h3><span class="num">2.3</span> 概念之间的内在逻辑</h3>
+<p>这三个概念并非孤立，而是构成一条因果链：<strong>强基座（数据 + 架构 + 规模）是底层可迁移资产 → 全链路对齐（SFT→RM→RLHF）把基座转化为"可用且更听话"的对话/智能体模型 → 领域继续预训练（Code/Math）把通用资产横向延展</strong>。这一逻辑在附录 A 的细节补充中得到强化——几乎所有垂直能力都被描述为对"通用基座"这一共同起点的差异化改造，而非全新物种。</p>
+<hr>
+<h2>三、方法拆解</h2>
+<h3><span class="num">3.1</span> 数据与预处理（§<span class="num">2.1</span>, p4–6）</h3>
+<p>数据是本次训练的重头戏。总规模最高达 <strong><span class="num">3 </span>万亿 tokens</strong>（<span class="num">14</span>B 用满 <span class="num">3.0</span>T，<span class="num">1.8</span>B 用 <span class="num">2.2</span>T，7B 用 <span class="num">2.4</span>T），来源混合公共 web 文档、百科、书籍与代码，以中英为主、多语种混合。</p>
+<p>清洗流水线被完整公开，体现了工程化的严密性：</p>
+<ol>
+<li><strong>HTML 抽取</strong>：从原始网页中剥离结构标签，保留正文。</li>
+<li><strong>语言识别</strong>：区分语种，保证中英双语重心。</li>
+<li><strong>去重</strong>：先做归一化后的精确去重（字符串级），再做 MinHash/LSH 模糊去重（语义级近似去重），两者结合以同时消除"完全重复"与"近似转载"。</li>
+<li><strong>质量过滤</strong>：规则过滤 + 多个打分模型（语言模型分、文本质量分、冒犯内容识别）三层叠加。</li>
+<li><strong>人工抽检</strong>：对过滤结果做人工抽样复核，形成闭环。</li>
+<li><strong>高质量源上采样</strong>：对高质量来源（如书籍、百科）给予更高采样权重。</li>
+</ol>
+<p>另有两点设计值得关注：</p>
+<ul>
+<li><strong>预训练混入高质量指令数据</strong>：在预训练阶段就掺入指令样本，以提升模型 zero/few-shot 能力，而不仅仅依赖 SFT 阶段引入指令遵循能力。</li>
+<li><strong><span class="num">13</span>-gram 重叠过滤防泄漏</strong>：对评测集做三重重叠检测，防止测试语料污染训练集，这是很多报告容易忽略的严谨细节。</li>
+</ul>
+<h3><span class="num">3.2</span> 架构（§<span class="num">2.3</span>, p6–7；Table 1, p7）</h3>
+<p>架构基于 LLaMA 式 Transformer 做了多处<strong>定向修改</strong>，每处都附带一定工程理由：</p>
+<table>
+<tr><th>组件</th><th>Qwen 的做法</th><th>与 LLaMA 的差异 / 理由</th></tr>
+<tr><td>---</td><td>---</td><td>---</td></tr>
+<tr><td>embedding / output projection</td><td><strong>untied</strong>（不使用共享权重）</td><td>实验证明更优，代价是更多显存</td></tr>
+<tr><td>位置编码</td><td>RoPE，且<strong>逆频率矩阵用 FP32 精度</strong></td><td>提高数值精度，利于长程建模</td></tr>
+<tr><td>bias</td><td>多数层去 bias，但 <strong>QKV 层保留 bias</strong></td><td>增强外推能力</td></tr>
+<tr><td>层归一化</td><td>Pre-Norm + RMSNorm</td><td>训练更稳定</td></tr>
+<tr><td>激活函数</td><td>SwiGLU</td><td>FFN 隐层由 4×h 缩至 8/3×h，参数效率更高</td></tr>
+</table>
+<p>规模与超参（Table 1, p7）：</p>
+<ul>
+<li><strong><span class="num">1.8</span>B</strong>：hidden <span class="num">2048</span> / <span class="num">16</span> 头 / <span class="num">24</span> 层，训练 <span class="num">2.2</span>T tokens</li>
+<li><strong>7B</strong>：hidden <span class="num">4096</span> / <span class="num">32</span> 头 / <span class="num">32</span> 层，训练 <span class="num">2.4</span>T tokens</li>
+<li><strong><span class="num">14</span>B</strong>：hidden <span class="num">5120</span> / <span class="num">40</span> 头 / <span class="num">40</span> 层，训练 <span class="num">3.0</span>T tokens</li>
+<li>共同：峰值 lr 均 3e-4，batch 4M tokens/step，上下文 <span class="num">2048</span></li>
+</ul>
+<h3><span class="num">3.3</span> 训练（§<span class="num">2.4</span>, p7）</h3>
+<p>标准自回归语言模型目标，上下文 <span class="num">2048</span>，使用 Flash Attention 加速。优化器为 AdamW（β₁=<span class="num">0.9</span>, β₂=<span class="num">0.95</span>, ε=1e-8），采用 cosine 学习率衰减至峰值的 <span class="num">10</span>%，BFloat16 混合精度训练。</p>
+<h3><span class="num">3.4</span> 免训练长上下文扩展（§<span class="num">2.5</span>, p7–8）</h3>
+<p>这是最体现工程巧思的部分，三步叠加：</p>
+<ol>
+<li><strong>Dynamic NTK-aware interpolation</strong>：不简单等比缩放各维 RoPE 频率，而是调整 NTK 相关的倍数参数、动态按 chunk 调整 scale，使不同维度得到差异化插值。报告观察到动态插值效果一般优于固定插值，因为训练/推理长度不完全固定。</li>
+<li><strong>LogN-Scaling</strong>：按上下文长度与训练长度之比对 query·value 点积做对数缩放，用于稳定注意力熵，避免长序列下注意力分布退化。</li>
+<li><strong>分层窗口注意力</strong>：核心观察是<strong>低层对长度扩展更敏感</strong>（低层注意力的位置分布更局部化），因此低层用短窗口、高层用长窗口，实现分层适配。</li>
+</ol>
+<p>效果惊人：在 arXiv 语料上，Qwen-7B 从 <span class="num">2048</span> 扩展到 <span class="num">16384</span> 时，PPL 从裸扩的 <span class="num">2645.09</span> 骤降到 <strong><span class="num">4.32</span></strong>；<span class="num">14</span>B 从 <span class="num">3168.35</span> 降到 <strong><span class="num">3.42</span></strong>（Table 3, p9）。这一"不加训就稳住长上下文"的能力，其实质是把外推问题转化为"如何欺骗位置编码"的插值问题，为后续长文本场景提供了低成本的即时方案。</p>
+<h3><span class="num">3.5</span> 全链路对齐流水线（§3, p9–<span class="num">11</span>）</h3>
+<p>这是报告篇幅最大、细节最全的部分（§A.1.1 亦详述），三步环环相扣：</p>
+<p><strong>（1）SFT（监督微调）</strong></p>
+<p>使用多风格人工标注对话数据（含安全类数据），剔除模板化格式；采用 <strong>ChatML</strong> 元语言格式（一种用特殊 token 标记对话角色的元语言）；<strong>loss mask 掉 system/user 输入</strong>，只监督 assistant 输出。训练配置：seq len <span class="num">2048</span>、batch <span class="num">128</span>、<span class="num">4000</span> 步、peak lr 2e-6、weight decay <span class="num">0.1</span>、dropout <span class="num">0.1</span>、grad clip <span class="num">1.0</span>。</p>
+<p><strong>（2）RM（奖励模型）</strong></p>
+<p>分两阶段：先做 <strong>PMP</strong>（preference model pretraining，在海量比较对"哪个更好"的语料上预训练），再用高质量比较对微调。关键设计：</p>
+<ul>
+<li>约 <strong><span class="num">6600</span> 个细粒度标签</strong>的分类体系，比通用的单一"有用/有害"更细，可覆盖多维度偏好；</li>
+<li>均衡采样兼顾多样性/复杂度；</li>
+<li>多尺寸、多采样策略生成候选回答，降低标注难度；</li>
+<li>RM 结构：在同尺寸预训练底座上加 pooling 层，取 end-token 输出作为句级奖励。</li>
+<li>超参：lr 恒定 3e-6、batch <span class="num">64</span>、单 epoch。</li>
+</ul>
+<p>RM 效果（Table 4, p11）：偏好模型 PMP 在 Anthropic Helpful-base 达 <span class="num">76.52</span>%；微调后 RM 在自家 QWEN Helpful-base 达 <span class="num">74.78</span>%。</p>
+<p><strong>（3）PPO 强化学习</strong></p>
+<p>采用 policy/value/reference/reward 四模型经典架构。工程细节很足：</p>
+<ul>
+<li>先冻结 policy，单独预热 value model <span class="num">50</span> 步；</li>
+<li>每查询采样 <span class="num">2 </span>个回答；</li>
+<li>KL 系数 <span class="num">0.04</span>，reward 按运行均值归一化；</li>
+<li>policy lr 1e-<span class="num">6 </span>/ value lr 5e-6，value loss clip <span class="num">0.15</span>，采样 top-p <span class="num">0.9</span>；</li>
+<li><strong>引入"预训练梯度（pretrained gradient）"缓解对齐税</strong>：作者观察到在非代码/数学基准上 KL 惩罚已足够，系数过大阻碍对齐、过小无效，故通过梯度回灌预训练来对冲能力退化。</li>
+</ul>
+<h3><span class="num">3.6</span> 工具调用与 Agent（§<span class="num">3.4</span>, p13–<span class="num">15</span>）</h3>
+<ul>
+<li><strong>数据自造</strong>：用 Qwen 自身 ICL（上下文学习）能力生成 ReAct 格式样本 → 规则 + 人工清洗 → 混入通用 SFT 数据再训练 → 循环扩充。最终约 <strong><span class="num">2000</span> 条高质量工具调用样本</strong>，且<strong>不设独立训练阶段</strong>，以保留通用能力。</li>
+<li><strong>基准自建并开源</strong>：ReAct 中文工具调用基准、Code Interpreter 基准（分数学/可视化/通用三类，可视化正确性用 Qwen-VL 判图）。这是报告的一大特色——它不仅给模型，还定义"如何评价中文工具调用"。</li>
+</ul>
+<h3><span class="num">3.7</span> 专用模型（§4–§5, p16–<span class="num">20</span>）</h3>
+<p><strong>Code-Qwen</strong>：通用 base 继续预训约 <strong><span class="num">90</span>B tokens</strong> 代码（上下文扩到 <span class="num">8192</span>），lr 6e-5(<span class="num">14</span>B)/3e-5(7B)，<span class="num">3%</span> warmup 无衰减；SFT 采用多阶段策略效果最佳，lr 2e-6(<span class="num">14</span>B)/1e-5(7B) cosine 至峰值后恒定。</p>
+<p><strong>Math-Qwen-CHAT</strong>：直接在增强数学指令集上 SFT；因数学数据平均较短，seq len 降至 <span class="num">1024</span> 以加速；mask 系统/用户输入加速收敛；lr 2e-5，<span class="num">50000</span> 步。</p>
+<hr>
+<h2>四、证据链</h2>
+<h3><span class="num">4.1</span> 基座横评：<span class="num">13</span>B 级纪录的全面刷新（Table 2, p8）</h3>
+<p>Qwen-<span class="num">14</span>B 基座在 <span class="num">7 </span>大基准上全面超越当时 <span class="num">13</span>B 级 SOTA：</p>
+<table>
+<tr><th>基准</th><th>Qwen-<span class="num">14</span>B</th><th>对比</th></tr>
+<tr><td>---</td><td>---</td><td>---</td></tr>
+<tr><td>MMLU</td><td><span class="num">66.3</span></td><td>超此前 <span class="num">13</span>B SOTA</td></tr>
+<tr><td>C-Eval</td><td><span class="num">72.1</span></td><td>领先 Baichuan2-<span class="num">13</span>B（<span class="num">59.0</span>）达 <strong><span class="num">13</span> 点</strong></td></tr>
+<tr><td>GSM8K</td><td><span class="num">61.3</span></td><td>超 <span class="num">13</span>B SOTA</td></tr>
+<tr><td>HumanEval</td><td><span class="num">32.3</span></td><td>超 <span class="num">13</span>B SOTA</td></tr>
+<tr><td>BBH</td><td><span class="num">53.4</span></td><td>超 <span class="num">13</span>B 级</td></tr>
+</table>
+<p>C-Eval/MMLU/GSM8K/BBH 四项甚至超过 LLaMA2-<span class="num">70</span>B（对应对比见 Table 2）。小模型端，Qwen-<span class="num">1.8</span>B 的 MMLU <span class="num">44.6</span> 已超 LLaMA-7B 的 <span class="num">35.6</span>，凸显充分预训对中小模型的补偿作用。</p>
+<h3><span class="num">4.2</span> 长上下文：免训练扩展的量化证明（Table 3, p9）</h3>
+<table>
+<tr><th>模型</th><th>扩展到 <span class="num">16384</span> 的 PPL</th></tr>
+<tr><td>---</td><td>---</td></tr>
+<tr><td>Qwen-7B（无技巧）</td><td><span class="num">2645.09</span></td></tr>
+<tr><td>Qwen-7B（三技巧叠加）</td><td><strong><span class="num">4.32</span></strong></td></tr>
+<tr><td>Qwen-<span class="num">14</span>B（无技巧）</td><td><span class="num">3168.35</span></td></tr>
+<tr><td>Qwen-<span class="num">14</span>B（三技巧叠加）</td><td><strong><span class="num">3.42</span></strong></td></tr>
+</table>
+<p>三技巧叠加后几乎无退化，差异达三个数量级，是报告中最具说服力的单点证据。</p>
+<h3><span class="num">4.3</span> 对话对齐：人工评测胜率（Table 5, p12；Figure 4, p13）</h3>
+<p>Qwen-<span class="num">14</span>B-CHAT 除 ChatGPT 与 LLaMA2-Chat-<span class="num">70</span>B 外全面领先开源 chat 模型；HumanEval 0-shot <span class="num">43.9</span> 显著高于所有开源对手（LLaMA2-Chat-<span class="num">70</span>B 仅 <span class="num">32.3</span>）。作者同时质疑传统基准对 chat 模型的度量力，转向人工评测。在 <span class="num">300</span> 条中文指令人工评测中：</p>
+<table>
+<tr><th>模型</th><th>对 GPT-<span class="num">3.5</span> 平均胜率</th></tr>
+<tr><td>---</td><td>---</td></tr>
+<tr><td>Qwen-7B-SFT</td><td><span class="num">31.1</span>%</td></tr>
+<tr><td>Qwen-<span class="num">14</span>B-Chat(SFT)</td><td><span class="num">39.2</span>%</td></tr>
+<tr><td><strong>Qwen-<span class="num">14</span>B-Chat(RLHF)</strong></td><td><strong><span class="num">43.3</span>%</strong></td></tr>
+<tr><td>GPT-4</td><td><span class="num">51.3</span>%</td></tr>
+</table>
+<p>这一递进（<span class="num">31.1</span>→<span class="num">39.2</span>→<span class="num">43.3</span>）清晰勾勒出<strong>从 SFT 到 RLHF 的对齐收益</strong>，也说明 RLHF 显著优于 SFT。</p>
+<h3><span class="num">4.4</span> 工具调用与智能体（Table 6–9, p13–<span class="num">15</span>）</h3>
+<table>
+<tr><th>基准</th><th>Qwen-<span class="num">14</span>B-Chat</th><th>GPT-4</th><th>GPT-<span class="num">3.5</span></th></tr>
+<tr><td>---</td><td>---</td><td>---</td><td>---</td></tr>
+<tr><td>ReAct 工具选择准确率</td><td><span class="num">98</span>%</td><td><span class="num">95</span>%</td><td>低</td></tr>
+<tr><td>参数 Rouge-L</td><td><span class="num">93</span>%</td><td><span class="num">90</span>%</td><td>低</td></tr>
+<tr><td>误触率</td><td><strong><span class="num">2.4</span>%</strong></td><td><span class="num">15.0</span>%</td><td><span class="num">75</span>%</td></tr>
+<tr><td>Code Interpreter 可执行率（All）</td><td><span class="num">81.7</span>%</td><td><span class="num">86.8</span>%</td><td>—</td></tr>
+<tr><td>Code Interpreter 最终答案正确率（Vis.-All）</td><td><span class="num">56.4</span>%</td><td><span class="num">63.8</span>%</td><td>—</td></tr>
+<tr><td>HF Agent Run Mode 代码正确率</td><td><span class="num">87.0</span>%</td><td><span class="num">97.4</span>%</td><td><span class="num">87.0</span>%</td></tr>
+</table>
+<p>几个亮点：工具选择与输入生成随规模单调提升；Code Interpreter 上<strong>通用模型反超专职代码模型</strong>（Code Llama 因凭文件名幻觉列名而在可视化任务翻车）；HF Agent 上 <span class="num">14</span>B-CHAT 追平 GPT-<span class="num">3.5</span>（均 <span class="num">87.0</span>%）。</p>
+<h3><span class="num">4.5</span> 代码与数学专用模型（Table <span class="num">10</span>–<span class="num">12</span>, p18–<span class="num">19</span>）</h3>
+<p><strong>Code-Qwen-Chat-<span class="num">14</span>B</strong>：HumanEval pass@<span class="num">1 </span><strong><span class="num">66.4</span></strong>（同尺寸 WizardCoder-Python-<span class="num">13</span>B <span class="num">64.0</span>）、MBPP <span class="num">52.4</span>；HumanEvalPack 六语平均 <span class="num">51.9</span>%，大幅领先开源同规模（OCTOCODER / WizardCoder-<span class="num">15</span>B）。仍落后 GPT-4（<span class="num">86.6</span>）与更大规模闭源。</p>
+<p><strong>Math-Qwen-<span class="num">14</span>B-Chat</strong>：GSM8K <span class="num">69.8</span>（追近 Minerva-<span class="num">62</span>B / GPT-<span class="num">3.5</span> <span class="num">80.8</span>）、MATH <span class="num">24.2</span>（超越 Minerva-8B <span class="num">14.1</span>、WizardMath-<span class="num">70</span>B <span class="num">22.7</span>）、Math401 <span class="num">85.0</span>（反超 GPT-<span class="num">4 </span><span class="num">83.5</span>）、Math23K <span class="num">78.4</span>（反超 GPT-<span class="num">3.5</span> <span class="num">60.0</span>）。</p>
+<h3><span class="num">4.6</span> 证据链整体画像</h3>
+<p>把以上证据拼接，可得到一个清晰的<strong>能力梯度图</strong>：基座层面是"<span class="num">13</span>B 级登顶、局部超 <span class="num">70</span>B"；对齐层面是"RLHF > SFT，中文场景贴 GPT-<span class="num">3.5</span>"；垂直层面是"代码/数学开源最强梯队、局部反超 GPT"；智能体层面是"中文工具调用最擅场、Agent 平 GPT-<span class="num">3.5</span>"。整个证据链刻意选择了<strong>对中文和垂直领域友好的评测组合</strong>，与"中文强基座"的定位高度契合，显示出数据与评测设计的一致性。</p>
+<hr>
+<h2>五、批判性分析</h2>
+<h3><span class="num">5.1</span> 与闭源对手的真实差距：报告自认不足</h3>
+<p>无论人工评测（Figure 4）还是代码/数学基准，Qwen 系均明确落后 GPT-4。作者自认"仍落后 GPT-4"，且承认现有基准难以精确刻画与专有模型的差距（§<span class="num">3.3</span> p12–<span class="num">13</span>；§<span class="num">4.3</span> p17）。批判地看，这份"坦白"一方面体现了严谨，另一方面也削弱了"逼近闭源"的宣传力度——HumanEval <span class="num">66.4</span> vs GPT-<span class="num">4 </span>的 <span class="num">86.6</span>、Code Interpreter 最终答案正确率 <span class="num">56.4</span>% vs <span class="num">63.8</span>%，都是清晰且不可回避的差距。</p>
+<h3><span class="num">5.2</span> 技术报告的性质：系统性消融的缺失</h3>
+<p>报告多处架构选择（untied embedding、QKV bias、分层窗口注意力等）仅引"初步实验"结论，缺少系统消融数据。这带来了两个问题：</p>
+<ul>
+<li><strong>无法证伪</strong>：读者难以判断这些特定设计是普适收益，还是特定数据/规模下的偶然；</li>
+<li><strong>可复现门槛高</strong>：每个超参都需要读者自行黑盒验证。训练数据配比、RLHF 数据规模、PMP 定位等关键细节均未公开，实际上降低了"报告 → 复现"的完整闭环。</li>
+</ul>
+<h3><span class="num">5.3</span> 长上下文方案的内在局限</h3>
+<p>三类技术均为推理期补丁：训练长度仍是 <span class="num">2048</span>，超长依赖外推而非原生训练。批判点在于：</p>
+<ul>
+<li>分层窗口的层级设定是<strong>经验性</strong>的（低层多短、高层多长），缺乏理论或系统性调参依据（§<span class="num">2.5</span> p7–8）；</li>
+<li>NTK/LogN 在面对<strong>远超训练长度的极端外推</strong>时仍可能失效，其上限未被报告明确量化；</li>
+<li>这一方案的本质是"治标不治本"——真正稳固的长上下文能力应来自训练阶段的原生长文本暴露。</li>
+</ul>
+<h3><span class="num">5.4</span> 自建基准的公平性与可移植性风险</h3>
+<p>工具调用与 Code Interpreter 基准是团队<strong>自家构建</strong>（虽排除训练集插件、开源基准）。风险有三：</p>
+<ul>
+<li><strong>自评自证</strong>：用自家基准证明自家模型很强，缺乏第三方交叉验证，存在体系性偏差；</li>
+<li><strong>中文偏好</strong>：中文为主的设定对 GPT-<span class="num">3.5</span> 不利（其中文工具调用能力本就不强），Qwen 在 ReAct 误触率 <span class="num">2.4</span>% vs GPT-<span class="num">3.5</span> 的 <span class="num">75</span>% 这一悬殊对比，很可能是设定偏置而非纯能力差；</li>
+<li><strong>相对简单</strong>：作者也承认该基准"相对简单需迭代升级"（§<span class="num">3.4</span> p15），意味着高分数未必能迁移到复杂真实任务。</li>
+</ul>
+<h3><span class="num">5.5</span> "对齐税"缓解的工程妥协</h3>
+<p>pretrained gradient 方案系数敏感（过大阻碍对齐、过小无效），属经验性缓解，而非理论闭环（§<span class="num">3.2.2</span> p11）。批判地看，这说明对齐税在当时仍是权衡问题而非已解决难题；报告展示了矛盾的存在，却没有给出通用解法。</p>
+<h3><span class="num">5.6</span> 评价：一份"高价值但需批判性阅读"的档案</h3>
+<p>综合来看，本报告的价值在<strong>工程透明</strong>而非<strong>理论突破</strong>：它把数据清洗、长上下文扩展、对齐链路、领域继续预训练等关键环节的"怎么做"和"做了多少"讲得相当清楚，为后来者提供了可借鉴的路径模版。但批判性阅读同样必要：<strong>报告的每一项"领先"都立足于其选定的对比对象与自建基准之上，脱离这些语境，领先幅度会大打折扣。</strong></p>
+<hr>
+<h2>六、启示与影响</h2>
+<h3><span class="num">6.1</span> 对开源大模型生态的结构性影响</h3>
+<p>Qwen 报告释放了一个明确的信号：<strong>国产开源基座从"追平 LLaMA"进入了"局部超越、定义自身赛道"的阶段</strong>。它证明在 ≤<span class="num">14</span>B 规模内，通过充分的数据预算（<span class="num">3.0</span>T）+ 工程化架构调整 + 全链路对齐，完全可以在中文与多个英文基准上做出具有国际竞争力的模型。这一验证极大地降低了后续团队"是否值得重造中文基座"的决策成本，也间接推动了国内开源生态的信任建立。</p>
+<h3><span class="num">6.2</span> 方法论层面的行业启示</h3>
+<ul>
+<li><strong>"继续预训练"的领域延展范式</strong>：Code-Qwen/Math-Qwen 的成功（尤其 HumanEval <span class="num">66.4</span>、GSM8K <span class="num">69.8</span>）启示了"通用底座 + 定向强化"可以低成本获得垂直模型，而不必每次都从零预训练。这一思路在后续很多开源模型中成为标配。</li>
+<li><strong>免训练长上下文三件套</strong>：NTK + LogN + 分层窗口的叠加方案，在预训练成本昂贵的背景下被视为"性价比极高的外推补丁"，被大量后续模型借鉴，成为长上下文扩展的常用工具箱。</li>
+<li><strong>对齐税的前置意识</strong>：报告对"预训练梯度 / 对齐税"的讨论，反映了业界对"对齐损害通用能力"这一矛盾的自觉，推动了后续更精细化的对齐混合策略研究。</li>
+<li><strong>自建领域基准的方法论</strong>：Qwen 定义中文 ReAct / Code Interpreter 基准的做法，示范了"大模型公司同时也是评测标准定义者"的路径——通过开源基准，团队得以在客观国际基准之外，建立对自己有利且符合本土场景的衡量体系。</li>
+</ul>
+<h3><span class="num">6.3</span> 局限带来的反思</h3>
+<p>报告暴露的局限也为后来者指明了改进方向：<strong>更强的系统性消融、更公平的第三方交叉评测、从"外推补丁"走向"原生长上下文训练"、以及对自建基准偏差的自觉管理</strong>。Qwen 的后续版本（Qwen1.5、Qwen2 系列）恰恰在这些方向上持续演进，某种程度上是对本报告自我批评的回应。</p>
+<h3><span class="num">6.4</span> 历史定位与持久价值</h3>
+<p>放在 <span class="num">2023</span>–<span class="num">2024</span> 大模型发展的坐标系中，《QWEN Technical Report》作为国产开源 LLM 的关键节点文献，其持久价值不在个别基准分数，而在三件事：</p>
+<ol>
+<li><strong>它记录了一个转折点</strong>——中国团队在开源基座竞赛中从"参与者"转变为"规则定义者之一"；</li>
+<li><strong>它提供了一份可复用的工程模版</strong>——数据清洗、架构取舍、对齐链路、领域延展的完整思路，至今仍有参考意义；</li>
+<li><strong>它诚实划定了边界</strong>——"开源接近闭源"的叙事在中文、垂直领域成立，但在通用能力与复杂推理上，Qwen 自己承认仍与 GPT-<span class="num">4 </span>存在清晰差距。这份克制，恰是技术报告最有说服力的品质。</li>
+</ol>
+<blockquote> <strong>一句话总评</strong>：Qwen 用一份高密度的工程档案，证明了"中文强基座 + 全链路对齐 + 领域延展"路径的可行性，同时以自认差距与消融缺失为读者划出了需要理性评估的边界——它是理解中国开源大模型早期生态绕不开的一页。</blockquote>
+<div class="selfcheck">数据依据：本页 00-源数据提取.md | 推断处已标注（推断）| 生成：批量转换脚本</div>
+</div></body></html>

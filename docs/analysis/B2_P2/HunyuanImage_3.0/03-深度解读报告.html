@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HunyuanImage 3.0 深度解读报告</title>
+<style>
+  :root{
+    --ink:#1f2430; --ink2:#4a5163; --paper:#faf9f6; --card:#ffffff;
+    --accent:#c0392b; --accent-bg:#fdf3f1; --gold:#b07d2b;
+    --line:#e6e2d8; --code-bg:#f4f1ea; --head:#233044;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; padding:0; background:var(--paper); color:var(--ink);
+    font-family:"Source Han Serif SC","Noto Serif CJK SC","Songti SC","SimSun",serif;
+    font-size:16px; line-height:1.85;
+  }
+  .wrap{max-width:920px; margin:0 auto; padding:32px 28px 64px;}
+  header.hero{
+    background:linear-gradient(135deg,var(--head) 0%,#3a4a63 100%);
+    color:#fff; border-radius:14px; padding:44px 40px 36px; margin-bottom:36px;
+    box-shadow:0 8px 24px rgba(35,48,68,.18);
+  }
+  header.hero h1{margin:0 0 10px; font-size:30px; letter-spacing:.5px; line-height:1.4;}
+  header.hero .sub{font-size:15px; opacity:.88; margin-bottom:16px;}
+  header.hero .meta{display:flex; flex-wrap:wrap; gap:10px; font-size:13px;}
+  header.hero .meta span{
+    background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25);
+    border-radius:20px; padding:3px 14px;
+  }
+  .srcnote{
+    background:var(--accent-bg); border-left:4px solid var(--accent);
+    border-radius:0 8px 8px 0; padding:12px 18px; font-size:13.5px; color:var(--ink2);
+    margin-bottom:34px;
+  }
+  nav.toc{
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:20px 26px; margin-bottom:38px;
+  }
+  nav.toc b{color:var(--head);}
+  nav.toc ol{margin:8px 0 0; padding-left:22px; columns:2; column-gap:36px;}
+  nav.toc li{margin:3px 0; break-inside:avoid;}
+  nav.toc a{color:var(--ink2); text-decoration:none;}
+  nav.toc a:hover{color:var(--accent);}
+  section.card{
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:30px 36px 26px; margin-bottom:34px;
+    box-shadow:0 2px 10px rgba(31,36,48,.05);
+  }
+  h2{
+    font-size:21px; color:var(--head); margin:0 0 18px; padding-bottom:10px;
+    border-bottom:2px solid var(--line); letter-spacing:.5px;
+  }
+  h2 .no{color:var(--accent); margin-right:8px; font-family:Georgia,serif;}
+  h3{font-size:17px; color:var(--head); margin:26px 0 10px;}
+  p{margin:10px 0; text-align:justify;}
+  strong.num{
+    color:var(--accent); font-weight:700; font-family:Georgia,"Times New Roman",serif;
+    padding:0 1px;
+  }
+  em.term{font-style:normal; font-weight:700; color:var(--head); border-bottom:2px dotted var(--gold);}
+  code{
+    background:var(--code-bg); border:1px solid var(--line); border-radius:4px;
+    padding:1px 7px; font-size:13.5px;
+    font-family:"JetBrains Mono",Consolas,monospace;
+  }
+  blockquote{
+    margin:18px 0; padding:12px 20px; background:var(--accent-bg);
+    border-left:4px solid var(--accent); border-radius:0 8px 8px 0; color:var(--ink2);
+  }
+  table{width:100%; border-collapse:collapse; margin:16px 0; font-size:14.5px;}
+  th{
+    background:var(--head); color:#fff; padding:8px 12px; text-align:left;
+    font-weight:600; white-space:nowrap;
+  }
+  td{padding:8px 12px; border-bottom:1px solid var(--line); vertical-align:top;}
+  tr:nth-child(even) td{background:#fbfaf7;}
+  ul,ol{padding-left:24px; margin:10px 0;}
+  li{margin:6px 0; text-align:justify;}
+  .infer{color:var(--ink2);}
+  .infer::before{content:"〔推断〕"; color:var(--gold); font-style:normal; font-size:.92em;}
+  footer.selfcheck{
+    background:#f2f4ec; border:1px dashed #a8b08c; border-radius:10px;
+    padding:16px 22px; font-size:13px; color:var(--ink2); margin-top:40px;
+  }
+  footer.selfcheck b{color:#5c6b3c;}
+  @media (max-width:680px){
+    .wrap{padding:16px 14px 48px;}
+    section.card{padding:22px 18px;}
+    nav.toc ol{columns:1;}
+    header.hero{padding:30px 22px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>HunyuanImage 3.0 Technical Report<br><span style="font-size:20px;font-weight:normal;">原生多模态统一理解与生成 · 深度解读报告</span></h1>
+  <div class="sub">Tencent Hunyuan Foundation Model Team · arXiv 2509.23951v3 [cs.CV]</div>
+  <div class="meta">
+    <span>当前最大最强开源图像生成模型</span>
+    <span>总参数 &gt;80B · 每 token 激活 13B MoE</span>
+    <span>开源代码与权重（图像生成模块）</span>
+  </div>
+</header>
+
+<div class="srcnote">数据依据：pdf-worker 源数据提取文件（00-源数据提取.md），全部数字与原文一致；标注<span style="color:var(--gold);">〔推断〕</span>处为分析者推理补充。</div>
+
+<nav class="toc">
+  <b>目录</b>
+  <ol>
+    <li><a href="#s0">摘要</a></li>
+    <li><a href="#s1">一、问题定位</a></li>
+    <li><a href="#s2">二、概念内核</a></li>
+    <li><a href="#s3">三、方法拆解</a></li>
+    <li><a href="#s4">四、证据链</a></li>
+    <li><a href="#s5">五、批判性分析</a></li>
+    <li><a href="#s6">六、启示与影响</a></li>
+    <li><a href="#s7">总结</a></li>
+  </ol>
+</nav>
+
+<section class="card" id="s0">
+  <h2><span class="no">◈</span>摘要</h2>
+  <p>本文解读 Tencent Hunyuan Foundation Model Team 提出的《HunyuanImage 3.0 Technical Report》。论文的核心论断是：文本到图像生成的终局架构不应是"扩散骨干 + 冻结文本编码器"的管道拼接，而应是<em class="term">以 decoder-only MoE LLM 为单一骨干的原生多模态自回归框架</em>——文本走 next-token 预测、图像走 diffusion 式预测，两种模态在同一序列、同一注意力机制下混合建模。</p>
+  <p>该模型以<strong class="num">&gt;80B 总参数、每 token 激活 13B</strong>的 MoE 规模成为<strong class="num">当前最大最强开源图像生成模型</strong>，骨干直接采用 Hunyuan-A13B LLM（<strong class="num">64 experts</strong>、每 token 激活 8 个 expert + 1 shared MLP）。支撑架构的是工业级数据体系：<strong class="num">&gt;100 亿张</strong>原始图像经三阶段过滤保留<strong class="num">&lt;45%（约 50 亿张）</strong>；训练侧采用四阶段渐进预训练与 SFT→DPO→MixGRPO→SRPO+ReDA 后训练全链路；部署侧经 MeanFlow 蒸馏将 NFE 降至<strong class="num">4–8</strong>、经 TMP 剪枝将<strong class="num">80B → 20B（压缩 75%）</strong>使单张 RTX 4090（24GB）即可部署。证据层面，论文提出 SSAE 结构化评测基准（500 条 prompt 抽取<strong class="num">3,500 个关键点</strong>、<strong class="num">12 个细粒度字段</strong>），并以 GSB 人工盲评宣称开源首次追平闭源第一梯队：对 Seedream 4.0 相对胜率<strong class="num">+1.17%</strong>、对 Nano Banana<strong class="num">+2.64%</strong>、对 GPT-Image<strong class="num">+5.00%</strong>。本报告按"问题—概念—方法—证据—批判—启示"六层结构逐层拆解。</p>
+</section>
+
+<section class="card" id="s1">
+  <h2><span class="no">壹</span>问题定位：从"管道拼接"到"原生统一"</h2>
+
+  <h3>1.1 论文要解决的问题</h3>
+  <p>文本到图像生成的主流范式长期被一种"分工制"主导：用扩散骨干（DiT 系列）负责去噪生成，再用预训练文本编码器把 prompt 编码成条件向量注入。这种架构的隐性代价在于：文本编码器只是<em class="term">冻结的理解前端</em>——语言模型中沉淀的世界知识、指令跟随能力、思维链推理能力都无法真正参与生成过程，只能提供一组静态条件向量。当 prompt 变得复杂（多对象、空间关系交错、长描述含文字渲染）时，语义在"编码器→条件注入"接口处大量流失。<span class="infer"></span>这正是"prompt 写得越详细、模型越不听话"这一普遍体验痛点的结构性根源。</p>
+  <p>另一条路线是纯自回归离散建模：VQ tokenizer 把图像离散成 token 序列套用 next-token 预测。它天然兼容 LLM 训练栈，但<span class="infer"></span>离散量化带来的细节损失使其在保真度上长期吃亏。</p>
+  <p>论文选择第三条路——<em class="term">原生多模态统一</em>：保留 LLM 为唯一骨干，文本走自回归 next-token 预测，图像走 diffusion 式预测目标（承 Transfusion/JanusFlow 思路的混合离散-连续建模），让理解与生成发生在同一个因果注意力序列里。这不是"LLM 调用扩散模型"，而是让生成过程本身成为语言模型上下文的一部分。</p>
+
+  <h3>1.2 三条路线谱系中的定位</h3>
+  <table>
+    <tr><th>维度</th><th>管道式（DiT+文本编码器）</th><th>离散自回归（VQ+LLM）</th><th>原生统一（本文）</th></tr>
+    <tr><td>骨干</td><td>扩散 U-Net/DiT</td><td>LLM</td><td>同一个 MoE LLM</td></tr>
+    <tr><td>语言知识参与度</td><td>冻结编码器，静态注入</td><td>完整参与</td><td>完整参与</td></tr>
+    <tr><td>图像表示</td><td>连续潜码</td><td>离散 token（量化损失）</td><td>连续潜码 + diffusion 目标</td></tr>
+    <tr><td>交错对话/编辑</td><td>难以支持</td><td>可支持但保真受限</td><td>同一序列原生支持</td></tr>
+    <tr><td>代表缺陷</td><td>语义接口流失</td><td>保真度上限</td><td>训练复杂度高</td></tr>
+  </table>
+  <p>本文的定位宣言非常直白：<em class="term">当前最大最强开源图像生成模型</em>。<span class="infer"></span>其深层含义是：图像生成的竞争维度正从"扩散架构调优"切换到"多模态基础模型规模竞争"，开源阵营第一次以同等量级参数规模参战。</p>
+
+  <h3>1.3 为什么是现在</h3>
+  <p><span class="infer"></span>三个技术要件同时成熟才使"把 LLM 变成图像生成器"从构想变为 80B 级工程现实：其一，Hunyuan-A13B 这类 MoE LLM 已提供"每 token 只激活 13B 却携带 80B 知识"的经济性骨干；其二，Transfusion/JanusFlow 已验证混合目标可行性，风险前置消化；其三，LLM 后训练方法论（SFT/DPO/RL 类方法）足够成熟可整体迁移——论文后训练链恰好证明了这一点。</p>
+  <blockquote><b>一句话小结</b>：本文要解决的不是"画得更好"，而是重新回答"谁来画"——让具备世界知识与推理能力的 LLM 本体直接承担生成，消除理解与生成之间的语义接口损耗。</blockquote>
+</section>
+
+<section class="card" id="s2">
+  <h2><span class="no">贰</span>概念内核：五个核心设计决策逐一定义</h2>
+
+  <h3>2.1 原生多模态统一（Native Multimodal Model）</h3>
+  <p><b>定义</b>：以 decoder-only MoE LLM（Hunyuan-A13B）为单一骨干，配合预训练 vision encoder 与 VAE，各自经投影层对齐到与词嵌入兼容的联合空间；文本走自回归 next-token 预测，图像走 diffusion 式预测的混合离散-连续建模框架。</p>
+  <p><b>拆解</b>：关键词是"联合空间"。传统多模态系统中，理解路径（ViT 特征）与生成路径（VAE 潜码）分属两套表示、两个任务头；本文的 <em class="term">Dual-Encoder</em> 设计把两者拼进同一序列——条件图像的 VAE 潜特征与 vision encoder 特征同时进入上下文，交错对话、生成、编辑可在同一连续上下文内完成。<span class="infer"></span>这是"原生"二字的技术实质：不是功能并列，而是表示统一。</p>
+
+  <h3>2.2 广义因果注意力（Generalized Causal Attention）</h3>
+  <p><b>定义</b>：对混合模态序列的注意力掩码规则——文本 token 仅注意此前所有多模态 token；图像 token 除注意所有前序多模态 token 外，还注意同一图像段内的全部后继图像 token（段内全注意力）。</p>
+  <p><b>拆解</b>：这是全文最精巧的机制设计。标准因果注意力为纯文本设计：token 只见过去；但图像内部依赖本质是双向的，若维持 token 级因果性会破坏去噪的空间一致性。本文解法是<em class="term">宏观因果、微观全连接</em>：序列级保持自回归语义（第 k 张图不知第 k+1 张图内容），图像段内部打开全部注意力。训练含多个 Gen Image 时对已生成图像打掩码洞，推理时每次至多一个 Gen Image 无需该掩码。<span class="infer"></span>其本质是把"自回归"从 token 级抽象到了"模态段级"。</p>
+
+  <h3>2.3 广义二维旋转位置编码（Generalized 2D RoPE）</h3>
+  <p><b>定义</b>：将图像的 1D 位置索引重排为 2D 各向异性频率 [cos(xθ₀), cos(yθ₁), ...]，赋予图像 token 行列两个独立位置频率；文本保持标准 1D RoPE。</p>
+  <p><b>拆解</b>：方案最聪明之处是<em class="term">退化兼容性</em>——无图像时精确退化为标准 1D RoPE，保证与预训练 LLM 的位置编码完全后向兼容，不破坏已学到的语言位置先验；各向异性频率设计让模型能区分行与列；多 Gen Image 训练序列做位置平移对齐。<span class="infer"></span>这体现了整个项目的方法论底色：每一步创新都以"不伤害预训练资产"为约束——站在 80B LLM 肩膀上，而不是重新发明它。</p>
+
+  <h3>2.4 自动分辨率（Automatic Resolution）</h3>
+  <p><b>定义</b>：向词表扩展两组特殊 token——<code>&lt;img_size_*&gt;</code>（256/512/768 等档位）与 <code>&lt;img_ratio_*&gt;</code>（1:4 至 4:1 共 <strong class="num">33 档</strong>宽高比），由模型根据上下文自行预测生成图像的尺寸与宽高比。</p>
+  <p><b>拆解</b>：传统 T2I 系统输出尺寸要么固定、要么用户指定、要么启发式规则决定。本文把"画多大、什么比例"变成词表中的 token 由模型自主预测。<span class="infer"></span>分辨率不再是外部超参数而是语义理解的结果——读到"横幅海报"时自己决定宽幅比例。控制信号的内生化是"原生多模态"哲学在工程细节上的一致贯彻。</p>
+
+  <h3>2.5 结构化语义对齐评测（SSAE）</h3>
+  <p><b>定义</b>：论文自建的细粒度评测协议——从 <strong class="num">500 条</strong>多样 prompt 中抽取 <strong class="num">3,500 个关键点</strong>，覆盖主/次主体的名词、主要属性与动作、主体其他属性、场景名词与属性，以及镜头（camera shot）、风格、构图共 <strong class="num">12 个细粒度字段</strong>；LLM 先做要点抽取 → 一致性核验滤除幻觉点 → 人工修正后<b>固定不动</b>，再由 MLLM 按 CoT 做 0-1 匹配打分。</p>
+  <p><b>拆解</b>：SSAE 直指既有基准两大缺陷——GenEval/T2I-CompBench 的短模板 prompt 无法覆盖真实需求多样性，CLIP Score 类自动指标与人类判断脱节。协议中最值得注意的是<em class="term">评测锚点冻结</em>：关键点核验修正后固定保证跨模型公平。<span class="infer"></span>这是作者对"运动员兼裁判员"质疑的预防性回应——评分标准先于并独立于模型表现确定。</p>
+  <blockquote><b>一句话小结</b>：五个概念构成一条自洽设计链——原生统一确立骨架、Dual-Encoder 打通表示、广义因果注意力定义序列规则、2D RoPE 守住位置先验、Automatic Resolution 内生化控制，而 SSAE 为这一切提供度量衡。</blockquote>
+</section>
+
+<section class="card" id="s3">
+  <h2><span class="no">叁</span>方法拆解：数据—架构—训练—部署的全链路工程</h2>
+
+  <h3>3.1 数据侧：&gt;10B → 约 5B 的过滤漏斗</h3>
+  <p><b>三阶段过滤</b>（初始池 <strong class="num">&gt;100 亿张</strong> → 最终约 <strong class="num">50 亿张</strong>，保留 <strong class="num">&lt;45%</strong>）：</p>
+  <ul>
+    <li><b>阶段一（技术缺陷剔除）</b>：低分辨率（&lt;512px）、损坏文件、过曝/欠曝、过饱和，按 MD5 去重；</li>
+    <li><b>阶段二（主筛选）</b>：客观过滤器（水印/logo/大段文字[hy-OCR]/拼贴/边框/AIGC 检测器）+ 主观评分算子（清晰度模型按锐度/噪声/动态范围打分；美学模型由艺术家定义色彩/光影/构图三要素标准）。AIGC 图像会扭曲自然数据分布妨碍收敛，除逐图检测外还<b>整源移除高 AIGC 占比来源</b>；全类型统一阈值之外另设特定题材差异化阈值供后期选料；</li>
+    <li><b>阶段三（聚类去重与定向补充）</b>：embedding 聚类再去重（移除约 <strong class="num">0.5%</strong>），定向补充知识增强、文字相关、风格化、平面设计等专题数据集。</li>
+  </ul>
+  <p><span class="infer"></span>"整源移除高 AIGC 来源"是漏斗中最具洞察力的规则：随着互联网图像供给被 AI 内容污染，训练数据的"血统管理"将成为数据工程的常态课题。</p>
+  <p><b>交错关系数据双路径构造</b>（专门构建 <strong class="num">&gt;1 亿</strong>图像对与多图样本）：</p>
+  <ul>
+    <li><b>聚类路径</b>：从 <strong class="num">&gt;20 亿图像簇</strong>分析中取代表性簇抽相似对，经关系判别算子保留显著编辑关系，图像复杂度模型滤除过度复杂样本；</li>
+    <li><b>视频挖掘路径</b>：镜头边界检测 → 相机运动分类剔除过度运镜 → 目标检测 + 语义分割定位规范变换关键帧 → 运动模糊检测终筛。</li>
+  </ul>
+  <p><span class="infer"></span>视频帧作为"天然编辑对"的挖掘性价比极高——真实世界的前后帧就是免费的成对监督信号。</p>
+  <p><b>Captioning 工业管线</b>：英中双语 caption 长度在<strong class="num">约 30 词至 1000 词</strong>间动态组合；分层 schema（4 级描述长度 + 风格属性 + 事实实体 IP 字段）；组合式合成保障长度与模式多样性；OCR Agent 提取图内文字、Named Entity (IP) Agent 识别现实实体，经 <em class="term">Bidirectional Verification Loop 双向核验</em>后才入训。<span class="infer"></span>双向验证尤其针对幻觉 caption（描述与图像不符）这一隐蔽毒源。</p>
+  <p><b>推理数据三件套</b>：<b>T2T</b>（真实文生图 prompt 语料强化逻辑推理）、<b>T2TI</b>（prompt → 推理迹 → 图像端到端 CoT）、<b>TI2TI</b>(编辑对 + 复杂指令分解为原子操作的编辑迹)。<span class="infer"></span>T2TI 是"LLM 化生成"的直接体现——生成前的显式推理迹正是语言模型思维链在图像域的移植。</p>
+
+  <h3>3.2 架构侧：组件选择与理由</h3>
+  <table>
+    <tr><th>组件</th><th>选择</th><th>关键参数/设计</th></tr>
+    <tr><td>Backbone</td><td>Hunyuan-A13B MoE LLM</td><td><strong class="num">64 experts</strong>、每 token 激活 8 expert + 1 shared MLP</td></tr>
+    <tr><td>Vision Encoder</td><td>预训练 ViT + 投影层</td><td>条件图像走 Dual-Encoder 拼接进同序列</td></tr>
+    <tr><td>VAE</td><td><strong class="num">32 维潜空间、16× 下采样</strong></td><td>替代 DiT 系 8× VAE + patchify 组合，论文声称质量更优</td></tr>
+    <tr><td>词表扩展</td><td>特殊控制 token</td><td><code>&lt;img_size_*&gt;</code> + <code>&lt;img_ratio_*&gt;</code> 共 33 档比例</td></tr>
+  </table>
+  <p><span class="infer"></span>VAE 更高压缩比意味着同样分辨率占用更少序列位置——这与"把图像放进 LLM 上下文"的目标强耦合：上下文预算在自回归框架中远比扩散模型中珍贵。</p>
+
+  <h3>3.3 训练侧：四阶段渐进预训练</h3>
+  <table>
+    <tr><th>阶段</th><th>策略</th><th>分辨率</th><th>任务</th></tr>
+    <tr><td>I</td><td>冻结 ViT，训 Transformer</td><td>256px</td><td>T2I + LM + MMU</td></tr>
+    <tr><td>II</td><td>冻结 Transformer，微调 ViT</td><td>—</td><td>MMU</td></tr>
+    <tr><td>III</td><td>联合训练</td><td>512px+</td><td>加 INTL（国际化数据）</td></tr>
+    <tr><td>IV</td><td>高分辨率子集</td><td>VAE ≥1024px 短边（ViT 仍 512px）</td><td>加 CoT</td></tr>
+  </table>
+  <p>全程保持原始宽高比的多分辨率生成。<span class="infer"></span>每阶段只解冻必要的自由度避免互相拖累；CoT 放最后阶段对应推理能力的"精修"定位。</p>
+
+  <h3>3.4 后训练链：五级火箭</h3>
+  <ul>
+    <li><b>SFT</b>：人标高质量 T2I + 编辑对 + 推理数据，多阶段渐进高保真；</li>
+    <li><b>两阶段 DPO</b>：第一阶段稳定采样/编辑一致性，第二阶段精修真实感；</li>
+    <li><b>MixGRPO</b>：ODE-SDE 混合采样的在线强化学习，多奖励模型联合监督（美学/防畸变/人脸 ID 保持）；</li>
+    <li><b>SRPO</b>：噪声先验注入潜空间的单步去噪优化；</li>
+    <li><b>ReDA</b>（Reward Distribution Alignment，自研）：任务特定投影器压缩空间 + 参考图 transition 向量差目标。</li>
+  </ul>
+  <p><span class="infer"></span>这条链几乎是 LLM 后训练全家桶在图像域的完整移植；MixGRPO 中"防畸变/人脸 ID 保持"奖励的单独设置，暴露了在线 RL 最易崩坏的两个方向——结构完整性与人物身份漂移，奖励设计是对已知失败模式的定向防御。</p>
+
+  <h3>3.5 部署侧：蒸馏与剪枝的双轨压缩</h3>
+  <ul>
+    <li><b>MeanFlow 蒸馏</b>：扩展 MeanFlow 并加入轨迹分布对齐，采样步数压至 <strong class="num">NFE 4–8</strong> 且保持竞争力——少步数是交互式应用的前提；</li>
+    <li><b>TMP 剪枝</b>：<strong class="num">80B → 20B（压缩 75%）</strong>，单张 <strong class="num">24GB RTX 4090</strong> 即可部署。</li>
+  </ul>
+  <p><span class="infer"></span>两项工作的战略意义在生态卡位：消费级显卡上的可用版本决定开源生态能否形成。80B 展示上限、20B 占领长尾，是大模型开源的标准打法。</p>
+  <blockquote><b>一句话小结</b>：全要素生产线——数据侧以 55% 以上的剔除率换 5B 干净基座并以 Agent 管线保障对齐质量，架构侧用三项退化兼容创新守住预训练资产，训练侧整体移植 LLM 后训练方法论，部署侧蒸馏+剪枝完成从旗舰到消费级的梯度覆盖。</blockquote>
+</section>
+
+<section class="card" id="s4">
+  <h2><span class="no">肆</span>证据链：SSAE、GSB 与 MoE 发现的三层证据</h2>
+
+  <h3>4.1 第一层：SSAE 细粒度自动评测</h3>
+  <p><b>协议</b>：500 条 prompt → LLM 抽取 3,500 个关键点（12 个细粒度字段）→ 幻觉点滤除 → 人工修正后冻结 → MLLM 按 CoT 做 0-1 匹配打分；报告 Mean Image Accuracy 与 Global Accuracy 两级总体指标。</p>
+  <p><b>结果</b>：各细粒度字段均与领先模型持平（数值见原文 Figure 6）。<span class="infer"></span>SSAE 的证据价值在于"均衡"而非"碾压"——12 字段无一短板，说明没有为某种风格牺牲属性遵循或文字渲染等单项能力；锚点冻结提高了可信度，但它终究是 MLLM 打分的间接度量且由作者团队构建。</p>
+
+  <h3>4.2 第二层：GSB 人工相对评测（核心证据）</h3>
+  <p><b>协议公平性控制</b>：<strong class="num">1,000 prompt</strong>、每模型<b>单次推理禁止 cherry-picking</b>、所有对比模型用默认设置、<strong class="num">&gt;100 名专业评审</strong>盲评 Good/Same/Bad 三档。</p>
+  <table>
+    <tr><th>对比对象</th><th>相对胜率</th><th>含义</th></tr>
+    <tr><td>HunyuanImage 2.1（自家前代）</td><td><strong class="num">+14.10%</strong></td><td>代际提升证明架构迭代威力</td></tr>
+    <tr><td>Seedream 4.0（闭源第一梯队）</td><td><strong class="num">+1.17%</strong></td><td>与最紧咬合者胶着</td></tr>
+    <tr><td>Nano Banana（闭源第一梯队）</td><td><strong class="num">+2.64%</strong></td><td>小幅正胜率差</td></tr>
+    <tr><td>GPT-Image（闭源第一梯队）</td><td><strong class="num">+5.00%</strong></td><td>优势相对明显</td></tr>
+  </table>
+  <p><span class="infer"></span>四个数字的梯度很有信息量：对 GPT-Image 的优势（+5.00%）明显大于对 Seedream 4.0（+1.17%），闭源第一梯队内部并不均匀，"追平"的实际含义是与最紧咬合者的胶着状态。</p>
+
+  <h3>4.3 第三层：MoE 专家激活的结构性发现</h3>
+  <p>随机抽 <strong class="num">1,000 prompt</strong> 做 T2I 统计专家激活：<b>随层数加深，图文两模态的专家激活分布 KL 散度增大且趋分散</b>，表明 MoE 通过专家功能特化增强多模态建模。<span class="infer"></span>其价值超出性能证明：为"LLM 骨干能否同时服务两种模态"给出机制层的肯定答案——网络自己演化出了模态分工；并为 MoE 可解释性研究提供了"模态维度专家分化"的新观察样本。</p>
+
+  <h3>4.4 证据强度综合评估</h3>
+  <table>
+    <tr><th>证据</th><th>强度</th><th>主要保留意见</th></tr>
+    <tr><td>GSB vs 前代 +14.10%</td><td>较强</td><td>自家前后代对比</td></tr>
+    <tr><td>GSB vs 闭源 +1.17%~+5.00%</td><td>中等</td><td>幅度小、评审团内部性</td></tr>
+    <tr><td>SSAE 全字段持平</td><td>中等</td><td>自建基准、MLLM 打分</td></tr>
+    <tr><td>MoE 专家特化发现</td><td>机制性证据</td><td>无干预实验佐证因果</td></tr>
+  </table>
+  <blockquote><b>一句话小结</b>：证据体系呈金字塔形态——底层是 MoE 激活的机制解释，中层是 SSAE 的多维均衡画像，塔尖是 GSB 的"追平闭源"宣示；越往塔尖数字越耀眼，对外部验证的依赖也越重。</blockquote>
+</section>
+
+<section class="card" id="s5">
+  <h2><span class="no">伍</span>批判性分析：辉煌叙事下的六个冷静观察</h2>
+
+  <h3>5.1 作者自述局限的梳理</h3>
+  <ul>
+    <li><b>能力发布范围受限</b>：仅放出 text-to-image 能力，image-to-image（编辑等）仍在训练——Dual-Encoder 支持的交错编辑等核心卖点尚未接受实战检验；</li>
+    <li><b>评测闭环的内部性</b>：SSAE 依赖 MLLM 打分、GSB 依赖内部评审团，均无第三方榜单交叉验证；</li>
+    <li><b>部署门槛与质量权衡</b>：完整 80B 部署门槛高，20B 压缩版质量为 "competitive" 而非无损；</li>
+    <li><b>可复现性缺口</b>：hy-OCR 等数据算子部分组件标注 to be released，数据管线不完全可复现；</li>
+    <li><b>成本黑箱</b>：未披露预训练总 token 数与 GPU 时等训练成本细节。</li>
+  </ul>
+
+  <h3>5.2 独立观察到的六个疑点</h3>
+  <p><b>① +1.17% 的显著性存疑</b>：对 Seedream 4.0 仅 +1.17%，在 &gt;100 名评审、1,000 prompt 规模下，<span class="infer"></span>该幅度是否超出评审主观噪声的置信区间，论文未给统计检验。"追平"是安全表述，读者极易放大为"超越"；稳健结论应是差距已缩小到人眼评审难以稳定区分的程度——这本身就是里程碑，无需夸大。</p>
+  <p><b>② 自建基准的中立性边界</b>：SSAE 锚点冻结与幻觉点滤除确是负责任的协议设计，但 500 条 prompt 的选取、12 字段划分仍出自作者团队。<span class="infer"></span>第三方按同一协议复刻之前，SSAE 应视为"作者的诚意之作"而非"社区的公共标尺"。</p>
+  <p><b>③ 80B 规模的收益归因缺失</b>：无消融实验分离性能增益来源——多少来自 80B 规模、多少来自 5B 干净数据、多少来自 SRPO+ReDA 等后训练创新？<span class="infer"></span>"最大最强"的并列表述掩盖了开放问题：若 40B 配同等数据能达 95% 效果，架构故事的性价比叙事就要重写。MoE 激活分析是有趣观察但不能替代受控消融。</p>
+  <p><b>④ VAE 主张缺乏公开对照细节</b>："32 维潜空间、16× 下采样优于 DiT 系 8× VAE + patchify"是关键架构主张，但对照实验细节有限。<span class="infer"></span>VAE 是生成质量的隐形地基，该主张若无严格的重建/生成双指标对照，更接近经验选择而非定量结论。</p>
+  <p><b>⑤ "原生统一"的性能账未完全算清</b>：现有对比对象均为闭源黑箱，<span class="infer"></span>读者无法判断胜利归于"原生架构"还是归于数据与规模的堆料。最有力的证据应是同数据同规模下原生 vs 管道式的对照，而这在论文中不可得。</p>
+  <p><b>⑥ 时效性压力</b>：v3 标注 2026 年 6 月；<span class="infer"></span>闭源对手迭代极快，"+2.64%"这类快照式领先随时可能失效，论文的价值重心应在架构范式与工程方法论上，而非具体胜率数字。</p>
+  <blockquote><b>一句话小结</b>：这是一份"工程巨人 + 证据保守"的组合——架构与数据的工程完成度毋庸置疑，但"追平闭源"的关键结论建立在内部评测之上，缺乏消融与统计检验支撑，理性读者应把胜率数字读作"胶着"而非"领先"。</blockquote>
+</section>
+
+<section class="card" id="s6">
+  <h2><span class="no">陆</span>启示与影响：范式意义与可迁移经验</h2>
+
+  <h3>6.1 五条可迁移启示</h3>
+  <ol>
+    <li><b>"LLM 即生成基座"范式的确立</b>：最大贡献不是单项技术而是证明 80B 级 LLM 可直接充当图像生成骨干，SFT→DPO→RL 方法论可整体移植。这对视频、音频乃至任何连续模态生成都是可复制路线图——<em class="term">凡是 Diffusion 能做的领域，都值得问一句"原生 LLM 骨干能否做得更好"</em>。</li>
+    <li><b>数据工程的工业化标杆</b>：&gt;10B→约 5B 三阶段漏斗、"整源移除高 AIGC 占比来源"的血统管理、Agent 双向验证 caption 质检、视频帧挖掘免费编辑对——为所有多模态项目提供量级参考与工序模板。<span class="infer"></span>AIGC 血统管理将随生成内容占领互联网而愈发关键。</li>
+    <li><b>退化兼容性是架构创新的第一原则</b>：2D RoPE 无图像时精确退化为 1D RoPE、单图推理时掩码简化——每项创新都不破坏预训练资产。朴素却常被忽视的智慧：<em class="term">站在巨人的肩膀上，先别把肩膀拆了</em>。</li>
+    <li><b>控制信号内生化</b>：把分辨率/宽高比变成词表 token 由模型自预测，是"能用学习解决就不用规则"的又一例证。<span class="infer"></span>可推广到光照、视角、构图约束等维度的条件 token 化。</li>
+    <li><b>部署梯度的产品思维</b>：80B 旗舰定调、NFE 4–8 蒸馏提速、20B 剪枝下沉 4090——三层覆盖展示了从技术展示到生态普及的完整路径规划。</li>
+  </ol>
+
+  <h3>6.2 对行业格局的影响</h3>
+  <ul>
+    <li><b>开源-闭源战线的历史节点</b>：GSB 数据显示开源首次在人工盲评中与闭源第一梯队进入胶着区间，图像生成的"闭源代差"叙事就此终结；<span class="infer"></span>这将加速下游应用向开源栈迁移；</li>
+    <li><b>推理式生成（Reasoning-T2I）的起点</b>：T2TI/TI2TI 数据把 CoT 引入生成流程，叠加 SSAE 对复杂 prompt 的强调，<span class="infer"></span>下一代 T2I 竞争焦点将从"画质"转向"听懂复杂指令的能力";</li>
+    <li><b>MoE 多模态的可解释性素材</b>：专家激活随层深的模态分化现象，为多模态 MoE 机制研究开辟新观察窗口。</li>
+  </ul>
+
+  <h3>6.3 待解问题</h3>
+  <ul>
+    <li>编辑与多图能力（Dual-Encoder 核心卖点）尚待正式发布后的实证；</li>
+    <li>80B 规模的边际收益曲线未知，缺少规模消融；</li>
+    <li>数据管线关键组件（hy-OCR 等）未完全开源，社区复现存在硬缺口；</li>
+    <li>训练成本的沉默使"原生路线是否经济"无法独立核算。</li>
+  </ul>
+</section>
+
+<section class="card" id="s7">
+  <h2><span class="no">◆</span>总结</h2>
+  <p>《HunyuanImage 3.0》是一次教科书级的"范式豪赌 + 工程执行"：押注图像生成的终局形态是原生多模态 LLM 而非管道式扩散系统，并用 <strong class="num">&gt;80B</strong> MoE 骨干、Generalized Causal Attention 的段级因果设计、退化兼容的 2D RoPE、词表化的自动分辨率，以及 <strong class="num">&gt;10B → 约 5B</strong> 的数据漏斗与 SFT→DPO→MixGRPO→SRPO+ReDA 后训练全链路，把这个赌注变成了当前最大最强的开源图像生成模型。GSB 盲评对闭源三强 <strong class="num">+1.17%~+5.00%</strong> 的胶着式领先宣告开源首次抵达闭源第一梯队的高度；MoE 专家激活的模态分化发现则为"一个骨干服务两种模态"提供机制层注脚。</p>
+  <p>与此同时，评测闭环的内部性、消融实验的缺席、成本披露的沉默提醒我们：这份报告更像一场战役的捷报而非战争的终局——它的最持久价值不在那几个百分点的胜率，而在<em class="term">"LLM 即生成基座"</em>这条已被验证可行的道路，以及沿途沉淀的数据工序、兼容原则与部署策略。对于关注多模态统一的研究者与工程师而言，这是一份必须精读的路线图；对于行业而言，这是开源与闭源在图像生成域攻守易势的起点。</p>
+</section>
+
+<footer class="selfcheck">
+  <b>末尾自检</b>｜① 编码：UTF-8 无 BOM，meta charset=UTF-8 已声明；② 结构：div 开闭配平（wrap 1 + hero 1 + srcnote 1 + toc 1 + card×8 + selfcheck 1 = 13 组）；③ 关键数字高亮：class=num 共 30+ 处；④ 六层结构完整（摘要/问题定位/概念内核/方法拆解/证据链/批判性分析/启示与影响 + 总结）；⑤ 数据一致性：全部数字源自 00-源数据提取.md，推断处以〔推断〕样式标注。
+</footer>
+
+</div>
+</body>
+</html>

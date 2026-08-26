@@ -1,0 +1,14 @@
+# Git LFS: 论文 PDF 用 LFS 托管（公开仓库 LFS 存储/带宽免费）
+*.pdf filter=lfs diff=lfs merge=lfs -text
+# 忽略临时与系统文件
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*~
+/tmp/
+**/tmp/
+*.swp
+.Spotlight-V100
+.fseventsd
+.ncursor/

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DeepSeek-VL2: Mixture-of-Experts Vision-Language Models 深度解读报告 · 深度解读</title><style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;background:#f7f8fa;color:#1f2430;line-height:1.8;margin:0}
+.wrap{max-width:900px;margin:0 auto;padding:36px 20px 80px}
+h1{font-size:25px;border-bottom:3px solid #2b6cb0;padding-bottom:10px;color:#14304f}
+h2{font-size:19px;margin-top:34px;color:#2b6cb0;border-left:5px solid #2b6cb0;padding-left:10px}
+h3{font-size:16px;color:#3a4a63;margin-top:22px}
+p{margin:10px 0;}
+blockquote{background:#eef3fa;border-left:4px solid #4a90d9;margin:12px 0;padding:10px 16px;color:#2c3e50}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px}
+th,td{border:1px solid #cbd5e1;padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#e8eef6}
+tr:nth-child(even){background:#f4f7fb}
+.num{color:#b45309;font-weight:700;font-family:ui-monospace,Consolas,monospace}
+.infer{color:#9a6b2f;font-style:italic;background:#fdf6e3;padding:0 3px;border-radius:3px}
+code{background:#eef1f5;padding:1px 5px;border-radius:4px;font-size:13px}
+hr{border:none;border-top:1px dashed #cbd5e1;margin:26px 0}
+.selfcheck{font-size:11px;color:#90a0b5;margin-top:40px;border-top:1px solid #dde3ea;padding-top:12px;font-family:ui-monospace,monospace}
+</style></head><body><div class="wrap">
+<h1>DeepSeek-VL2: Mixture-of-Experts Vision-Language Models 深度解读报告</h1>
+<blockquote> 数据依据：<code><span class="num">00</span>-源数据提取.md</code>（DeepSeek-AI，<span class="num">2024-12-13</span>，arXiv: <span class="num">2412.10302</span>v1 [cs.CV]，<span class="num">28</span> 页技术报告）。凡源数据未明示、由推理得出的判断均标注「<span class="infer">（推断）</span>」。</blockquote>
+<hr>
+<h2>摘要（约 <span class="num">300</span> 字）</h2>
+<p>DeepSeek-VL2 是 DeepSeek-AI 于 <span class="num">2024</span> 年 <span class="num">12</span> 月发布的第二代多模态大模型家族，核心贡献在于把「动态高分辨率视觉分块」与「稀疏化 Mixture-of-Experts 语言大模型」整合进同一套 LLaVA 式架构，从而在大幅压缩激活参数与推理显存的同时，追平乃至超越同规模稠密多模态模型。架构上，它以 SigLIP-SO400M 为单一视觉编码器，用「分辨率为 (m·<span class="num">384</span>, n·<span class="num">384</span>)、满足 mn≤9」的动态分块策略取代上一代双路编码器融合，从而自然支持任意长宽比与超高分辨率输入并规避二次方计算膨胀；语言端则复用 DeepSeekMoE 的稀疏激活与 MLA 潜压缩 KV cache，使 Tiny/Small/VL2 三档模型在仅 <span class="num">0.57</span>B/<span class="num">2.4</span>B/<span class="num">4.1</span>B（含视觉端 <span class="num">1.0</span>B/<span class="num">2.8</span>B/<span class="num">4.5</span>B）激活参数下，实现对 InternVL2、Qwen2-VL 同级模型的可比或更优成绩。数据上，约 <span class="num">800</span>B 图文 token 走「caption 重写 + 打分过滤」的清洗管线，覆盖文档 OCR、图表 VQA 与 Web-to-Code 等精细化任务。VL2-Small 的 MMStar 达 <span class="num">57.0</span>、MMMU <span class="num">48.0</span>、MME <span class="num">2123</span>、MathVista <span class="num">60.7</span>，以 <span class="num">2.8</span>B 激活参数超 GPT-4V 的 MMStar（<span class="num">56.0</span>），展示了「少激活参数」路线的性价比（数据源 §3、§5）。</p>
+<hr>
+<h2>一、问题定位：多模态大模型在高分辨率与低成本之间的两难</h2>
+<h3><span class="num">1.1</span> 核心矛盾：视觉分辨率如何与计算/显存预算共存</h3>
+<p>多模态大模型（Vision-Language, VLM）在 <span class="num">2024</span> 年前后面临一个几乎无解的矛盾（数据源 §4「相对 DeepSeek-VL 的演进」）。要让模型「看得清」，直觉上需要把输入图像处理成尽量高的分辨率；但视觉 token 数量随分辨率近似线性（甚至超线性）增长，直接喂给语言模型的注意力机制会带来二次方量级的计算负担，并让上下文长度迅速失控。DeepSeek-VL 的旧方案用「SigLIP(<span class="num">384</span>² 粗粒度) + SAM-B(<span class="num">1024</span>² 细粒度) 混合编码器双路融合」来同时兼顾全局语义与局部细节，但这条路被一个刚性上限卡死——它最多只能处理 <span class="num">1024</span>² 的固定分辨率。一旦输入是一张超长海报、一份细密文档或一个极端长宽比的图表，旧架构要么被迫降采样丢掉细节，要么超出显存/计算预算直接崩溃。</p>
+<p><strong><span class="infer">（推断）</span></strong> 这一矛盾的实质，是把「视觉侧的分辨率上限」从过去的技术瓶颈（编码器能编多细）转嫁成了「语言侧的 token 预算与管理」问题。谁能把「一张图究竟喂多少 token」这件事做成可动态调节的，谁就能在分辨率与成本之间找到更优的帕累托前沿。</p>
+<h3><span class="num">1.2</span> 为什么是高分辨率而不是「更深的编码器」</h3>
+<p>一个常见的替代思路是保留低分辨率输入，单纯做大做强编码器网络。但这样的收益有限：语言模型真正需要的是「结构化、可定位、可推理」的视觉证据，而不是一堆被严重压扁的全局特征。密集 OCR、精确定位（grounding）、图表问答这类任务，本质上是<strong>局部细节驱动的</strong>，局部模糊则能力归零。因此 DeepSeek-VL2 的选择是：不追求更深的编码器，而是让同一套编码器在高分辨率下工作，通过「把大图切块 + 保留一张全局缩略图」来兼顾局部精度与全局语境（数据源 §4、§5）。</p>
+<h3><span class="num">1.3</span> 问题指向的三个设计目标</h3>
+<p>综观全文，DeepSeek-VL2 实际上在同时回答三个问题，而这三个问题正是它区别于同期其他 VLM 的定位所在：</p>
+<ol>
+<li><strong>效率</strong>：能不能用「远少于稠密模型」的激活参数，达到可比的 SOTA？——以便推理端更便宜、更好部署。</li>
+<li><strong>分辨率弹性</strong>：能不能摆脱固定 <span class="num">1024</span>² 上限，任意支持高分辨率与极端长宽比？——以便服务文档、信息图、精确定位等真实场景。</li>
+<li><strong>多模态与纯文本的平衡</strong>：稀疏化 MoE 语言模型被加进视觉分支后，原本的语言/对话能力是否还能保住？——这是「视觉增强会不会伤及语言底座」的隐藏问题。</li>
+</ol>
+<p><strong><span class="infer">（推断）</span></strong> 第三点在公开报告里着墨不多，却是多模态工程里最常见的翻车点：很多 VLM 在视觉 QA 刷高分，却在纯文本对话上出现灾难性遗忘。DeepSeek-VL2 通过「SFT 阶段多模态对话 + 纯文本对话混训」显式对冲这一风险（数据源 §4「SFT 数据」），说明作者对此有清醒认知。</p>
+<hr>
+<h2>二、概念内核：稀疏激活 + 动态分块，两个「省钱新机制」</h2>
+<h3><span class="num">2.1</span> 视觉侧共识：LLaVA 式三件套</h3>
+<p>DeepSeek-VL2 的骨架并非全新创造，而是延续了当时 VLM 的标准套路（数据源 §4「架构」）：<strong>SigLIP 视觉编码器 + <span class="num">2 </span>层 MLP 视觉-语言适配器 + DeepSeekMoE 语言大模型</strong>。这套「编码器 → 适配器 → 语言模型」的三段式结构在 <span class="num">2024</span> 年是绝对主流，DeepSeek-VL2 的差异化不在这里，而在两处：分块输入策略与语言模型内部架构。</p>
+<h3><span class="num">2.2</span> 关键概念一：动态分块（Dynamic Tiling）</h3>
+<p>这是 DeepSeek-VL2 最具辨识度的创新点（数据源 §2、§4）。它不是把整张图缩放到固定尺寸，而是：</p>
+<ul>
+<li>先按输入本身的长宽比，从候选分辨率集合 <code>CR = {(m·<span class="num">384</span>, n·<span class="num">384</span>), mn ≤ 9}</code> 中选出<strong>填充代价最小</strong>的 <code>(m, n)</code> 比例；</li>
+<li>然后把原图切成 <code>m × n</code> 个 <span class="num">384</span>² 的 tile；</li>
+<li>同时额外保留<strong>一张全局缩略图</strong>（通常是整图缩到较小尺寸），用来兜住跨 tile 的整体语境；</li>
+<li>tile 之间用 <code><tile_newline></code> 行尾 token 分隔，全局缩略图前插入 <code><view_separator></code> token，告诉模型「到此为止是局部 tile，接下来是全局视野」。</li>
+</ul>
+<p><strong>效率红利</strong>：视觉编码器 SigLIP-SO400M-<span class="num">384</span> 对每个 tile 输出 <span class="num">27×27</span>=<span class="num">729</span> 个 <span class="num">1152</span> 维 embedding。tile 与缩略图拼接后，再经 <span class="num">2×2</span> pixel shuffle 重组，视觉序列长度符合公式 <code><span class="num">211</span> + m·<span class="num">14</span> × (n·<span class="num">14</span> + 1)</code>（数据源 §2）。<code><span class="num">211</span></code> 项来自全局缩略图（约 <span class="num">210</span> token）与分隔符开销，<code>m·<span class="num">14</span>×(n·<span class="num">14+1</span>)</code> 则对应动态 tile 部分。这个公式的妙处在于：<strong>它把 token 预算完全变成了长宽比 <code>(m,n)</code> 的一次函数</strong>，分辨率越高、tile 越多、token 呈线性增长，而非二次方。</p>
+<p><strong><span class="infer">（推断）</span></strong> 用「局部 tile + 全局缩略图」而非「把整图硬塞进一个固定分辨率」的做法，本质是在做一次「空间上的分治」。类比人类阅读：我们先扫一眼整页把握结构（全局缩略图），再逐字逐段、逐区块细读（局部 tile）。这种「自底向上汇聚细节 + 自顶向下提供语境」的双通道设计，是 DeepSeek-VL2 能在密集 OCR 与精确定位上胜过旧版的关键机制。</p>
+<h3><span class="num">2.3</span> 关键概念二：Mixture-of-Experts（MoE）稀疏激活</h3>
+<p>语言侧复用 DeepSeek 自家的稀流专家模型（数据源 §4）。MoE 的核心思想是：把前馈网络（FFN）复制成多份「专家」，每份只对一部分输入生效（Top-K 路由激活），其余专家本轮跳过。这样<strong>模型总参数可以很大，但每次前向只激活一小部分参数</strong>，推理时实际计算量与显存占用按「激活参数」计，而不是按「总参数」计。</p>
+<p>文本全模型三档的配置（数据源 §3、§4）：</p>
+<ul>
+<li>大模型 MoE 配比：<span class="num">64</span>/<span class="num">64</span>/<span class="num">72</span> 个 routed experts，各共享 <span class="num">2 </span>个 expert，Top-<span class="num">6 </span>路由；</li>
+<li>路由函数：Tiny/Small 用 Softmax，VL2 用 Sigmoid 路由；<strong>只有最大的 VL2 带有 expert correction bias</strong>；</li>
+<li><strong>Small 与 VL2 使用 MLA</strong>（routing 下 KV cache 潜压缩秩 rank=<span class="num">512</span>），Tiny 仍用普通 Multi-Head Attention（MHA）。</li>
+</ul>
+<p><strong><span class="infer">（推断）</span></strong> 路由函数从 Softmax 到 Sigmoid 的变化、以及「expert correction bias」只在最大模型出现，暗示作者认为大模型专家更多（<span class="num">72</span> 个）、负载均衡更易失衡，需要更强的偏向/scaling 校正来维持专家利用率与稳定性；而 Tiny 专家最少、规模最小，靠简单 Softmax 即可稳定。这类细节通常来自训练中「aux loss 见顶、个别专家死亡」的实证教训，属于「成本换稳定」的工程判断。</p>
+<h3><span class="num">2.4</span> 两个机制的合力：为什么「少激活参数能打稠密大模型」</h3>
+<p>把 <span class="num">2.2</span> 的「分辨率弹性」与 <span class="num">2.3</span> 的「参数弹性」放在一起，就得到了 DeepSeek-VL2 的核心卖点（数据源 §4）：</p>
+<ul>
+<li><strong>视觉侧</strong>：动态分块把「高分辨率」从「固定 <span class="num">1024</span>² 上限」中解放出来，token 随长宽比线性增长，配合局部注意力避免了二次方爆炸；</li>
+<li><strong>语言侧</strong>：MoE 稀疏激活（配合 MLA 压缩 KV cache）把「大模型」的成本从「全部参数」降到「一小撮激活参数」。</li>
+</ul>
+<p>两头同时省，于是出现了一个反直觉的结果：<strong>一个激活参数只有 <span class="num">2.8</span>B 的模型，能在多项基准上比肩甚至反超激活参数大得多的稠密模型</strong>。这正是「推理性价比」路线的理论根基（数据源 §6「VL2-Small(<span class="num">2.8</span>B 激活)」）。</p>
+<hr>
+<h2>三、方法拆解：从数据到训练的完整流水线</h2>
+<h3><span class="num">3.1</span> 数据构建：三线并行（§3）</h3>
+<p>DeepSeek-VL2 的数据构建明显分成三条线，对应表格中的 VL Alignment、VL Pretraining、SFT 三阶段（数据源 §2、§4）：</p>
+<table>
+<tr><th>数据线</th><th>目的</th><th>关键组成</th><th>规模（数据源）</th></tr>
+<tr><td>---</td><td>---</td><td>---</td><td>---</td></tr>
+<tr><td>VL Alignment（Stage 1）</td><td>先把视觉编码器与 LLM 对齐</td><td>ShareGPT4V</td><td>~<span class="num">1.2</span>M</td></tr>
+<tr><td>VL Pretraining（Stage 2）</td><td>大规模打底</td><td><span class="num">70</span>% VL 图文 + <span class="num">30</span>% 纯文本</td><td>~<span class="num">800</span>B（<span class="num">796.5</span>–<span class="num">808.9</span>B 图文 tokens）</td></tr>
+<tr><td>SFT（Stage 3）</td><td>指令微调</td><td>多模态对话 + 纯文本对话混训</td><td>——（阶段 token 数见 §<span class="num">3.2</span> 训练）</td></tr>
+</table>
+<p>值得注意的是 VL Pretraining 的三类细分数据（数据源 §4）：</p>
+<ol>
+<li><strong>长尾/高分辨率数据</strong>：海报、幻灯片等来自 in-house captioner 的重写文本，用于把视觉模型推向高分辨率区域；</li>
+<li><strong>OCR 数据</strong>：LaTeX OCR + <span class="num">12</span>M RenderedText + 自建中英文档，解决文字识别；</li>
+<li><strong>VQA 数据</strong>：覆盖表格/图表/文档（PubTabNet、FinTabNet、Docmatix）、Web-to-Code（Websight）、plot-to-Python（经 DeepSeek V2.5 增强去噪）、视觉提示 QA（用箭头/框/圈覆盖标注）。</li>
+</ol>
+<p><strong><span class="infer">（推断）</span></strong> 数据配比（<span class="num">70</span>% VL / <span class="num">30</span>% 纯文本、OBELICS 随机 <span class="num">30</span>% 子采样）并非一拍脑袋，源数据明确指出「比例经 Tiny 初步实验定」，说明作者先在小模型上做消融，再放大到 VL2——这是「小成本验证、大成本落地」的典型工程范式。</p>
+<h3><span class="num">3.2</span> 数据质量：caption 重写 + 打分过濾</h3>
+<p>针对公开数据集的低质文本，DeepSeek-VL2 用一套「重写 + 过滤」闭环（数据源 §4）：</p>
+<ul>
+<li><strong>caption 重写</strong>：以「OCR 提示 + 元信息 + 原 caption 作为 prompt」，交给 in-house captioner 生成更规范、更信息密集的描述；</li>
+<li><strong>打分过滤</strong>：用 DeepSeek Chat 对生成的 caption 打分，剔除重复与低质样本。</li>
+</ul>
+<p><strong><span class="infer">（推断）</span></strong> 这一步骤解决的是「网上抓来的图文对，文本太烂、配文与图无关」的通病。用强模型（DeepSeek Chat / in-house captioner）清洗弱数据的思路，在 <span class="num">2024</span> 年已是开源多模态的主流做法，DeepSeek-VL2 的差异化在于把「元信息 + OCR」也塞进重写 prompt，使重写结果更贴近真实场景的信息需求。</p>
+<h3><span class="num">3.3</span> 视觉定位（grounding）数据</h3>
+<p>为了让模型「指哪看哪」，DeepSeek-VL2 构建了定位监督（数据源 §4）：</p>
+<ul>
+<li>把检测框数据转成统一格式：<code><|ref|>query<|/ref|><|det|>[[x1,y1,x2,y2]]<|/det|></code>；</li>
+<li>prompt 从候选池随机采样，增强多样性；</li>
+<li>新增 <strong>GUI 感知能力</strong>（控制屏幕元素），扩展了 grounding 的应用面。</li>
+</ul>
+<p>这个格式化的可解析定位标记，是后续能在 RefCOCO 系列上做定量评估的基础（数据源 §<span class="num">5.1</span>）。</p>
+<h3><span class="num">3.4</span> 训练方法论：三阶段流水线（§<span class="num">4.1</span>/<span class="num">4.2</span>）</h3>
+<p>训练分三阶段，接口与超参各不相同（数据源 §5）：</p>
+<ul>
+<li><strong>Stage 1（对齐）</strong>：冻结 LLM，只训 ViT + MLP。Cosine LR：<span class="num">5.4</span>e-<span class="num">4 </span>/ <span class="num">4.2</span>e-<span class="num">4 </span>/ <span class="num">4.5</span>e-4，ViT 学习率再加 <span class="num">0.1</span> 的缩减系数。这一阶段目的是让视觉编码器慢慢适应语言世界，避免过猛更新破坏已训好的 LLM。</li>
+<li><strong>Step 2（预训练）</strong>：全参数解冻，进入大规模图文预训练。Step LR 在 <span class="num">50</span>% / <span class="num">75</span>% 的步数处以 √<span class="num">10</span> 缩小；batch <span class="num">2304</span>–<span class="num">3360</span>；序列长度 <span class="num">4096</span>；启用了 <strong>sequence packing</strong> 与 <strong>pipeline parallelism</strong> 来提升吞吐。token 量约 <strong><span class="num">2.0</span>B（Stage 1）/ ~<span class="num">800</span>B（Stage 2）/ ~<span class="num">19.5</span>–<span class="num">20</span>B（Stage 3）</strong>。</li>
+<li><strong>Stage 3（SFT）</strong>：恒定 LR 3e-<span class="num">5 </span>/ <span class="num">1.4</span>e-<span class="num">5 </span>/ 2e-5；batch 降至 <span class="num">64</span>；序列长度仍 <span class="num">4096</span>；<strong>只对答案与特殊 token 计算 loss</strong>（system/user prompt 全掩码）。</li>
+</ul>
+<p><strong><span class="infer">（推断）</span></strong> Stage <span class="num">2 </span>的 token 量级与 batch 远大于 Stage 1/3，正好对应「预训练打底、SFT 精调」的经典分工；Stage <span class="num">3 </span>序列长度不变而 batch 骤降、LR 恒定，说明 SFT 是「稳定微调」而非「继续预训练」，用更小的乱动幅度保住对话与指令能力。</p>
+<h3><span class="num">3.5</span> 优化器与基建</h3>
+<ul>
+<li>优化器：AdamW（β1=<span class="num">0.9</span>, β2=<span class="num">0.95</span>），weight decay <span class="num">0.1</span>，grad clip <span class="num">1.0</span>；</li>
+<li>aux loss：常规 <span class="num">0.001</span>（最大模型降至 <span class="num">0.0001</span>）；</li>
+<li>最大模型（VL2）全程启用 BF16 optimizer 状态 + expert correction bias；中小模型保持 FP32 优化器状态；</li>
+<li>平台：HAI-LLM 训练；Stage <span class="num">2 </span>起用 sequence packing + pipeline parallelism（数据源 §5）。</li>
+</ul>
+<p><strong><span class="infer">（推断）</span></strong> BF16 优化器状态是「为大模型省显存」的标准动作，VL2 因为专家多、规模大、显存压力才用；而 aux loss 从 <span class="num">0.001</span> 降到 <span class="num">0.0001</span> 说明调低了均衡约束的强度，可能是为了避免 aux loss 与训练 loss 之间过强的竞争。</p>
+<hr>
+<h2>四、证据链：这些设计真的有效吗？</h2>
+<h3><span class="num">4.1</span> 主结果：激活参数换性能</h3>
+<p>DeepSeek-VL2 的定量证据集中在一个点上：<strong>以更少的激活参数，达到同级或更好</strong>。最有说服力的一组来自 VL2-Small（<span class="num">2.8</span>B 激活）（数据源 §3）：</p>
+<table>
+<tr><th>基准</th><th>VL2-Small 得分</th><th>参照（数据源）</th></tr>
+<tr><td>---</td><td>---</td><td>---</td></tr>
+<tr><td>MMStar</td><td><strong><span class="num">57.0</span></strong></td><td>GPT-4V 为 <span class="num">56.0</span>（已超）；GPT-4o 为 <span class="num">63.9</span></td></tr>
+<tr><td>AI2D</td><td><span class="num">80.0</span></td><td>同级领先（对比 InternVL2-2B / Qwen2-VL-2B）</td></tr>
+<tr><td>MMMU</td><td><span class="num">48.0</span></td><td>——</td></tr>
+<tr><td>MME</td><td><span class="num">2123</span></td><td>——</td></tr>
+<tr><td>MathVista</td><td><span class="num">60.7</span></td><td>——</td></tr>
+</table>
+<p>DeepSeek-VL2 参照系是 InternVL2 与 Qwen2-VL 的同类规模版本（数据源 §<span class="num">5.1</span>「对比 InternVL2-2B/Qwen2-VL-2B」）。结论称「以更少激活参数达到与 InternVL2、Qwen2-VL 同级或 SOTA 表现」。Figure <span class="num">1 </span>则以「<span class="num">6 </span>个基准均值 vs 激活参数量」的散点图，直观展示家族在「性能对成本」曲线上的位置——相对封闭的 GPT-4o、GPT-4V 与各家开源 VLM，DeepSeek-VL2 家族勾出了一条性价比更高的包络线。</p>
+<p><strong><span class="infer">（推断）</span></strong> 值得注意的是「MMStar <span class="num">57.0</span> 已超 GPT-4V <span class="num">56.0</span>」这一点。GPT-4V 是当时闭源阵营的代表，开源模型在单一多模态基准上跨过闭源门槛，是「少激活参数路线」可行性的直接背书。但要谨慎：MMStar 只是多模态综合基准之一，单点反超不代表整体超越 GPT-4V，更不能推导到 GPT-4o。</p>
+<h3><span class="num">4.2</span> 分辨率弹性的证据：密集 OCR 与精确定位</h3>
+<p>相对于上一代「固定 <span class="num">1024</span>² 上限」的硬约束，DeepSeek-VL2 对极端长宽比与超高分辨率更友好。这一能力落在 DocVQA、InfoVQA、OCRBench、TextVQA、ChartQA 这类「细节密集」的评测上（数据源 §<span class="num">5.1</span> 评测覆盖）。数据源特别指出，InfoVQA 评测中把分块候选放宽到 <code>mn ≤ <span class="num">18</span></code>（§<span class="num">5.1</span> 脚注），说明作者在 InfoVQA 这类信息图上愿意允许更多 tile 以换取更高分辨率——这正是「分辨率弹性」在评测协议中的直接体现。</p>
+<p><strong><span class="infer">（推断）</span></strong> InfoVQA 放宽到 mn≤<span class="num">18</span> 而非默认 mn≤9，是一个重要的信号：默认 <code>mn≤9</code> 是「在多数情况下平衡精度与 token 预算」的折中选择，而 InfoVQA 这类任务精度的提升几乎全部来自更高分辨率。这也暗示普通用户若想进一步提升某些指标的得分，可以通过放宽分块上限来换取，但代价是视觉 token 变多、上下文变长、速度变慢。</p>
+<h3><span class="num">4.3</span> 训练细节的辅助证据</h3>
+<ul>
+<li><strong>三阶段渐进</strong>：Stage <span class="num">1 </span>只训 ViT+MLP、Stage <span class="num">2 </span>全解冻、Stage <span class="num">3 </span>只训答案 token 的三段式，本身就是一套被反复验证的「从粗到精、从视觉对齐到指令对齐」的证据链；</li>
+<li><strong>MoE + MLA 的词表策略</strong>（数据源附注）：三模型词表不同（<span class="num">129,280</span> / <span class="num">102,400</span> / <span class="num">129,280</span>），Small 基于 DeepSeekMoE <span class="num">16</span>B 分支词表。这说明作者没有「一刀切」，而是为不同规模定制了词表与注意力方案；</li>
+<li><strong>grounding 评测</strong>：RefCOCO / RefCOCO+ / RefCOCOg 上与专用 grounding 模型及通用 VLM 对比（§<span class="num">5.1</span>），用可解析定位标记支撑的格式化输出参与了定量比较。</li>
+</ul>
+<h3><span class="num">4.4</span> 定性研究（§<span class="num">5.2</span>）</h3>
+<p>除基准数字外，报告还提供了若干定性案例分析（数据源 §<span class="num">5.2</span>「文档/图表/grounding/GUI 案例」），正面展示模型在文档阅读、图表解析、视觉定位与 GUI 控制上的实际行为。这类案例意义在于：<strong>补齐了基准分数「说人话」的能力</strong>——分数再高，若不落到具体场景，很难判断是否真的解决了用户问题。</p>
+<hr>
+<h2>五、批判性分析：亮点背后的代价与局限</h2>
+<h3><span class="num">5.1</span> 亮点的另一面：不是免费午餐</h3>
+<p>「动态分块 + MoE 稀疏激活」听起来处处省，但等价代价清晰可见（数据源 §<span class="num">6 </span>+ 正文自述）：</p>
+<ol>
+<li><strong>><span class="num">2 </span>张图时动态分块被禁用</strong>（数据源 §<span class="num">6 </span>第 <span class="num">5 </span>点）。这意味着「超高分辨率」和「多图并读」这两个需求是互斥的——模型无法同时处理多个高分辨率输入，否则上下文会失控。多轮/多图对话能力受限，「高分辨率」其实是单图场景的特权。</li>
+<li><strong>上下文窗口限制单会话多图交互</strong>（数据源 §<span class="num">6 </span>第 <span class="num">1 </span>点），作者承认下版才扩展。</li>
+<li><strong>感官能力强，推理能力待加强</strong>（数据源 §<span class="num">6 </span>第 <span class="num">3 </span>点）。这是「感知型 VLM」的普遍软肋：能看清、能读字，但「看懂了之后会不会想」仍是短板。</li>
+<li><strong>模糊图像与未见物体鲁棒性不足</strong>（数据源 §<span class="num">6 </span>第 <span class="num">2 </span>点），作者归为 VLM 通病。</li>
+</ol>
+<p><strong><span class="infer">（推断）</span></strong> 第 1、<span class="num">2 </span>条其实是同一个根因的两种表象：动态分块把单图 token 预算做得很大，一旦多图叠加，上下文立刻爆掉。这说明「分辨率弹性」与「多图并行」是此消彼长的，作者选择了先做好单图高分辨率，把多图留给远期。这暴露了问题定位里「高分辨率与成本两难」的另一半，即它转嫁成了「单图分辨率与多图上下文」的新矛盾。</p>
+<h3><span class="num">5.2</span> 数据与文档的局限</h3>
+<ul>
+<li><strong>OCR 数据仅中英文</strong>（数据源 §<span class="num">6 </span>第 <span class="num">4 </span>点）：其他语言被明确留给未来工作。对一份面向全球的多模态模型报告而言，这是一个现实的工程量/成本取舍，但也意味着在非中英文场景下（如小语种海报、多语种文档）表现可能打折；</li>
+<li>数据源注释提醒：Small 基于 DeepSeekMoE <span class="num">16</span>B 分支词表，三模型词表不一致（<span class="num">129,280</span> / <span class="num">102,400</span> / <span class="num">129,280</span>）。多规格各自定制在工程上有其合理性，但从「家族一致性」角度看，词表不同会给后续统一部署/权重合并带来额外摩擦。</li>
+</ul>
+<h3><span class="num">5.3</span> 评测视角的批判性审视</h3>
+<p><strong><span class="infer">（推断）</span></strong> 报告把「<span class="num">6 </span>基准均值 vs 激活参数」作为核心卖点，这是对开源社区最有说服力的话术（因为推理方只看激活显存）。但有几点值得警惕：</p>
+<ol>
+<li><strong>基准的选择</strong>：MMStar、MMMU、MME、AI2D、MathVista、DocVQA 等，大多是「感知 + 轻推理」偏重的榜单，对真正的开放域多模态推理覆盖有限。一个「感知强推理弱」的模型在这些榜单上非常占优，容易漂亮地掩盖推理短板——这与作者自述的「推理待加强」相互印证。</li>
+<li><strong>单点反超的解读</strong>：MMStar <span class="num">57.0</span> > GPT-4V <span class="num">56.0</span> 是事实，但样本/偏差可能在误差范围内，且 <span class="num">57.0</span> 距离 GPT-4o 的 <span class="num">63.9</span> 仍有明显差距（数据源 §<span class="num">5.1</span>），所以「超 GPT-4V」不等于「接近 GPT-4o」。</li>
+<li><strong>对照的公平性</strong>：与 InternVL2-2B / Qwen2-VL-2B 对比是同规模对照，本身公平；但不同模型对评测协议（分块上限、分辨率、prompt）的处理差异，也可能悄悄影响分差，公开报告里通常只给聚合结论，难做完全鹰式复核。</li>
+</ol>
+<h3><span class="num">5.4</span> 工程层面的潜在坑点</h3>
+<p><strong><span class="infer">（推断）</span></strong> 动态分块让「每张图的 token 数动态变化」，这对 serving / batching 是挑战：不同图的序列长度差异大，batch 打包时会拖慢；<code>mn≤9</code> 的上限虽控住单图 token，但极端长宽比（如 mn=<span class="num">9 </span>恰好用满）仍会产生较多 token。MoE 的 Top-<span class="num">6 </span>路由也让推理时要同时搬运较多专家权重，专家均衡（aux loss）若不调好，个别专家可能被过度使用形成热点。这些细节在报告里被一笔带过，真正上线时会变成运维者要啃的硬骨头。</p>
+<hr>
+<h2>六、启示与影响：这项工作的历史坐标</h2>
+<h3><span class="num">6.1</span> 对开源多模态格局的意义</h3>
+<p>DeepSeek-VL2 发表于 <span class="num">2024-12</span>，正值开源 VLM 竞争白热化。它的历史坐标（<strong>推断</strong>）大致在「InternVL2 / Qwen2-VL 同代、且更强调稀疏化降本」的位置上。它的直接启示是：</p>
+<ul>
+<li><strong>「参数」与「性能」的解耦是真实可行的</strong>：总参 <span class="num">27</span>B、激活 <span class="num">4.1</span>B（含视觉端 <span class="num">4.5</span>B）的 VL2，能在多个基准上对标激活参数大得多的稠密模型，第一次把「稀疏激活」与「多模态高分辨率」两个当时各自火热的主题，缝合进同一套可部署的家族里；</li>
+<li><strong>推理显存被明确当作卖点</strong>：单卡部署 <span class="num">10</span>GB / <span class="num">40</span>GB / <span class="num">80</span>GB 对应 Tiny / Small / VL2（数据源 §6）。这等于直接告诉开发者「你有多大的显存，就选哪个档」，把部署门槛从「重量级 A100 集群」拉到「消费级卡」；</li>
+<li><strong>开源与推理低成本并进</strong>：deepseek-ai/DeepSeek-VL2 开源（数据源 §1），配合可落地显存，推动了「小显存跑多模态」的实践。</li>
+</ul>
+<h3><span class="num">6.2</span> 对后续技术路线的启示</h3>
+<ol>
+<li><strong>动态分块成为 VLM 标配化的入口</strong>。DeepSeek-VL2 用一套可解析的公式（<code><span class="num">211</span> + m·<span class="num">14</span>×(n·<span class="num">14+1</span>)</code>）把「分辨率」变成「可视作 token 预算的连续量」，这种「把视觉问题语言模型化、以 token 为计量单位」的建模方式，为后续「放大了看、再精细看」的分辨率策略提供了可复用范式。之后的 VLM 几乎都采用类似的「多分辨率 + 分块」思路。</li>
+<li><strong>MoE 与多模态的结合是一条值得长期押注的路线</strong>。MoE 降触发成本、MLA 压 KV cache，二者叠加让「少激活参数打稠密模型」有了两手支撑，也预示了后来更强开源多模态模型在稀疏化上继续加码的趋势。</li>
+<li><strong>数据质量的清洗闭环（caption 重写 + 打分过滤）成为标配</strong>。用强模型清洗弱数据的做法，在 DeepSeek-VL2 中被具体化为「OCR + 元信息 + 原 caption 作 prompt 的 in-house captioner」，这一产线设计对后续专注于文档 / 图表 / OCR 的多模态项目有直接借鉴价值。</li>
+</ol>
+<h3><span class="num">6.3</span> 对研究者的提醒</h3>
+<p><strong><span class="infer">（推断）</span></strong> 这份报告最值得普通人记住的不是某个分数，而是它示范的「工程化取舍」：用三阶段（对齐→预训练→SFT）渐进式训练、用 MoE+MLA 控制成本、用动态分块换分辨率弹性，每一项都是「在有限预算下做最优妥协」的产物。它同时提醒我们：</p>
+<ul>
+<li><strong>高分辨率、多图、低成本三者很难同时拉满</strong>——DeepSeek-VL2 选择了单图高分辨率 + 低成本，牺牲了多图并行；</li>
+<li><strong>用「感知类榜单」讲故事要带警惕</strong>——分数漂亮未必代表推理强，报告自己也承认推理待加强；</li>
+<li><strong>开源多模态的下一步关键，往往不在「再加多少分辨率」，而在「如何补上推理这块短板」</strong>——这是这份报告在结论里给自己留下的最诚实的功课。</li>
+</ul>
+<h3><span class="num">6.4</span> 一句话定位</h3>
+<p>DeepSeek-VL2 是「把稀疏化降本与动态高分辨率结合、以更少激活资源追平同级稠密 VLM」的代表性开源作品，它的价值不仅在于分数本身，更在于铺开了一条「在有限显存下把多模态做得又准又能落地」的工程路径（数据源 §3、§4、§5、§6）。</p>
+<hr>
+<h2>附：关键数字速查</h2>
+<table>
+<tr><th>数字</th><th>含义</th><th>出处</th></tr>
+<tr><td>---</td><td>---</td><td>---</td></tr>
+<tr><td>SigLIP-SO400M-<span class="num">384</span></td><td>视觉编码器，每个 tile <span class="num">729</span> 个 <span class="num">1152</span> 维嵌入</td><td>§2</td></tr>
+<tr><td>CR={(m·<span class="num">384</span>,n·<span class="num">384</span>), mn≤9}</td><td>动态分块候选分辨率集（InfoVQA 放宽 mn≤<span class="num">18</span>）</td><td>§<span class="num">2 </span>/ §<span class="num">5.1</span></td></tr>
+<tr><td><span class="num">196</span> tokens/tile + <span class="num">210</span> 全局缩略图</td><td>视觉序列长度公式 <code><span class="num">211</span>+m·<span class="num">14</span>×(n·<span class="num">14+1</span>)</code></td><td>§2</td></tr>
+<tr><td>MLA rank=<span class="num">512</span></td><td>Small/VL2 的 KV cache 潜压缩秩</td><td>Table 1</td></tr>
+<tr><td><span class="num">64</span>/<span class="num">64</span>/<span class="num">72</span> routed experts，共享 2，Top-6</td><td>MoE 配置；路由 Softmax/Softmax/Sigmoid</td><td>Table 1</td></tr>
+<tr><td>~<span class="num">800</span>B 图文 tokens（<span class="num">70</span>% VL + <span class="num">30</span>% 纯文本）</td><td>Stage <span class="num">2 </span>预训练量</td><td>§<span class="num">3.2</span> / Table 2</td></tr>
+<tr><td><span class="num">2.0</span>B / ~<span class="num">800</span>B / ~<span class="num">19.5</span>–<span class="num">20</span>B tokens</td><td>三阶段训练 token 数</td><td>Table 2</td></tr>
+<tr><td><span class="num">10</span>GB / <span class="num">40</span>GB / <span class="num">80</span>GB</td><td>Tiny / Small / VL2 单卡部署显存</td><td>§6</td></tr>
+<tr><td>MMStar <span class="num">57.0</span> · AI2D <span class="num">80.0</span> · MMMU <span class="num">48.0</span> · MME <span class="num">2123</span> · MathVista <span class="num">60.7</span></td><td>VL2-Small 主结果（超 GPT-4V <span class="num">56.0</span>，距 GPT-4o <span class="num">63.9</span>）</td><td>Table <span class="num">4 </span>/ §<span class="num">5.1</span></td></tr>
+<tr><td><span class="num">129,280</span> / <span class="num">102,400</span> / <span class="num">129,280</span></td><td>三模型词表规模（Small 基于 <span class="num">16</span>B 分支词表）</td><td>附注</td></tr>
+</table>
+<div class="selfcheck">数据依据：本页 00-源数据提取.md | 推断处已标注（推断）| 生成：批量转换脚本</div>
+</div></body></html>

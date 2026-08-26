@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>《Teaching Small Language Models to Reason》深度解读：CoT 蒸馏的开山之作——如何把大模型的"思考过程"装进小模型 · 深度解读</title><style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;background:#f7f8fa;color:#1f2430;line-height:1.8;margin:0}
+.wrap{max-width:900px;margin:0 auto;padding:36px 20px 80px}
+h1{font-size:25px;border-bottom:3px solid #2b6cb0;padding-bottom:10px;color:#14304f}
+h2{font-size:19px;margin-top:34px;color:#2b6cb0;border-left:5px solid #2b6cb0;padding-left:10px}
+h3{font-size:16px;color:#3a4a63;margin-top:22px}
+p{margin:10px 0;}
+blockquote{background:#eef3fa;border-left:4px solid #4a90d9;margin:12px 0;padding:10px 16px;color:#2c3e50}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px}
+th,td{border:1px solid #cbd5e1;padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#e8eef6}
+tr:nth-child(even){background:#f4f7fb}
+.num{color:#b45309;font-weight:700;font-family:ui-monospace,Consolas,monospace}
+.infer{color:#9a6b2f;font-style:italic;background:#fdf6e3;padding:0 3px;border-radius:3px}
+code{background:#eef1f5;padding:1px 5px;border-radius:4px;font-size:13px}
+hr{border:none;border-top:1px dashed #cbd5e1;margin:26px 0}
+.selfcheck{font-size:11px;color:#90a0b5;margin-top:40px;border-top:1px solid #dde3ea;padding-top:12px;font-family:ui-monospace,monospace}
+</style></head><body><div class="wrap">
+<h1>《Teaching Small Language Models to Reason》深度解读：CoT 蒸馏的开山之作——如何把大模型的"思考过程"装进小模型</h1>
+<blockquote> <strong>数据依据</strong>：本报告全部量化数字取自同目录 <code><span class="num">00</span>-源数据提取.md</code>（源 PDF：<code>papers/E3_对齐与开源爆发_2022H2-<span class="num">2023</span>/<span class="num">2022-12</span>_P1_CoT_Distillation.pdf</code>，arXiv <span class="num">2212.08410</span> v3，全文 <span class="num">7 </span>页含附录）。凡超出源数据记录的分析判断，均标注「<span class="infer">（推断）</span>」。</blockquote>
+<blockquote></blockquote>
+<blockquote> <strong>基本信息</strong>：Lucie Charlotte Magister（Univ. of Cambridge）、Jonathan Mallinson、Jakub Adamek、Eric Malmi、Aliaksei Severyn（均 Google Research），一作为 Google 实习期间工作。初版 <span class="num">2022-12-16</span>，v3 更新于 <span class="num">2023-06-01</span>，发表于 ACL <span class="num">2023</span>（short paper）。</blockquote>
+<hr>
+<h2>摘要</h2>
+<p>本文是知识蒸馏（Hinton et al. <span class="num">2015</span>）与思维链推理（Chain-of-Thought, Wei et al. <span class="num">2022</span>）两条研究线交叉的首批系统实证：用 PaLM <span class="num">540</span>B 或 GPT-<span class="num">3 </span><span class="num">175</span>B 作为教师，通过 8-shot few-shot prompting 为已有标注数据生成思维链（CoT）文本，再用这些数据微调 T5 系列学生模型（<span class="num">220</span>M 至 <span class="num">11</span>B）。方法仅两步——教师标注 CoT 数据（关键技巧：prompt 中插入标准答案 target 以提升 CoT 正确率，并过滤推理错误的样本）、学生对"问题→CoT+答案"做 teacher forcing 微调。结果显示 T5 XXL 在 GSM8K 上从 <span class="num">8.11</span>% 提升至 <span class="num">21.99</span>%（PaLM 蒸馏），MAWPS 从 <span class="num">54.15</span>% 升至 <span class="num">70.41</span>%、外接计算器后达 <span class="num">88.22</span>%；符号推理 coin flip 的 OOD 准确率从 <span class="num">13.10</span>% 跃升至 <span class="num">86.70</span>%。但常识推理（StrategyQA）提升有限，Last Letter 符号外推完全失败。论文证明了"推理过程可迁移"这一命题在小模型上成立且数据高效，同时如实划定了能力边界。</p>
+<hr>
+<h2>第一层：问题定位——推理能力为何被锁死在超大模型里</h2>
+<h3><span class="num">1.1</span> 时代背景：一条刚刚画出的能力边界</h3>
+<p><span class="num">2022</span> 年是思维链研究的爆发元年。Wei et al.（<span class="num">2022</span>）提出的 Chain-of-Thought prompting 证明了一个惊人事实：当语言模型的参数规模跨过某个阈值（百亿到千亿级），仅仅在 prompt 中给出几个带推理步骤的示例，就能让模型在算术、常识、符号推理任务上大幅提升。但这项能力有一个苛刻的前提条件——<strong>它只在足够大的模型上涌现</strong>。小模型即使拿到同样的 few-shot CoT 示例，也几乎无法效仿。</p>
+<p>这就在实践中制造了一道尖锐的矛盾<span class="infer">（推断）</span>：CoT 推理能力最有价值的落地场景——端侧设备、低延迟在线服务、成本敏感的批量处理——恰恰是最用不起千亿模型的场景。而彼时（<span class="num">2022</span> 年末）最强大的模型 PaLM <span class="num">540</span>B、GPT-<span class="num">3 </span><span class="num">175</span>B 都是 API 之外难以触及的非公开系统。<strong>"推理能力"成了超大模型的专属奢侈品。</strong></p>
+<h3><span class="num">1.2</span> 论文的核心问题意识</h3>
+<p>面对这道边界，作者提出的核心问题可以表述为：<strong>大模型的思维链能力，能否作为一种可传授的知识，被显式地迁移到参数量小一到两个数量级的学生模型中？</strong></p>
+<p>这个问题并非凭空发问。知识蒸馏领域已有成熟传统：Hinton et al.（<span class="num">2015</span>）确立的经典范式是通过教师模型的软标签（soft label）指导学生训练。但经典 KD 主要面向分类任务的 logits 层面迁移，而 CoT 能力的载体是一段<strong>自由生成的多步推理文本</strong>——如何把"一段推理过程"当作知识来教，在当时没有系统性的答案。本文正是对这一空白的填补：它是 KD × CoT 交叉方向上的首批系统实证之一。</p>
+<h3><span class="num">1.3</span> 实验对象的选择逻辑</h3>
+<p>实验设定清晰地体现了"大小悬殊下的迁移"这一主题：</p>
+<ul>
+<li><strong>教师</strong>：PaLM <span class="num">540</span>B、GPT-<span class="num">3 </span><span class="num">175</span>B——当时最强的两个可用 LLM；</li>
+<li><strong>学生</strong>：T5 系列（base / large / xl / xxl，即 <span class="num">220</span>M / <span class="num">770</span>M / 3B / <span class="num">11</span>B）——从 <span class="num">540</span>B 到 <span class="num">220</span>M，跨越了近三个数量级；</li>
+<li><strong>参照系</strong>：未微调的 T5 XXL 作为 Base 对照，PaLM <span class="num">540</span>B 仅以 8-shot CoT 形式提供参考上限、本身不参与微调。</li>
+</ul>
+<p>值得注意的是学生的最大尺寸只有 <span class="num">11</span>B——远未达到 CoT 涌现的规模门槛。这正是实验设计的关键张力所在<span class="infer">（推断）</span>：如果 <span class="num">11</span>B 以下的小模型无法通过 prompting 获得 CoT 能力，那么唯一的路径就是换一种学习范式——把能力"喂"进去，而不是"引"出来。</p>
+<hr>
+<h2>第二层：概念内核——"蒸馏"一词在这里发生了什么变化</h2>
+<h3><span class="num">2.1</span> 从 logit 迁移到推理文本迁移</h3>
+<p>理解本文的概念创新，首先要看清它相对经典 KD 的位移。经典知识蒸馏传递的是<strong>逐 token 的概率分布</strong>（软标签），学生模仿的是教师的"置信度形状"。而本文传递的是<strong>完整的中间推理文本</strong>：教师生成的 CoT 连同最终答案一起，构成学生微调的目标序列。</p>
+<p>这个位移带来一个本质性的改变<span class="infer">（推断）</span>：软标签蒸馏传递的是"答案的分布"，而 CoT 蒸馏传递的是<strong>到达答案的计算路径</strong>。对于推理任务而言，后者携带的监督信息密度远高于前者——一段正确的解题步骤既隐含了答案，又展示了如何分解问题、按什么顺序执行哪些子运算。学生在学习目标序列的同时，被迫学会一种<strong>生成式的分步计算行为</strong>。</p>
+<h3><span class="num">2.2</span> Imitation Knowledge：论文对蒸馏本质的重新定义</h3>
+<p>论文 Discussion 部分给出了一个值得细读的概念：<strong>蒸馏的本质是 imitation knowledge（模仿性知识）</strong>。作者据此提出，小模型也能学到"如何接近此类任务"。</p>
+<p>这个措辞很谨慎，也很诚实。"模仿"二字暗示了这种迁移的边界<span class="infer">（推断）</span>：学生学到的是针对特定任务类型的、模式化的推理行为，而不是普适的推理官能。后文的实验结果会反复印证这一点——凡是推理模式可以被模仿的任务（算术应用题、coin flip），蒸馏收益显著；凡是依赖大量事实记忆的任务（StrategyQA），模仿就不够用了。可以说，imitation knowledge 这个概念是理解全文成败分界的钥匙。</p>
+<h3><span class="num">2.3</span> Target-conditioned 生成：让教师"看着答案写过程"</h3>
+<p>方法的第二个概念支点是<strong>在 prompt 中向教师提供标准答案（target answer）</strong>。这不是简单的作弊，而是一种条件化生成策略：让教师在已知终点的条件下回溯构造推理路径。</p>
+<p>其效果有硬数字支撑：在 GSM8K 上，PaLM <span class="num">540</span>B 无 target 时生成的 CoT 正确率仅为 <span class="num">59.98</span>%，给出 target 后跃升至 <strong><span class="num">79.37</span>%</strong>。论文进一步分析了增益来源——主要来自"纠正缺失或错误的单步"，而不是简单复制答案。也就是说，target 条件化的价值在于帮助教师修复推理链条中的局部缺陷，使更多样本拥有完整可信的推导过程。</p>
+<h3><span class="num">2.4</span> 为什么不直接用人工标注的 CoT？</h3>
+<p>一个自然的对照问题是：既然要 CoT 训练数据，为何不用人工标注？本文的实验给出了部分回答——在 StrategyQA 上，golden CoT（人工标注）微调的结果为 <span class="num">71.98</span>%，与 PaLM 蒸馏版持平（<span class="num">71.98</span>%）。<span class="infer">（推断）</span>这组对照揭示了一个微妙的现实：教师自动标注的价值不在单条质量的上限，而在<strong>规模化与低成本</strong>——人工 CoT 标注昂贵且难以覆盖新任务，LLM 自动标注只需 prompt 工程即可扩展到任意有标准答案的数据集。而在该数据集上教师并未超越人工，原因在于 PaLM 和 GPT-<span class="num">3 </span>都存在出错样本，而该数据集又是所用基准中最大的（错误绝对量随之放大）。</p>
+<hr>
+<h2>第三层：方法拆解——两步流水线的全部细节</h2>
+<h3><span class="num">3.1</span> Pipeline 总览</h3>
+<p>整个方法只有两步，简洁到可以用一句话各自概括：</p>
+<p><code>`</code></p>
+<p>Step <span class="num">1 </span> 教师标注：LLM 对已有监督数据集 8-shot 生成 CoT（带两个关键修改）</p>
+<p>Step <span class="num">2 </span> 学生微调：(问题 → CoT+答案) 序列上的 teacher forcing 训练</p>
+<p><code>`</code></p>
+<h3><span class="num">3.2</span> Step 1：教师标注的两个关键修改</h3>
+<p><strong>修改①——prompt 中插入 target answer。</strong> 具体做法是在 prompt 的问题（Question）之后、示例 CoT 之前插入该题的标准答案。如前所述，这让教师生成 CoT 的正确率在 GSM8K 上从 <span class="num">59.98</span>% 提升到 <span class="num">79.37</span>%。<span class="infer">（推断）</span>机制上，这相当于把开放式解题转化为"答案已知、补全过程"的逆向构造任务，搜索空间大幅收窄，教师不再需要在推理中途"赌"一个中间量。</p>
+<p><strong>修改②——基于 target 过滤错误样本。</strong> 生成之后，以标准答案为准绳，<strong>过滤掉所有 CoT 推理错误的样本</strong>，防止学生学习 bad examples。这一步看似朴素，却是质量控制的闸门：没有它，教师近两成（GSM8K 上 <span class="num">100%-79.37</span>%=<span class="num">20.63</span>%，推断）的错误推理将作为训练信号污染学生。</p>
+<h3><span class="num">3.3</span> Step 2：teacher forcing 微调</h3>
+<p>学生训练采用标准的 teacher forcing（Williams & Zipser <span class="num">1989</span>）：输入为问题文本，输出目标为 CoT 推理加最终答案拼接而成的序列。训练完成后，学生<strong>无需任何 prompting 即可直接作答</strong>——这一点与传统 few-shot 使用方式形成鲜明对比，也是部署友好性的来源：推理时不需要在上下文中携带长示例，小模型的有限上下文得以解放。</p>
+<h3><span class="num">3.4</span> 评估口径：external calculator</h3>
+<p>算术任务的评估额外引入了<strong>外部计算器口径（external calculator）</strong>：遍历学生输出，重新计算等式左边并替换右边——例如输出 <code><span class="num">5+5</span>=<span class="num">11</span></code> 时把 <span class="num">11</span> 替换为 <span class="num">10</span> 再判定。这个口径剥离了"算术小错"对整链推理评价的污染，使得评估聚焦于学生是否掌握了正确的<strong>解题结构与步骤分解</strong><span class="infer">（推断）</span>。</p>
+<h3><span class="num">3.5</span> 一个务实的变通：符号任务的模板化 CoT</h3>
+<p>符号推理任务（last letter concatenation / coin flip）的处理透露出作者的务实态度：由于这类任务的模板高度刚性，PaLM 能近乎完美地复刻模板，因此符号任务改用<strong>模板直接生成 CoT</strong>，而不走 LLM 标注路线。训练在长度 <span class="num">2 </span>上进行、在长度 3/<span class="num">4 </span>上测试 OOD 泛化，各配 <span class="num">1000</span> 训练/测试例。这个变通本身就是一个信号<span class="infer">（推断）</span>：当任务结构完全确定时，LLM 标注并无增量价值——蒸馏的对象应当是"LLM 才会的知识"，而非任何可程序化生成的内容。</p>
+<h3><span class="num">3.6</span> 数据切分与可复现性安排</h3>
+<p>实验协议的细节：GSM8K 使用官方 split（train 最后 <span class="num">10</span>% 作验证）；MAWPS/ASDiv 采用 5-fold cross validation；StrategyQA 按 <span class="num">80</span>/<span class="num">10</span>/<span class="num">10</span> 切分且<strong>不打乱</strong>以保证可复现。各数据集规模：GSM8K <span class="num">6725</span> 例（实际使用 <span class="num">5337</span>）、MAWPS <span class="num">1590</span> 例、ASDiv <span class="num">1844</span> 例（实际使用 <span class="num">1544</span>）、StrategyQA <span class="num">1319</span> 例（用于常识推理实验）。</p>
+<hr>
+<h2>第四层：证据链——四类任务、三重消融构成的完整论证</h2>
+<h3><span class="num">4.1</span> 主战场：算术推理（Table 1）</h3>
+<p>T5 XXL 学生的核心结果：</p>
+<table>
+<tr><th>数据集</th><th>Baseline</th><th>CoT Finetuned</th><th>+Calc</th><th>PaLM 8-shot 参考</th></tr>
+<tr><td>---</td><td>---</td><td>---</td><td>---</td><td>---</td></tr>
+<tr><td>GSM8K</td><td><span class="num">8.11</span></td><td><strong><span class="num">21.99</span></strong></td><td><span class="num">38.21</span></td><td><span class="num">56.90</span>（+calc <span class="num">58.60</span>）</td></tr>
+<tr><td>MAWPS</td><td><span class="num">54.15</span></td><td><strong><span class="num">70.41</span></strong></td><td><span class="num">88.22</span></td><td><span class="num">93.00</span>（<span class="num">93.66</span>）</td></tr>
+<tr><td>ASDiv</td><td><span class="num">39.64</span></td><td><strong><span class="num">42.12</span></strong></td><td><span class="num">60.73</span></td><td><span class="num">73.9</span>（<span class="num">72.6</span>）</td></tr>
+</table>
+<p>三条曲线形态一致但斜率迥异<span class="infer">（推断）</span>：GSM8K 上提升近 <span class="num">2.7</span> 倍但绝对值仍低；MAWPS 提升最为显著，加外部计算器后的 <span class="num">88.22</span> 已逼近 8-shot PaLM <span class="num">540</span>B 的 <span class="num">93.00</span>；ASDiv 介于两者之间。这构成了主张 C3：<strong>加外部计算器后，蒸馏学生逼近 8-shot PaLM <span class="num">540</span>B</strong>。其含义是双重的——一方面小模型确实继承了大模型的推理骨架，另一方面纯神经网络的算术执行仍是短板<span class="infer">（推断）</span>，需要符号工具兜底，这为后来的"工具增强推理"路线埋下了伏笔。</p>
+<h3><span class="num">4.2</span> 教师稳健性：换教师还灵不灵？（§<span class="num">5.4</span>，Table <span class="num">3 </span>部分）</h3>
+<p>用 GPT-<span class="num">3 </span><span class="num">175</span>B 替换 PaLM <span class="num">540</span>B 重跑蒸馏：GSM8K 得 <span class="num">18.42</span>%（略低于 PaLM 版的 <span class="num">21.99</span>%，方向一致）；但在 StrategyQA 上 GPT-<span class="num">3 </span>蒸馏版仅 <span class="num">63.77</span>%，<strong>低于 baseline 的 <span class="num">68.12</span>%——一个被论文如实报告的负例</strong>。这说明结论跨教师大体稳健，但对任务-教师组合敏感<span class="infer">（推断）</span>：当教师在目标任务上的出错率高到一定程度，过滤后的数据质量和覆盖面双双下降，蒸馏可能反噬。</p>
+<h3><span class="num">4.3</span> 常识推理：能力的第一个边界（Table 3）</h3>
+<p>StrategyQA：<span class="num">68.12</span>% → <span class="num">71.98</span>%（PaLM 蒸馏），仅提升不到 <span class="num">4 </span>个点，且仅用 <span class="num">1319</span> 条样本。golden CoT 也停在 <span class="num">71.98</span>% 同档。论文的归因直指要害：<strong>常识推理的提升受小模型事实知识容量的限制</strong>——StrategyQA 需要"哈佛大学是私立还是公立"这类事实记忆，而这不是靠模仿推理格式能获得的<span class="infer">（推断）</span>。这与 imitation knowledge 概念自洽：模仿能传递"怎么推"，传不了"知道什么"。PaLM 8-shot 参考值为 <span class="num">77.8</span>，差距依旧明显。</p>
+<h3><span class="num">4.4</span> 符号推理：一半惊喜，一半溃败（Table 2）</h3>
+<p>符号任务是全文结果中最具张力的部分：</p>
+<ul>
+<li><strong>Coin Flip OOD:3</strong>（训练长度 2、测试长度 3）：<span class="num">13.10</span>% → <strong><span class="num">86.70</span>%</strong>，接近彻底解决；</li>
+<li><strong>Coin Flip OOD:4</strong>：<span class="num">70.50</span>%，反而低于强 baseline 的 <span class="num">73.80</span>%——作者解释为 4-flip 任务长度是训练任务的 <span class="num">2 </span>倍；</li>
+<li><strong>Last Letter Concatenation OOD</strong>：蒸馏版 <strong><span class="num">0.00</span>%</strong>，完全失败（baseline 尚有 <span class="num">30.0</span>/<span class="num">40.0</span>）。</li>
+</ul>
+<p>同一套方法在同一任务族内表现冰火两重天<span class="infer">（推断）</span>：coin flip 的状态转移规则单一（每次翻转取反），长度外推主要是"重复执行已学会的操作"；而 last letter 要求从每个单词抽取首尾字母再拼接，操作对象随长度线性增长、组合空间爆炸，学生学到的是固定长度的模式而非可组合的算法。<strong>这组对照是"模仿 ≠ 泛化"论点的最佳内证。</strong></p>
+<h3><span class="num">4.5</span> 规模消融：收益随学生尺寸单调上升（Fig 3）</h3>
+<p>随 T5 尺寸递增，蒸馏收益单调上升：small（baseline/CoT-w-calc 口径）<span class="num">4.40</span>/<span class="num">4.17</span> → xxl <span class="num">21.99</span>/<span class="num">38.21</span>。但另一面的发现同样重要：<strong>T5 base（参数量为 XXL 的 1/<span class="num">44</span>）经 CoT 微调后即可追平未微调的 T5 XXL baseline，加计算器后甚至反超</strong>。这构成了主张 C7——小模型 + CoT 微调可以达到大模型 zero-shot 水平的参数效率。<span class="infer">（推断）</span>两条曲线合起来讲了一个完整的故事：蒸馏不能消除规模带来的上限差异，但能把"达到某一水平所需的最小规模"压缩一个数量级以上。</p>
+<h3><span class="num">4.6</span> 数据效率：千例级样本即可启动（Table 4)</h3>
+<p>数据规模消融显示：<span class="num">4%</span> 数据（<span class="num">213</span> 例）达 <span class="num">6.29</span>%，<span class="num">20</span>%（<span class="num">1067</span> 例）达 <span class="num">11.22</span>%，<span class="num">100</span>%（全量）达 <span class="num">21.99</span>%（+calc 分别为 <span class="num">12.28</span> / <span class="num">20.47</span> / <span class="num">38.21</span>）。以 <span class="num">20</span>% 数据达到 <span class="num">11.22</span>%（相对 baseline <span class="num">8.11</span>% 计算，约合 <strong>~6x 数据效率</strong>），但与全量仍有明显质量差距。<span class="infer">（推断）</span>这条曲线说明：起步成本极低——千余条教师标注即可让学生显著超过自身 baseline；但要逼近上限，数据量的边际收益依然陡峭，教师标注的规模化成本成为新的瓶颈（尽管远低于人工标注）。</p>
+<hr>
+<h2>第五层：批判性分析——这份成绩单的成色与水分</h2>
+<h3><span class="num">5.1</span> 相对提升耀眼，绝对水平仍然堪忧</h3>
+<p>最需要警惕的读法是把 <span class="num">8.11</span>% → <span class="num">21.99</span>% 当作"小模型学会了推理"。实际上 GSM8K 上蒸馏学生的 <span class="num">21.99</span>% 距离 8-shot PaLM 的 <span class="num">56.90</span>% 还差近 <span class="num">35</span> 个点；即便外接计算器（<span class="num">38.21</span>%）也仍有约 <span class="num">19-20</span> 个点差距（由表中数字直接相减，属算术比较而非推断）。<strong>"显著提升"与"接近可用"之间隔着一条鸿沟。</strong>真正达到"逼近教师"水平的只有 MAWPS+计算器（<span class="num">88.22</span> vs <span class="num">93.00</span>）这一个点，而 MAWPS 恰是三个算术基准中规模最小的（<span class="num">1590</span> 例）<span class="infer">（推断）</span>——小数据集上容易饱和，这个孤证不宜过度外推。</p>
+<h3><span class="num">5.2</span> 负例的价值：教师敏感性与任务依赖性</h3>
+<p>论文的可信度很大程度上来自它保留了负例：GPT-<span class="num">3 </span>蒸馏在 StrategyQA 上倒退 <span class="num">4.35</span> 个点（<span class="num">63.77</span> vs <span class="num">68.12</span>）；Last Letter OOD 归零；Coin Flip OOD:<span class="num">4 </span>输给 baseline。这三处失败指向同一个结构性原因的不同侧面——<strong>蒸馏传递的是模仿能力，凡超出模仿支撑范围的需求（事实知识、算法泛化、超长外推）都会裸露出来</strong><span class="infer">（推断）</span>。换言之，本文的"成功案例"与"失败案例"共同圈定了一个适用域：任务具有可模仿的分步推理模式、且所需背景知识在学生容量之内。</p>
+<h3><span class="num">5.3</span> 方法的隐藏成本：非公开教师与推理开销</h3>
+<p>论文自述的局限第 <span class="num">2 </span>条值得放大：复现需访问非公开模型（PaLM <span class="num">540</span>B），且要在大量数据上跑推理，成本高。<span class="infer">（推断）</span>这意味着该方法在 <span class="num">2022</span> 年末实际上是 Google 内部资源专属——开源社区既拿不到 PaLM，也负担不起 <span class="num">5000</span>+ 样本的 <span class="num">540</span>B 推理标注。方法本身的民主化要到更强的开源教师出现后才可能实现，这是阅读本文历史地位时必须叠加的时间条件。</p>
+<h3><span class="num">5.4</span> 实验设定的可比性折扣</h3>
+<p>局限第 <span class="num">1 </span>条同样关键：所有实验均为<strong>英语、每次单任务训练</strong>，与 LLM few-shot 设定（一个模型通吃所有任务）不完全可比。学生模型是"专才"，教师参照是"通才"。<span class="infer">（推断）</span>这层不对称为"小模型追平大模型"的叙事打了折扣——T5 base 追平的是 T5 XXL 在<strong>单个任务上</strong>的表现，代价是为每个任务单独训练一个专用模型。若考虑多任务统一模型的场景，结论需重新核算。</p>
+<h3><span class="num">5.5</span> 未吸收的后续改进</h3>
+<p>局限第 <span class="num">3 </span>条指出只探索了原始 CoT prompting，未纳入 self-consistency（Wang et al. <span class="num">2022</span>）等改进。这是一个诚实的自我设限<span class="infer">（推断）</span>：self-consistency 通过采样多条推理路径投票能稳定提升教师标注质量，若叠加到 Step 1，<span class="num">79.37</span>% 的 CoT 正确率还有可观的上探空间——这也为后续工作留下了明确的改进接口。</p>
+<h3><span class="num">5.6</span> golden CoT 对照的深层暗示</h3>
+<p>StrategyQA 上 golden CoT（<span class="num">71.98</span>%）与 PaLM 蒸馏打平的事实，常被忽略但其含义深远<span class="infer">（推断）</span>：<strong>教师标注并不天然优于人工标注</strong>，教师的价值在于规模与边际成本，而非质量上限。当任务的人工标注已经包含 CoT 且规模够大时，蒸馏的第一步可能是多余的。这对"一切皆可蒸馏"的乐观情绪是一种校准。</p>
+<hr>
+<h2>第六层：启示与影响——一篇短文如何撬动一个方向</h2>
+<h3><span class="num">6.1</span> 历史坐标：ChatGPT 前夜的推理蒸馏宣言</h3>
+<p>本文初版于 <span class="num">2022-12-16</span> 挂出 arXiv——几乎与 ChatGPT 的发布（<span class="num">2022-11-30</span>）同期（时间点来自 arXiv 编号记录与公开常识，后者属背景性引用）。它以 ACL <span class="num">2023</span> short paper 的体量（正文 <span class="num">5 </span>页 + 附录）完成了对一个新研究方向的立项陈述：<strong>推理能力是一种可迁移资产</strong>。此后两年间，围绕 CoT 蒸馏、多教师蒸馏、迭代式自我改进（self-improvement）、以及"小模型 + 工具"的组合拳，形成了推理优化的完整工具箱，而本文是这条谱系最早、被引用最广的起点之一（此影响判断属推断，基于其在文献中的常见定位）。</p>
+<h3><span class="num">6.2</span> 给工程实践的四个直接结论</h3>
+<p>从本文的证据链中可以提炼出至今仍然成立的实践准则（推断，依据为上述实验数字）：</p>
+<ol>
+<li><strong>优先蒸钫"怎么推"而非"是什么"</strong>：分步推理模式可迁移性强（GSM8K <span class="num">2.7</span> 倍、coin flip OOD <span class="num">6.6</span> 倍提升），事实知识不可（StrategyQA 仅 +<span class="num">3.86</span>）；</li>
+<li><strong>给教师看答案再要过程</strong>：target-conditioned 标注把 CoT 正确率从 <span class="num">59.98</span>% 拉到 <span class="num">79.37</span>%，零额外模型成本，纯 prompt 工程；</li>
+<li><strong>过滤比生成更重要</strong>：基于标准答案的样本过滤是防止负迁移的闸门——GPT-<span class="num">3 </span>在 StrategyQA 的负例就是反面教材；</li>
+<li><strong>神经网络别硬算算术</strong>：外接计算器让 MAWPS 提升 <span class="num">17.81</span> 个点（<span class="num">70.41</span>→<span class="num">88.22</span>），符号工具兜底是小模型落地的标配。</li>
+</ol>
+<h3><span class="num">6.3</span> 三方权衡框架：模型尺寸 × 数据量 × 精度</h3>
+<p>论文 Discussion 明确指出 pipeline 允许 model-size ↔ dataset-size ↔ accuracy 的三方权衡。结合 Fig 3（small→xxl 收益单调上升）与 Table 4（<span class="num">4%</span>/<span class="num">20</span>%/<span class="num">100</span>% 数据梯度），从业者可以根据预算在三个轴上滑动配置<span class="infer">（推断）</span>：算力充裕则买模型尺寸，数据便宜则买标注量，两者都紧张时 <span class="num">20</span>% 数据 + 小模型也能先拿到 <span class="num">6 </span>倍数据效率的入场券。这个把蒸馏从"一次性实验"变成"可调节旋钮"的视角，是其方法论层面的持久贡献。</p>
+<h3><span class="num">6.4</span> 划定的边界即未来的议程</h3>
+<p>本文的失败案例精确地标记了三条后续研究路线<span class="infer">（推断）</span>：</p>
+<ul>
+<li><strong>事实知识瓶颈</strong>（StrategyQA）→ 指向检索增强生成（RAG）与小模型外挂知识库的结合，而非继续堆蒸馏；</li>
+<li><strong>算法泛化失败</strong>（Last Letter OOD <span class="num">0.00</span>%）→ 指向程序合成 / 工具调用路线，让模型学会"调用算法"而不是"模仿计算"；</li>
+<li><strong>教师标注成本与质量天花板</strong>（<span class="num">79.37</span>% 正确率 + self-consistency 缺位）→ 指向自我一致性采样、多教师集成、以及后来以弱到强（weak-to-strong）为核心的各类迭代方案。</li>
+</ul>
+<h3><span class="num">6.5</span> 结语：一篇短文的三重身份</h3>
+<p>回到最初的问题：大模型的推理能力能否传授？本文给出的答案是<strong>有条件的肯定</strong>——能传授的是推理的"形"（分步模式），难传授的是推理的"质"（事实知识与真正的算法泛化）。它同时是三重身份的合一：一份严谨的实证研究（负例俱全、消融完备）、一份可操作的工程手册（两步 pipeline + 四个实践准则）、以及一张未来研究的地图（三条边界线即三条议程）。在 <span class="num">2022</span> 年末那个时间点，用 <span class="num">7 </span>页篇幅完成这三件事，是这篇短文超越其绝对数字的历史价值所在。</p>
+<hr>
+<p>*报告完。全文数字均可回溯至 <code><span class="num">00</span>-源数据提取.md</code> §1/§3/§4/§5/§6；分析性判断均已标注「<span class="infer">（推断）</span>」。*</p>
+<div class="selfcheck">数据依据：本页 00-源数据提取.md | 推断处已标注（推断）| 生成：批量转换脚本</div>
+</div></body></html>

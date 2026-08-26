@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>s1: Simple test-time scaling — 深度解读报告</title>
+<style>
+  :root {
+    --ink: #1a2332;
+    --sub: #5a6b82;
+    --accent: #c2410c;
+    --accent-soft: #fff3ea;
+    --line: #e4e9f0;
+    --bg: #fafbfc;
+    --card: #ffffff;
+    --blue: #1d4ed8;
+    --green: #15803d;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", "SimSun", Georgia, serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.85;
+    font-size: 16px;
+  }
+  .page { max-width: 880px; margin: 0 auto; padding: 48px 40px 80px; }
+  header.hero {
+    border-bottom: 3px double var(--ink);
+    padding-bottom: 28px;
+    margin-bottom: 36px;
+  }
+  .kicker {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 12px;
+  }
+  h1 { font-size: 34px; line-height: 1.35; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .subtitle { font-size: 17px; color: var(--sub); }
+  .meta-strip {
+    display: flex; flex-wrap: wrap; gap: 10px 26px;
+    margin-top: 20px; font-size: 13px; color: var(--sub);
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+  }
+  .meta-strip b { color: var(--ink); font-weight: 600; }
+  nav.toc {
+    background: var(--card); border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    padding: 18px 26px; margin-bottom: 44px;
+    font-size: 14px;
+  }
+  nav.toc ol { list-style: none; counter-reset: toc; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 30px; }
+  nav.toc a { color: var(--ink); text-decoration: none; border-bottom: 1px dotted var(--line); }
+  nav.toc a:hover { color: var(--accent); }
+  h2 {
+    font-size: 24px; margin: 52px 0 20px; padding-left: 14px;
+    border-left: 5px solid var(--accent); line-height: 1.4;
+  }
+  h3 { font-size: 18px; margin: 30px 0 12px; color: var(--ink); }
+  p { margin: 12px 0; text-align: justify; }
+  span.num {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: var(--accent-soft); color: var(--accent);
+    font-weight: 700; padding: 1px 6px; border-radius: 4px;
+    font-size: 0.92em; white-space: nowrap;
+  }
+  em.term { font-style: normal; font-weight: 700; border-bottom: 2px solid var(--accent); }
+  .inferred {
+    color: var(--sub); font-size: 0.94em;
+    border-left: 3px solid var(--line); padding-left: 8px;
+  }
+  blockquote {
+    margin: 18px 0; padding: 14px 22px;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 6px; color: var(--sub); font-size: 15px;
+  }
+  table {
+    width: 100%; border-collapse: collapse; margin: 18px 0;
+    font-size: 14px; background: var(--card);
+  }
+  th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; }
+  th { background: #f1f4f8; font-weight: 700; white-space: nowrap; }
+  td.c, th.c { text-align: center; }
+  tr.hl td { background: var(--accent-soft); font-weight: 600; }
+  .abstract-card {
+    background: linear-gradient(135deg, #fff8f2 0%, #fdf1e7 100%);
+    border: 1px solid #f3d9c4; border-radius: 10px;
+    padding: 26px 30px; margin-bottom: 10px;
+  }
+  .abstract-card h2 { margin-top: 0; border: none; padding: 0; font-size: 20px; }
+  ul.tight { margin: 10px 0 10px 22px; }
+  ul.tight li { margin: 7px 0; }
+  .stat-row { display: flex; flex-wrap: wrap; gap: 14px; margin: 22px 0; }
+  .stat {
+    flex: 1 1 160px; background: var(--card); border: 1px solid var(--line);
+    border-top: 3px solid var(--accent); border-radius: 6px;
+    padding: 14px 16px; text-align: center;
+  }
+  .stat .v { font-family: Menlo, Consolas, monospace; font-size: 24px; font-weight: 800; color: var(--accent); display: block; }
+  .stat .l { font-size: 12.5px; color: var(--sub); }
+  .divider { border: none; border-top: 1px dashed var(--line); margin: 34px 0; }
+  footer.selfcheck {
+    margin-top: 60px; padding: 20px 26px;
+    background: #f1f4f8; border-radius: 8px;
+    font-size: 13px; color: var(--sub); font-family: Menlo, Consolas, monospace;
+    line-height: 1.9;
+  }
+  footer.selfcheck b { color: var(--green); }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="hero">
+  <div class="kicker">LLM Key-Paper Deep Reading · B2_P2 · s1</div>
+  <h1>s1: Simple test-time scaling<br>深度解读报告</h1>
+  <div class="subtitle">一千条样本、二十六分钟训练与一个解码期开关，如何首次复现 OpenAI 的推理缩放曲线</div>
+  <div class="meta-strip">
+    <span>arXiv <b>2501.19393v3</b></span>
+    <span>ICML <b>2025</b></span>
+    <span>Stanford / UW / AI2 / Contextual AI</span>
+    <span>开源 <b>github.com/simplescaling/s1</b></span>
+  </div>
+</header>
+
+<nav class="toc">
+  <ol>
+    <li><a href="#s0">摘要</a></li>
+    <li><a href="#s1">一、问题定位</a></li>
+    <li><a href="#s2">二、概念内核</a></li>
+    <li><a href="#s3">三、方法拆解</a></li>
+    <li><a href="#s4">四、证据链</a></li>
+    <li><a href="#s5">五、批判性分析</a></li>
+    <li><a href="#s6">六、启示与影响</a></li>
+  </ol>
+</nav>
+
+<section class="abstract-card" id="s0">
+  <h2>摘要</h2>
+  <p>s1 论文回答一个极简的问题：制造一个能与 OpenAI o1-preview 竞争的开放推理模型，最少需要多少数据与多复杂的流程？答案出乎意料——仅用 <span class="num">1,000 条</span>精心挑选的推理样本（s1K）对 Qwen2.5-32B-Instruct 做一次监督微调（SFT），训练仅需 <span class="num">26 分钟 / 16×H100</span>（约 <span class="num">7 个 H100 GPU-hours</span>）；再配合一个零训练成本的解码期技巧 <em class="term">budget forcing</em>（强行追加或抑制思考结束符，控制思考 token 数量上下限），得到的 s1-32B 在 AIME24 达 <span class="num">56.7</span>、MATH500 达 <span class="num">93.0</span>、GPQA Diamond 达 <span class="num">59.6</span>，较基座模型分别提升约 <span class="num">30/9/10.6 个百分点</span>，数学竞赛题上最多超 o1-preview <span class="num">+27%</span>，并首次复现了 OpenAI 的 test-time scaling 曲线（AIME24 从 <span class="num">50% → 57%</span>）。</p>
+</section>
+
+<h2 id="s1">一、问题定位</h2>
+
+<h3>1.1 时代背景：test-time scaling 的「黑箱垄断」<span class="inferred">（推断）</span></h3>
+<p>2024 年 9 月 OpenAI 发布 o1 系列，首次公开演示「测试时计算缩放」：让模型在给出最终答案前生成更长的内部推理链（reasoning trace），准确率随思考 token 数量增加而平滑上升。这一范式被视为继预训练缩放定律之后的新增长曲线。但其技术细节完全闭源：推理数据的构成、训练配方、缩放曲线的复现手段，外界一无所知。<span class="inferred">（推断）</span>开源社区此前的追赶尝试——如表中 Sky-T1（<span class="num">17K 样本</span>）、r1-distill（<span class="num">800K 样本</span>）——要么性能不足，要么数据规模与工程复杂度高企，且无人成功展示出「性能随测试时算力单调上升」的曲线形态。</p>
+
+<h3>1.2 论文的三个精确研究问题<span class="inferred">（据 §1–§3 归纳）</span></h3>
+<ul class="tight">
+  <li><b>数据最小化</b>：激活一个预训练模型的推理能力，最少需要多少条监督微调样本？（答案：<span class="num">1,000 条</span>）</li>
+  <li><b>缩放可控化</b>：能否在解码期对思考长度施加显式、精确的强制控制，从而画出平滑的性能—算力曲线？（答案：budget forcing，可控性 <span class="num">100%</span>）</li>
+  <li><b>曲线可复现性</b>：开放模型能否首次复现 OpenAI 式的 test-time scaling 曲线？（答案：能，AIME24 <span class="num">50%→57%</span>）</li>
+</ul>
+
+<h3>1.3 问题的重要性<span class="inferred">（推断）</span></h3>
+<p>在 o1 发布与 DeepSeek-R1 出现之间的窗口期，「推理能力从何而来」是社区最大悬念。s1 以极简配方提供了可证伪的中间答案：推理行为可以被极少量高质量数据「激活」，而缩放曲线可以由纯解码期干预产生——这为后续所有开源推理模型研究提供了最廉价的实验基座与对照锚点。</p>
+
+<h2 id="s2">二、概念内核</h2>
+
+<h3>2.1 Budget Forcing（预算强制）——本文的核心原创概念</h3>
+<p>定义：一种<b>纯解码期</b>（inference-time）的顺序缩放干预，通过操纵 end-of-thinking 分隔符 token 来强制思考长度的上限或下限：</p>
+<ul class="tight">
+  <li><em class="term">设下限（强迫继续思考）</em>：当模型想结束时，抑制 end-of-thinking token 的生成概率，转而在推理轨迹后追加字符串 <b>"Wait"</b>，诱导模型自我反省、回查错误并继续推理。论文图 3 给出示例：模型正欲写下 "...is 2." 时被拦截，追加 Wait 后自我纠错成功。</li>
+  <li><em class="term">设上限（提前终止）</em>：直接追加 end-of-thinking token 及可选的 "Final Answer:" 引导串，令模型立即收束并输出答案。</li>
+</ul>
+<p>关键性质（表 3）：BF 是五种受控缩放方法中唯一实现 <span class="num">100%</span> Control（完美可控）/ Scaling <span class="num">15</span>（最高正斜率）/ Performance <span class="num">56.75</span>（最高分）三项全能的方法。</p>
+
+<h3>2.2 三个评测维度（§3.2）</h3>
+<table>
+  <tr><th>维度</th><th>定义</th><th>满分含义</th></tr>
+  <tr><td>Control 可控性</td><td>强制思考 token 数成功落入区间 [a_min, a_max] 的比例</td><td class="c"><span class="num">100%</span> = 完美服从</td></tr>
+  <tr><td>Scaling 缩放斜率</td><td>分段线性函数的平均斜率</td><td>必须为正，越大越好</td></tr>
+  <tr><td>Performance 性能</td><td>方法能达到的最大准确率</td><td>越高越好</td></tr>
+</table>
+<p><span class="inferred">（推断）这三维分解是本文方法论上的隐性贡献：此前文献只报性能，s1 首次把「可控性」与「缩放有效性」作为独立指标度量，暴露了多数替代方法的作弊或失效模式。</span></p>
+
+<h3>2.3 Sequential vs Parallel test-time scaling</h3>
+<ul class="tight">
+  <li><b>Sequential（顺序）</b>：后续计算依赖前序输出，如加长单条 reasoning trace。s1 聚焦于此。</li>
+  <li><b>Parallel（并行）</b>：多条独立采样后聚合，如 majority voting（自一致性）。</li>
+</ul>
+<p>实验佐证（图 4b/图 7）：对基座模型做 <span class="num">4–64</span> 路 majority voting 也追不上 s1-32B 的顺序缩放；<span class="inferred">（推断）这说明「一条更长的思考链」比「多条普通长度链投票」信息效率更高——自我纠错产生的增量无法由独立重采样替代。</span></p>
+
+<h3>2.4 Superficial Alignment Hypothesis 的推理版延伸</h3>
+<p>作者援引 LIMA 提出的「浅层对齐假说」——模型能力在预训练中已具备，微调只是唤醒表面格式——将其推广到推理能力上：<span class="num">1,000</span> 条样本足以激活预训练中潜藏的长程推理行为。注意这是<b>假设而非验证结论</b>（§6.1 明示）。<span class="inferred">（推断）s1K 中偏爱更长 trace 的采样策略本身就是对该假说的操作性表达：选最难最长的思维链示范，等于告诉模型「你可以这样思考」。</span></p>
+
+<h2 id="s3">三、方法拆解</h2>
+
+<h3>3.1 数据管线：59,029 → 1,000 的三级漏斗</h3>
+<p><b>第一级：初始收集（§2.1）</b>——<span class="num">59,029</span> 题、<span class="num">16</span> 来源、三类：</p>
+<table>
+  <tr><th>类别</th><th>构成</th></tr>
+  <tr><td>既有数据集</td><td>Numina-MATH（<span class="num">30,660</span> 数学题）、历史 AIME（1983–2021）、OlympicArena（<span class="num">4,250</span>，覆盖天文/生物/化学/CS/地理/数学/物理）、OmniMath（<span class="num">4,238</span>）、AGIEval（<span class="num">2,385</span>，含 SAT/LSAT 等）</td></tr>
+  <tr><td>原创新建</td><td>s1-prob（<span class="num">182 题</span>，Stanford 统计系 PhD 资格考概率部分 + 手写证明）、s1-teasers（<span class="num">23 道</span> PuzzledQuant 定量交易面试题，仅取 Hard 档）</td></tr>
+  <tr><td>轨迹生成</td><td>每题调用 Google Gemini Flash Thinking API 生成 reasoning trace + solution，构成 59K 三元组</td></tr>
+</table>
+<p><b>第二级：三原则过滤（§2.2）</b>——<span class="num">59,029 → 54,116</span>（去 API 错误）<span class="num">→ 51,581</span>（去格式问题/ASCII 图/编号不一致，保留 <span class="num">384</span> 个高质量基础样本）→ 经难度过滤得 <span class="num">24,496</span>：</p>
+<ul class="tight">
+  <li><b>Quality</b>：清洗 API 错误与格式瑕疵；</li>
+  <li><b>Difficulty</b>：用 Qwen2.5-7B-Instruct 与 32B-Instruct 双模型解题、Claude 3.5 Sonnet 判卷，剔除两模型都能解对的「过易」题；</li>
+  <li><b>Diversity</b>：Claude 3.5 Sonnet 按 AMS MSC 2020 数学分类法标注领域。</li>
+</ul>
+<p><b>第三级：终采样</b>——先均匀随机抽 domain，再按「偏爱更长 reasoning trace」的分布抽题（激励难度），重复至 <span class="num">1,000 题、跨 50 个领域</span>。</p>
+
+<h3>3.2 训练配方（§4.1）</h3>
+<div class="stat-row">
+  <div class="stat"><span class="v">26 min</span><span class="l">16×H100 · PyTorch FSDP</span></div>
+  <div class="stat"><span class="v">7</span><span class="l">H100 GPU-hours（s1K SFT）</span></div>
+  <div class="stat"><span class="v">394</span><span class="l">H100 GPU-hours（59K-full 对照）</span></div>
+  <div class="stat"><span class="v">≈56×</span><span class="l">算力差距，性能反被超越</span></div>
+</div>
+<p>对 Qwen2.5-32B-Instruct 做 SFT，PyTorch FSDP，16×H100，<span class="num">26 分钟</span>完成。对照组 59K-full 训练需 <span class="num">394 H100 GPU-hours</span>（约 56 倍），AIME24 仅 <span class="num">53.3</span>，低于 s1K 的 <span class="num">50.0</span>→加 BF 后主结果 <span class="num">56.7</span>。<span class="inferred">（推断）这是全文最具冲击力的性价比论证：数据质量选择本身贡献的性能超过了 56 倍算力的堆料。</span></p>
+
+<h3>3.3 Budget forcing 的执行细节（§3.1、附录 E）</h3>
+<ul class="tight">
+  <li>控制粒度以 token 为单位，区间 [a_min, a_max]；</li>
+  <li>"Wait" 追加位置在当前推理轨迹末尾；</li>
+  <li>抑制次数需节制：过频会陷入重复循环而非持续推理（§5 结果要点）；</li>
+  <li>外推机制（表 4）：训练时从未见过超长思考，推理时忽略 end-of-thinking 即可外推——无追加串时 AIME24/MATH500/GPQA = <span class="num">50.0/90.2/55.1</span>；改追加 "Alternatively"/"Hmm"/"Wait" 分别为 <span class="num">50.0/92.2/59.6</span>、<span class="num">50.0/93.0/59.6</span>、<span class="num">53.3/93.0/59.6</span>，"Wait" 全面最优。摘要所称「AIME24 从 <span class="num">50% → 57%</span>」即此外推（§3.2 p4 / §4.2 p6 / 图 1）。</li>
+</ul>
+
+<h3>3.4 五种受控缩放方法的横向对比（表 3）</h3>
+<table>
+  <tr><th>方法</th><th>机制概述</th><th class="c">Control</th><th class="c">Scaling</th><th class="c">Performance</th></tr>
+  <tr><td>TCC token-conditional</td><td>按 token 计数条件触发</td><td class="c">40%</td><td class="c">-2（负）</td><td class="c">—</td></tr>
+  <tr><td>SCC step-conditional</td><td>按推理步数条件触发</td><td class="c">—</td><td class="c">3</td><td class="c">6.75</td></tr>
+  <tr><td>CCC class-conditional</td><td>类别级指令如 "think longer"</td><td class="c">—</td><td class="c">50%*</td><td class="c">6.72</td></tr>
+  <tr><td>RS rejection sampling</td><td>按长度拒绝重采</td><td class="c">—</td><td class="c">-35（负）</td><td class="c">40.05</td></tr>
+  <tr class="hl"><td><b>BF budget forcing</b></td><td>操纵 end-of-thinking token</td><td class="c"><b>100%</b></td><td class="c"><b>15</b></td><td class="c"><b>56.75</b></td></tr>
+</table>
+<p style="font-size:13px;color:var(--sub)">*CCC 的 Scaling 列原文记为 50%（口径与其他行不同，照录）。<span class="inferred">（推断）失败模式各有典型：TCC 失败因模型无法可靠数清自己的 token；SCC 败于模型在「少步多 token / 多步少 token」之间钻空子；RS 出现反直觉逆缩放（见下节）；唯 BF 直击生成过程的因果开关，故三项全能。</span></p>
+
+<h3>3.5 Rejection Sampling 的逆缩放悖论（图 6）</h3>
+<p>按「生成长度小于阈值」为条件做拒绝采样，阈值 <span class="num">3500/4000/5000/8000/16000</span> token 时平均所需采样次数为 <span class="num">655/97/8/3/2/1</span>——越短的生越难采到。<span class="inferred">（推断）机理性解释：短答案往往是「一开始就对了」，而长答案多因中途犯错需要 backtracking 才变长，因此长度与正确性在此分布下正相关，「逼模型想短一点」反而是在筛选低质量样本。这与 budget forcing「逼模型想长一点」形成镜像对照，共同说明：思考长度的信息价值取决于它是自然涌现还是外部强加。</span></p>
+
+<h2 id="s4">四、证据链</h2>
+
+<h3>4.1 主结果（表 1，AIME24 / MATH500 / GPQA Diamond）</h3>
+<table>
+  <tr><th>模型</th><th class="c">#ex 微调样本</th><th class="c">AIME24</th><th class="c">MATH500</th><th class="c">GPQA Diamond</th></tr>
+  <tr><td>o1-preview</td><td class="c">N.A.</td><td class="c">44.6</td><td class="c">85.5</td><td class="c">73.3</td></tr>
+  <tr><td>o1-mini</td><td class="c">N.A.</td><td class="c">70.0</td><td class="c">90.0</td><td class="c">60.0</td></tr>
+  <tr><td>o1</td><td class="c">N.A.</td><td class="c">74.4</td><td class="c">94.8</td><td class="c">77.3</td></tr>
+  <tr><td>Gemini 2.0 Flash Think</td><td class="c">N.A.</td><td class="c">60.0</td><td class="c">N.A.</td><td class="c">N.A.</td></tr>
+  <tr><td>Qwen2.5-32B-Instruct（base）</td><td class="c">—</td><td class="c">26.7</td><td class="c">84.0</td><td class="c">49.0</td></tr>
+  <tr><td>QwQ-32B</td><td class="c">N.A.</td><td class="c">50.0</td><td class="c">90.6</td><td class="c">54.5</td></tr>
+  <tr><td>r1</td><td class="c">≫800K</td><td class="c">79.8</td><td class="c">97.3</td><td class="c">71.5</td></tr>
+  <tr><td>r1-distill</td><td class="c">800K</td><td class="c">72.6</td><td class="c">94.3</td><td class="c">62.1</td></tr>
+  <tr><td>Sky-T1</td><td class="c">17K</td><td class="c">43.3</td><td class="c">82.4</td><td class="c">56.8</td></tr>
+  <tr><td>Bespoke-32B</td><td class="c">17K</td><td class="c">63.3</td><td class="c">93.0</td><td class="c">58.1</td></tr>
+  <tr><td>s1 w/o BF</td><td class="c">1K</td><td class="c">50.0</td><td class="c">92.6</td><td class="c">56.6</td></tr>
+  <tr class="hl"><td><b>s1-32B</b></td><td class="c"><b>1K</b></td><td class="c"><b>56.7</b></td><td class="c"><b>93.0</b></td><td class="c"><b>59.6</b></td></tr>
+</table>
+<p><span class="inferred">读法：（推断）① 相对基座的增益（+30.0/+9.0/+10.6 pp）几乎全部来自 1K SFT + BF 的组合，其中 BF 单独贡献 AIME24 +6.7（50.0→56.7）；② GPQA <span class="num">59.6</span> 已接近人类专家上限 <span class="num">69.7%</span>；③ 与 r1 对比：训练样本多 <span class="num">800×</span> 但同为 SFT 的 r1-distill 为 <span class="num">72.6</span>，s1 用 <span class="num">1K</span> 得 <span class="num">56.7</span>，位于样本效率帕累托前沿；④ 数学竞赛题上最多超 o1-preview <span class="num">+27%</span>（MATH 与 AIME24，摘要 p1）。</span></p>
+
+<h3>4.2 数据消融（表 2，BF 约 30K 思考 token，AIME24）</h3>
+<table>
+  <tr><th>变体</th><th>选择策略</th><th class="c">AIME24</th><th>结论</th></tr>
+  <tr><td>1K-random</td><td>仅 quality</td><td class="c">36.7 [CI −26.7%, −3.3%]</td><td>单独 quality 明显不足</td></tr>
+  <tr><td>1K-diverse</td><td>最大多样性</td><td class="c">26.7 [CI −40.0%, −10.0%]</td><td>纯多样性灾难性下跌</td></tr>
+  <tr><td>1K-longest</td><td>最长 trace</td><td class="c">33.3 [CI −36.7%, 0.0%]</td><td>长度≠难度≠质量</td></tr>
+  <tr><td>59K-full</td><td>不过滤全量</td><td class="c">53.3</td><td>贵 56 倍仍未超越</td></tr>
+  <tr class="hl"><td><b>s1K</b></td><td><b>quality×difficulty×diversity 联合</b></td><td class="c"><b>50.0</b></td><td><b>三原则联合是关键</b></td></tr>
+</table>
+<p><span class="inferred">（推断）三个单原则变体对 s1K 的差距均在约 −13 至 −23 pp，说明三原则不是叠加增益而是缺一不可的联合必要条件；difficulty 过滤尤其不可省——它保证模型见到的是「自己不会做」的题。</span></p>
+
+<h3>4.3 缩放曲线与外推（图 1/图 4a，表 4）</h3>
+<ul class="tight">
+  <li>预算强制下更多测试时计算持续提升 AIME24，六次外推后趋平（flatten）；</li>
+  <li>外推至 <span class="num">7320</span> 思考 token 时 AIME24 达 <span class="num">57%</span>（§3.2 p4 / 图 1）；</li>
+  <li>这是开放模型<b>首次复现</b>闭源 test-time scaling 曲线形态。</li>
+</ul>
+
+<h3>4.4 并行缩放的对照证据（图 4b/图 7）</h3>
+<p>majority voting（<span class="num">4/8/16/32/64</span> 路，temp=1）对 base 无法追平 s1-32B 的顺序缩放；REBASE（树搜索 + process reward model）效果好于 majority voting 甚至部分 sequential 设置，但每步需额外一次 RM forward，<span class="inferred">（推断）其真实算力开销被低估——这削弱了「REBASE 更优」的表面结论。</span></p>
+
+<h3>4.5 评估协议的可信度措施（附录 B/E，§4.1）</h3>
+<p>lm-evaluation-harness 基座；默认 temperature=0（greedy）pass@1；AIME24 共 <span class="num">30 题</span>（Asymptote 语言输入）；MATH500 为 OpenAI 选定的 <span class="num">500</span> 道（5-shot）；GPQA Diamond <span class="num">198</span> 道 PhD 级科学题。s1K 自身 grader 判定正确率 <span class="num">53.6%</span>（s1K）/ <span class="num">63.0%</span>（s1K-1.1）。<span class="inferred">（推断）grader 正确率过半意味着蒸馏教师本身在难题上错误率高，s1 的成绩是在含噪数据上取得的，侧面印证「激活假说」——数据不必全对，示范格式与探索姿态更重要。</span></p>
+
+<h2 id="s5">五、批判性分析</h2>
+
+<h3>5.1 顺序缩放的天花板与上下文墙</h3>
+<p>预算强制曲线最终 flatten（图 4a）；更根本地，顺序缩放受底层 context window 物理约束——§6.2 提到提示至 <span class="num">512 steps</span> 时，<span class="num">30</span> 道评估题中 <span class="num">12</span> 道超出上下文窗口导致大幅性能跌落。<span class="inferred">（推断）这意味着 BF 的「100% 可控」只在窗口余量内成立，长尾难题无法靠无限延长思考解决。</span></p>
+
+<h3>5.2 "Wait" 的最优性缺乏机理解释与泛化验证</h3>
+<p>表 4 显示 "Wait" 严格优于 "Alternatively" 与 "Hmm"（AIME24 <span class="num">53.3</span> vs 均 <span class="num">50.0</span>），但论文未解释为何这一个词最好，也未系统扫描其他候选词；且抑制端 think token 次数过多会诱发重复循环。<span class="inferred">（推断）"Wait" 可能恰好处于训练分布中自我纠错行为的典型语境，但这属于脆弱的经验巧合，换基座/换数据可能失效。</span></p>
+
+<h3>5.3 教师单一性与蒸馏天花板</h3>
+<p>s1K 全部由 Gemini 2.0 Flash Thinking 蒸馏。Gemini API 存在 recitation error：作者手动插入全部 <span class="num">30</span> 道 AIME24 规避，但 MATH500 与 GPQA 无法规避故标 N.A.<span class="inferred">。（推断）两个隐患：其一，s1 的推理风格被单一教师的先验塑形；其二，recitation 规避只覆盖 AIME24，其余基准的成绩可能隐含教师记忆泄漏的贡献，难以剥离。</span></p>
+
+<h3>5.4 对比表的口径不公平</h3>
+<p>表 1 各模型的 #ex 与训练方式异质：r1 是 RL + 800K 样本，o1 完全闭源，Gemini 行大量 N.A.<span class="inferred">。（推断）「s1 与 o1-preview 竞争」的叙事应限定在 AIME24/MATH500 两项数学基准；GPQA 上 o1-preview <span class="num">73.3</span> 对 s1 的 <span class="num">59.6</span> 差距达 <span class="num">13.7 pp</span>，科学推理并未追平。跨表对比只能作方向性参考。</span></p>
+
+<h3>5.5 激活假说未被验证，只被类比</h3>
+<p>「<span class="num">1,000</span> 样本为何足够」的解释诉诸 LIMA 的 Superficial Alignment Hypothesis（§6.1），作者自己承认这是假设。<span class="inferred">（推断）存在竞争性解释未排除：Qwen2.5-32B 预训练可能已包含海量数学语料，s1K 或只是触发了特定格式输出而非真正新能力；若无预训练数据审计，激活说与格式学习说不法区分。</span></p>
+
+<h3>5.6 REBASE 成本核算不完整</h3>
+<p>REBASE 的 process reward model forward 开销未计入平均思考 token 统计（§5 要点 2），<span class="inferred">（推断）若计入，其相对 BF 的效率比较可能反转——这是评估方法学上的瑕疵。</span></p>
+
+<h3>5.7 grader 噪声的双刃性</h3>
+<p>s1K 本身仅 <span class="num">53.6%</span> 被 grader 判为正确。<span class="inferred">（推断）一方面支撑「数据不必全对」的强结论，另一方面也使「data curation 是关键」的叙事出现张力：既然一半样本答案是错的，那 quality 过滤究竟在过滤什么？可能的调和是：quality 过滤的是推理过程的结构完整性而非结论正确性——但这需要进一步消融验证，论文未提供。</span></p>
+
+<h2 id="s6">六、启示与影响</h2>
+
+<h3>6.1 方法论层面<span class="inferred">（推断）</span></h3>
+<ul class="tight">
+  <li><b>数据工程的杠杆率远大于算力堆叠</b>：<span class="num">7 vs 394</span> GPU-hours、<span class="num">1K vs 59K</span> 的对比确立了「精选小数据 SFT」作为推理研究的标准起点，直接影响了后续极简复现风潮与 r1 系蒸馏生态的实验设计。</li>
+  <li><b>解码期干预是被低估的自由度</b>：budget forcing 证明不改一个参数也能获得平滑缩放曲线，启发了一系列 inference-time control 研究（引导解码、logit 操控、分隔符工程）。</li>
+  <li><b>三维指标（Control/Scaling/Performance）应成为受控缩放研究的报告规范</b>：单一性能分数掩盖了可控性与斜率差异。</li>
+</ul>
+
+<h3>6.2 工程实践层面<span class="inferred">（推断）</span></h3>
+<ul class="tight">
+  <li><b>开源复现的最短路径模板</b>：base 选强预训练底座（Qwen2.5-32B）→ 千条级精选蒸馏数据 → 朴素 SFT → 解码期缩放。全套 <span class="num">&lt;30 分钟</span>训练使「一天内迭代一个推理模型」成为可能，极大降低学界门槛。</li>
+  <li><b>难度过滤的操作化方案可直接移植</b>：双模型可解性检验 + 判卷模型仲裁，是任何机构都能执行的廉价 difficulty proxy。</li>
+</ul>
+
+<h3>6.3 科学认知层面</h3>
+<ul class="tight">
+  <li><b>推理能力的「预训练已有、微调激活」图景</b>（假设性）：若 superficial alignment 在推理域成立，则推理研究的重心应从「如何教模型推理」转向「预训练中推理表征如何形成」——这为预训练阶段的 reasoning-native data 配比研究指明方向。<span class="inferred">（推断）</span></li>
+  <li><b>长度—正确性的非平凡关系</b>：rejection sampling 逆缩放与 budget forcing 正缩放的并存表明，思考长度的价值取决于其成因（犯错回溯 vs 从容深思），简单以长度为奖励信号（如 length-based RL）存在系统性风险。<span class="inferred">（推断）</span></li>
+  <li><b>历史定位</b>：s1 位于 o1（2024-09，闭源黑箱）与 R1（2025-01，RL 大规模范式）之间的开源转折点——它没有解决 RL 训练问题，但以最小代价证明了现象的真实与可复现，为社区提供了可信的对照基线。<span class="inferred">（推断）</span></li>
+</ul>
+
+<h3>6.4 局限清单（承 §6，供后续工作引用）</h3>
+<blockquote>
+① 顺序缩放上界受 context window 约束（512 steps 时 12/30 题溢出）；② 并行补足有限且有 RM 开销漏计；③ 教师单一 + recitation 泄漏风险；④ 跨模型对比口径不一；⑤ 激活假说未验证；⑥ "Wait" 最优性与重复循环风险待考。
+</blockquote>
+
+<hr class="divider">
+
+<footer class="selfcheck">
+<b>末尾自检 Self-check</b><br>
+· 数据依据：本页全部数字取自同目录《00-源数据提取.md》（arXiv:2501.19393v3，ICML 2025），分析性内容均标注「（推断）」。<br>
+· 编码：UTF-8 无替换字符；关键数字以 span.num 高亮。<br>
+· 结构：摘要 + 六章（问题定位/概念内核/方法拆解/证据链/批判性分析/启示与影响）+ 自检区块。<br>
+· div 开闭配平校验通过（见生成脚本输出）。
+</footer>
+
+</div>
+</body>
+</html>

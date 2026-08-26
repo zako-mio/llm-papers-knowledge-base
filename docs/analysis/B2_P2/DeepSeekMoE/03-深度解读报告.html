@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《DeepSeekMoE》深度解读报告</title>
+<style>
+:root{
+  --bg:#f7f8fa; --card:#ffffff; --ink:#1f2933; --ink-soft:#52606d;
+  --line:#e4e7eb; --accent:#0b6e99; --accent-soft:#e3f2fa;
+  --gold:#8a6d00; --gold-soft:#fff8e1;
+  --green:#1b7f4b; --green-soft:#e6f6ec;
+  --red:#b42318; --red-soft:#fdecea;
+  --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+  font-size:16px;line-height:1.75;}
+a{color:var(--accent)}
+.topbar{position:fixed;top:0;left:0;right:0;z-index:50;height:56px;
+  background:#12344d;color:#fff;display:flex;align-items:center;gap:12px;
+  padding:0 20px;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.topbar .brand{font-weight:600;letter-spacing:.5px;white-space:nowrap}
+.topbar .divider{width:1px;height:22px;background:rgba(255,255,255,.35)}
+.topbar .doc-title{font-size:14px;opacity:.92;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.layout{display:flex;padding-top:56px}
+.sidebar{position:fixed;top:56px;bottom:0;left:0;width:264px;overflow-y:auto;
+  background:var(--card);border-right:1px solid var(--line);padding:20px 0;}
+.sidebar .toc-title{font-size:12px;letter-spacing:2px;color:var(--ink-soft);
+  text-transform:uppercase;padding:0 22px 10px;border-bottom:1px solid var(--line);margin-bottom:10px}
+.sidebar nav a{display:block;padding:7px 22px;font-size:14px;color:var(--ink-soft);
+  text-decoration:none;border-left:3px solid transparent;line-height:1.5}
+.sidebar nav a:hover{color:var(--accent);background:var(--accent-soft)}
+.sidebar nav a.sub{padding-left:38px;font-size:13px;color:#7b8794}
+.content{flex:1;margin-left:264px;max-width:980px;padding:36px 48px 80px}
+h1{font-size:30px;line-height:1.35;margin:8px 0 12px}
+h2{font-size:24px;margin:56px 0 16px;padding-bottom:10px;border-bottom:2px solid var(--accent)}
+h2 .secno{color:var(--accent);margin-right:8px}
+h3{font-size:19px;margin:36px 0 10px;color:#12344d}
+p{margin:12px 0}
+ul,ol{margin:10px 0;padding-left:26px}
+li{margin:7px 0}
+strong{color:#0d2436}
+.datasrc{font-size:13px;color:var(--ink-soft);background:#eef2f5;
+  border-left:3px solid var(--accent);padding:6px 14px;margin:10px 0;border-radius:0 4px 4px 0}
+.tldr{background:var(--gold-soft);border:1px solid #f0e3b0;border-left:5px solid var(--gold);
+  padding:12px 18px;border-radius:6px;margin:22px 0}
+.tldr .tag{display:inline-block;background:var(--gold);color:#fff;font-size:12px;
+  font-weight:700;border-radius:3px;padding:1px 8px;margin-right:8px;letter-spacing:1px}
+.tldr p{margin:0;font-size:15.5px}
+table{border-collapse:collapse;width:100%;font-size:14px;margin:10px 0}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:#12344d;color:#fff;font-weight:600;white-space:nowrap}
+tr:nth-child(even) td{background:#fafbfc}
+td.num,th.num{font-family:var(--mono);text-align:center;white-space:nowrap}
+td.best{background:var(--green-soft);color:var(--green);font-weight:700}
+td.loss{background:var(--red-soft);color:var(--red)}
+code,.fmt{font-family:var(--mono);font-size:.9em;background:#eef2f5;
+  padding:1px 6px;border-radius:3px;word-break:break-all}
+.formula{font-family:var(--mono);background:#0d2436;color:#d7e9f7;text-align:center;
+  padding:14px;border-radius:6px;margin:14px 0;font-size:15px;letter-spacing:.5px}
+.kpi-row{display:flex;flex-wrap:wrap;gap:14px;margin:20px 0}
+.kpi{flex:1 1 180px;background:var(--card);border:1px solid var(--line);
+  border-top:4px solid var(--accent);border-radius:8px;padding:14px 16px;text-align:center;
+  box-shadow:0 1px 3px rgba(16,42,67,.06)}
+.kpi .v{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--accent);display:block;line-height:1.3}
+.kpi .k{font-size:13px;color:var(--ink-soft)}
+.kpi.gold{border-top-color:var(--gold)} .kpi.gold .v{color:var(--gold)}
+.kpi.green{border-top-color:var(--green)} .kpi.green .v{color:var(--green)}
+.issue{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--red);
+  border-radius:6px;padding:14px 18px;margin:14px 0}
+.issue .issue-title{font-weight:700;color:var(--red);margin-bottom:6px}
+.summarybox{background:#12344d;color:#e8f1f7;border-radius:8px;padding:22px 26px;margin:40px 0 10px}
+.summarybox h2{border-bottom-color:#3f6d8c;margin-top:0}
+.summarybox strong{color:#fff}
+.footer{color:#7b8794;font-size:12.5px;text-align:center;padding:20px 0 8px;border-top:1px solid var(--line);margin-top:48px}
+@media (max-width:900px){
+  .sidebar{display:none}
+  .content{margin-left:0;padding:24px 18px 60px}
+  h1{font-size:23px}
+  h2{font-size:20px}
+  .topbar .doc-title{display:none}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="brand">LLM 关键节点论文全集</span>
+  <span class="divider"></span>
+  <span class="doc-title">DeepSeekMoE · Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models（arXiv:2401.06066）</span>
+</div>
+
+<div class="layout">
+<aside class="sidebar">
+  <div class="toc-title">目录 · CONTENTS</div>
+  <nav>
+    <a href="#sec-abstract">摘要</a>
+    <a href="#sec-problem">一、问题定位</a>
+    <a href="#sec-problem" class="sub">知识混杂与知识冗余</a>
+    <a href="#sec-concept">二、概念内核</a>
+    <a href="#sec-method">三、方法拆解</a>
+    <a href="#sec-evidence">四、证据链</a>
+    <a href="#sec-evidence" class="sub">2B 上限对齐 / 16B 算力经济</a>
+    <a href="#sec-critique">五、批判性分析</a>
+    <a href="#sec-insight">六、启示与影响</a>
+    <a href="#sec-conclusion">总结</a>
+  </nav>
+</aside>
+
+<main class="content">
+
+<h1>《DeepSeekMoE》深度解读报告</h1>
+<div class="datasrc">数据依据：00-源数据提取.md（arXiv:2401.06066v1，2024-01-11，33 页），全部数字与原文一致；文中标注「（推断）」处为分析者推理补充。</div>
+
+<div class="kpi-row">
+  <div class="kpi"><span class="v">1.808</span><span class="k">2B Pile Loss（vs Dense×16 上限 1.806）</span></div>
+  <div class="kpi green"><span class="v">44 亿</span><span class="k">细粒度激活组合数 C(64,8)，原 C(16,2)=120</span></div>
+  <div class="kpi gold"><span class="v">≈40%</span><span class="k">16B 匹敌 LLaMA2-7B 所需计算占比</span></div>
+  <div class="kpi"><span class="v">40GB</span><span class="k">单卡无量化部署 16B 全量权重</span></div>
+</div>
+
+<section id="sec-abstract">
+<h2><span class="secno">▣</span>摘要</h2>
+<p>本文解读 DeepSeek-AI 联合北京大学、清华大学、南京大学提出的《DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models》。论文的核心论断是：传统 top-K MoE 架构（以 GShard 为代表）存在<strong>知识混杂（Knowledge Hybridity）</strong>与<strong>知识冗余（Knowledge Redundancy）</strong>两大结构性病理——每个专家被迫同时处理多种异质知识，且不同层/不同专家间重复学习公共知识——导致专家无法真正「专门化」，MoE 相对稠密模型的理论收益被大量浪费。</p>
+<p>作者提出两项互补设计：<strong>细粒度专家切分</strong>（把每个 FFN 专家沿中间维度切成 m 个小专家，激活数从 K 升至 mK，总参与计算恒定）与<strong>共享专家隔离</strong>（隔离确定性激活的共享专家承接公共知识，routed 专家相应减员），在 2B 验证规模上以相同总参/激活全面超越 GShard（Pile loss <code>1.808 vs 1.867</code>，TriviaQA <code>16.6 vs 10.2</code>），并几乎逼近「专家混合上限」Dense×16（<code>1.808 vs 1.806</code>）；放大到 16B 后以约 <strong>40% 计算量</strong>匹敌 LLaMA2-7B（39.6%）与 DeepSeek 7B（40.5%），权重开源且单张 40GB GPU 即可无量化部署。</p>
+<p>这篇论文是 DeepSeek 技术谱系中承前启后的关键节点——其架构思想直接延续至 V2/V3 系列，「以激活参数效率换算力经济」自此成为 DeepSeek 路线的标志性主张。本报告按「问题—概念—方法—证据—批判—启示」六层结构逐层拆解。</p>
+</section>
+
+<section id="sec-problem">
+<h2><span class="secno">一</span>问题定位：知识混杂与知识冗余——MoE 收益被浪费的根源</h2>
+
+<h3>1.1 MoE 的承诺与现实落差</h3>
+<p>稀疏 MoE 的理论承诺非常诱人：把 Transformer 每层的单个 FFN 替换为多个专家加一个路由器，每个 token 只激活其中 top-K 个专家，即可在不增加每 token 计算量的前提下线性扩容模型总参数——「用别人的参数，干自己的活」。GShard、Switch Transformer 等先行工作已在机器翻译与语言建模上验证了该方向的可行性。</p>
+<p>但论文开篇即指出：现有 top-K MoE 远未兑现这一承诺。给定固定的计算预算，MoE 理论上应显著优于稠密模型；实践中同计算量的差距却远小于预期。（推断）这背后是一个朴素却被长期忽视的问题：<strong>参数多了，但参数没有被「用好」</strong>——容量在增加，专业化程度却没有同步提升。</p>
+
+<h3>1.2 两大结构性病理</h3>
+<table>
+<tr><th>病理</th><th>表现</th><th>后果</th></tr>
+<tr><td><strong>知识混杂<br>Knowledge Hybridity</strong></td><td>专家数量少且单专家仍是完整 FFN 尺寸，每个专家被迫处理五花八门的 token 类型——一个专家可能同时消化数学符号、代码语法与自然语言惯用法</td><td>专家内部成为「大杂烩」，名为专家、实为通才</td></tr>
+<tr><td><strong>知识冗余<br>Knowledge Redundancy</strong></td><td>不同专家（乃至不同层）重复学习相同的公共知识，如所有专家各自保留一份高频虚词表征</td><td>公共知识被重复存储 N 份，挤占专有知识的参数预算</td></tr>
+</table>
+<p>两者的共同后果是：<strong>专家专门化程度低下，参数效率远低于理论上限</strong>。这不是工程调参问题，而是架构层面的结构缺陷——只要专家粒度与路由机制不变，混杂与冗余就必然存在。</p>
+
+<h3>1.3 解题思路的定位</h3>
+<table>
+<tr><th>病理</th><th>对策</th><th>直觉</th></tr>
+<tr><td>知识混杂</td><td>细粒度专家切分</td><td>专家切小，每个只需精通一种「细粒度知识」</td></tr>
+<tr><td>知识冗余</td><td>共享专家隔离</td><td>公共知识集中存一份，routed 专家腾出预算学专有知识</td></tr>
+</table>
+<div class="tldr"><span class="tag">一句话小结</span><p>DeepSeekMoE 把 MoE 的研究问题从「如何扩大稀疏规模」重新聚焦为「如何让每个参数承载最不可替代的知识」——终极专家专门化既是口号，也是可度量的工程目标（逼近专家混合上限 Dense×16）。</p></div>
+</section>
+
+<section id="sec-concept">
+<h2><span class="secno">二</span>概念内核：核心概念逐一定义</h2>
+
+<h3>2.1 知识混杂与知识冗余</h3>
+<p><strong>术语表定义</strong>：知识混杂指单个专家同时学习多种异质知识；知识冗余指不同专家间重复学习公共知识。（推断）二者存在内在张力：正因为专家太粗（混杂），公共知识才不得不在每个专家里各存一份（冗余）——切细专家天然缓解冗余，而共享专家隔离则是对残余冗余的显式兜底。两招合璧才构成完整的「专门化」方案，这也解释了为何论文坚持二者必须同时使用。</p>
+
+<h3>2.2 细粒度专家切分（Fine-Grained Expert Segmentation）</h3>
+<p><strong>定义</strong>：把每个标准 FFN 专家沿中间隐藏维度切成 m 个更小的专家（每个新专家中间维度为原来的 1/m），同时将激活专家数从 K 提升到 mK，<strong>保持总参数量与每 token 计算量恒定</strong>。</p>
+<p><strong>拆解</strong>：这是全文最关键的单一设计，精妙之处在于「零成本换灵活性」——参数总量和 FLOPs 一个都没多花，改变的只是知识的组织颗粒度。收益体现在组合数学上：设原配置 N 个专家选 K 个，切分后 N·m 个选 m·K 个，可行组合数从 C(N,K) 变为 C(Nm,mK)。论文实例：N=16, m=4 时，C(16,2)=<code>120</code> 暴涨为 C(64,8)=<code>4,426,165,368</code>——近 44 亿种知识组合方式。（推断）这意味着同样一笔参数预算，路由器为每个 token 定制专属组合的能力指数级增强。</p>
+
+<h3>2.3 共享专家隔离（Shared Expert Isolation）</h3>
+<p><strong>定义</strong>：额外隔离 K_s 个共享专家，每个 token <strong>不经路由器、确定性地</strong>分配到全部共享专家；同时为保持计算恒定，routed 激活数相应减少 K_s 个。</p>
+<p><strong>拆解</strong>：共享专家承担「公共知识仓库」角色，机制上有三个细节值得注意：① 共享专家<strong>绕过 router</strong>，不存在 routing collapse 风险；② 「激活数减 K_s」保证与基线严格等算力，对比公平性由此锚定；③ 共享专家数是超参——消融显示 1/2/4 个共享专家对应 Pile loss <code>1.808 / 1.806 / 1.811</code>，最终选择 <code>1 shared : 3 activated routed</code> 的比例。</p>
+
+<h3>2.4 终极专家专门化（Ultimate Expert Specialization）</h3>
+<p><strong>定义</strong>：论文标题中的目标态——每个专家只承载最小不可再分的专有知识单元，公共知识由共享专家统一承载，冗余趋近于零。</p>
+<p><strong>拆解</strong>：「终极」不是修辞，而是有明确度量标准的工程目标。论文构造两级参照系：一是 <strong>Dense×16</strong>（16 个全尺寸专家全激活），代表「同样专家参数、无路由损耗」的性能上限；二是 <strong>GShard×1.5</strong>，代表传统粗粒度路线追加 50% 参数的天花板。DeepSeekMoE 2B 的 Pile loss <code>1.808</code> 与 Dense×16 的 <code>1.806</code> 几乎持平，即「逼近上限」的直接证据。</p>
+
+<h3>2.5 两级负载均衡（Expert-Level / Device-Level Balance）</h3>
+<p><strong>定义</strong>：防止路由塌缩与设备计算失衡的两类辅助损失。Expert-Level 用因子 α1（取值很小）；Device-Level 用因子 α2（取值较大）。</p>
+<p><strong>拆解</strong>：细粒度切分放大了专家数目，也让路由均衡更尖锐。实践取舍：α1 必须很小（2B 用 0.001–0.01 量级），否则伤害性能——<strong>均衡是手段而非目的</strong>，过度追求均衡会重新引入混杂。</p>
+
+<div class="tldr"><span class="tag">一句话小结</span><p>五个概念构成一条完整因果链——两大病理命名问题，细粒度切分瓦解混杂，共享专家隔离消除冗余，「终极专门化」给出可度量的目标态，两级负载均衡为新架构保驾护航。</p></div>
+</section>
+
+<section id="sec-method">
+<h2><span class="secno">三</span>方法拆解：从公式演进到训练配置的完整技术栈</h2>
+
+<h3>3.1 公式演进：Generic MoE → DeepSeekMoE</h3>
+<p><strong>Generic MoE 层</strong>（Eq.3–5）：对第 l 层 token 特征 u<sub>t</sub><sup>l</sup>：</p>
+<div class="formula">h&#8342;&#7511; = &Sigma;<sub>i</sub> g<sub>i,t</sub> &middot; FFN<sub>i</sub>(u<sub>t</sub>) + u<sub>t</sub>&#8342;</div>
+<p>门控 g<sub>i,t</sub> 由 token 特征与专家质心 e<sub>i</sub> 内积过 Softmax 计算，仅保留得分最高的 N_r 个专家、其余置零。<strong>DeepSeekMoE 层</strong>（Eq.9–11）叠加两项改造：</p>
+<ol>
+<li><strong>细粒度</strong>：专家总数 N_m = N·m，每专家中间维度 1/m；激活数 N_r = m·K_r；</li>
+<li><strong>共享隔离</strong>：先累加 K_s 个共享专家输出（对所有 t 恒激活、不经 router），再加 routed 加权和。</li>
+</ol>
+<p>（推断）公式形式上只是求和范围的变化，实质是把 router 从「全权决策者」降格为「专有知识的调度员」——公共部分已由共享专家兜底，router 只需分辨 token 的独特需求。</p>
+
+<h3>3.2 两级负载均衡损失</h3>
+<ul>
+<li><strong>Expert-Level Balance Loss</strong>（Eq.12–14）：对每批样本统计各专家门控分数均值与命中率，最小化变异程度（factor α1），防 routing collapse；</li>
+<li><strong>Device-Level Balance Loss</strong>（Eq.15–17）：把专家分组挂到不同设备，对组级计算量施加同样约束（factor α2），防个别设备成为瓶颈。</li>
+</ul>
+<p>关键实践细节：2B 单卡训练只用 expert-level（α1=<code>0.001</code>）；16B 因采用 pipeline parallelism、每层专家恰好同设备，故未启用 device-level loss——跨设备均衡在最深规模上实际未被检验（见第五章）。</p>
+
+<h3>3.3 验证模型（~2B）与 16B 配置对照</h3>
+<table>
+<tr><th>配置项</th><th>DeepSeekMoE 2B（验证）</th><th>DeepSeekMoE 16B</th></tr>
+<tr><td>层数 / Hidden / 注意力头</td><td class="num">9 层 / 1280 / 10×128</td><td class="num">28 层 / 2048 / 16×128</td></tr>
+<tr><td>MoE 覆盖</td><td class="num">全部 FFN 层</td><td class="num">除首层外全部（首层均衡难收敛）</td></tr>
+<tr><td>专家结构</td><td class="num best">1 shared + 63 routed</td><td class="num best">2 shared + 64 routed</td></tr>
+<tr><td>每专家尺寸</td><td class="num">标准 FFN × 0.25</td><td class="num">标准 FFN × 0.25</td></tr>
+<tr><td>每 token 激活</td><td class="num">1 shared + 7 routed</td><td class="num">2 shared + 6/64 routed</td></tr>
+<tr><td>总参 / 激活参</td><td class="num">~2.0B / ~0.3B</td><td class="num">16.4B / 2.8B</td></tr>
+<tr><td>FLOPs</td><td class="num">4.3T / 2K tokens</td><td class="num">74.4T / 4K tokens</td></tr>
+<tr><td>训练 token</td><td class="num">100B（25K 步 × 4M batch）</td><td class="num">2T（106,449 步 × 18M batch）</td></tr>
+<tr><td>max lr</td><td class="num">1.08e-3</td><td class="num">4.2e-4</td></tr>
+<tr><td>词表</td><td class="num">—</td><td class="num">BPE 100K</td></tr>
+</table>
+<p>补充细节：所有可学习参数初始化标准差 0.006；AdamW β=(0.9, 0.95)、weight decay 0.1；warmup 2K 步后按 80%/90% 进度 ×0.316 两段衰减。「专家总参 = 标准 FFN × 16、激活 = × 2」的设定，使对比基线（Dense 0.2B、HashLayer/Switch/GShard 2.0B）处于严格可比坐标系。</p>
+
+<h3>3.4 对齐微调（SFT）</h3>
+<p>16B 基座经 <code>1.4M</code> 条指令样本 SFT 得到 chat 版：batch 1024、8 epochs、max seq 4K、恒定 lr 1e-5（无调度）。评测覆盖 GSM8K/MATH/HumanEval/MBPP 等，与 LLaMA2-SFT 7B、DeepSeek-Chat 7B 使用相同 SFT 数据对比。</p>
+
+<div class="tldr"><span class="tag">一句话小结</span><p>方法体系是「一改一隔一护」——细粒度切分改组织颗粒度、共享专家隔离改知识归属、两级均衡 loss 护路由稳定；所有设计都钉死在「与基线严格等参等算」的对照框架内，使结论不受规模混淆。</p></div>
+</section>
+
+<section id="sec-evidence">
+<h2><span class="secno">四</span>证据链：2B 上限对齐、16B 算力经济与专门化四重证据</h2>
+
+<h3>4.1 第一重证据：2B 同坐标全面领先（Table 1）</h3>
+<p>100B tokens、~2B 总参/~0.3B 激活的严格同坐标对比：</p>
+<table>
+<tr><th>Metric</th><th>#Shot</th><th class="num">Dense</th><th class="num">HashLayer</th><th class="num">Switch</th><th class="num">GShard</th><th class="num">DeepSeekMoE</th></tr>
+<tr><td>Pile (Loss)</td><td class="num">-</td><td class="num">2.060</td><td class="num">1.932</td><td class="num">1.881</td><td class="num">1.867</td><td class="num best">1.808</td></tr>
+<tr><td>HellaSwag (Acc)</td><td class="num">0-shot</td><td class="num">38.8</td><td class="num">46.2</td><td class="num">49.1</td><td class="num">50.5</td><td class="num best">54.8</td></tr>
+<tr><td>PIQA (Acc)</td><td class="num">0-shot</td><td class="num">66.8</td><td class="num">68.4</td><td class="num">70.5</td><td class="num">70.6</td><td class="num best">72.3</td></tr>
+<tr><td>ARC-easy (Acc)</td><td class="num">0-shot</td><td class="num">41.0</td><td class="num">45.3</td><td class="num">45.9</td><td class="num">43.9</td><td class="num best">49.4</td></tr>
+<tr><td>ARC-challenge (Acc)</td><td class="num">0-shot</td><td class="num">26.0</td><td class="num">28.2</td><td class="num">30.2</td><td class="num">31.6</td><td class="num best">34.3</td></tr>
+<tr><td>RACE-middle (Acc)</td><td class="num">5-shot</td><td class="num">38.8</td><td class="num">38.8</td><td class="num">43.6</td><td class="num">42.1</td><td class="num best">44.0</td></tr>
+<tr><td>RACE-high (Acc)</td><td class="num">5-shot</td><td class="num">29.0</td><td class="num">30.0</td><td class="num">30.9</td><td class="num">30.4</td><td class="num best">31.7</td></tr>
+<tr><td>HumanEval (Pass@1)</td><td class="num">0-shot</td><td class="num">0.0</td><td class="num">1.2</td><td class="num">2.4</td><td class="num">3.7</td><td class="num best">4.9</td></tr>
+<tr><td>MBPP (Pass@1)</td><td class="num">3-shot</td><td class="num">0.2</td><td class="num">0.6</td><td class="num">0.4</td><td class="num">0.2</td><td class="num best">2.2</td></tr>
+<tr><td>TriviaQA (EM)</td><td class="num">5-shot</td><td class="num">4.9</td><td class="num">6.5</td><td class="num">8.9</td><td class="num">10.2</td><td class="num best">16.6</td></tr>
+<tr><td>NaturalQuestions (EM)</td><td class="num">5-shot</td><td class="num">1.4</td><td class="num">1.4</td><td class="num">2.5</td><td class="num">3.2</td><td class="num best">5.7</td></tr>
+</table>
+<p><strong>三点解读</strong>：① <strong>全线最优</strong>，无一基准例外；② 优势幅度不均——知识密集型任务（TriviaQA 领先 62.7%、NQ 领先 78%）与代码任务领先最多，说明专门化收益集中在需要细分知识的场景；③ 相对 Switch/GShard 的增量完全来自知识组织方式的改变（FLOPs 同为 4.3T），归因干净。</p>
+
+<h3>4.2 第二重证据：逼近理论上限（Table 2）</h3>
+<ul>
+<li><strong>vs Dense×16</strong>（16 个全尺寸专家全激活，FLOPs 24.6T）：Pile <code>1.808 vs 1.806</code> 几乎持平——DeepSeekMoE 以约 <strong>17.6% 的计算量</strong>（4.3T/24.6T）达到上限级表现；</li>
+<li><strong>vs GShard×1.5</strong>（FLOPs 5.8T、专家参 2.83B）：Pile 1.808 持平、HellaSwag <code>54.8 vs 54.4</code>、HumanEval <code>4.9 vs 3.0</code>——用<strong>更少的专家参数（1.89B vs 2.83B）与更低 FLOPs（4.3T vs 5.8T）</strong>取得可比或更好成绩。</li>
+</ul>
+<p>两组对照合起来构成标题的实证闭环：向上逼近上限、向下碾压传统路线。</p>
+
+<h3>4.3 第三重证据：16B 的算力经济（Table 3/4/5）</h3>
+<table>
+<tr><th>对比对象（计算占比）</th><th>代表基准</th><th class="num">DeepSeekMoE 16B</th><th class="num">对手</th></tr>
+<tr><td rowspan="3">DeepSeek 7B<br><span style="font-size:12px;color:var(--ink-soft)">40.5% 计算（74.4T vs 183.5T FLOPs）</span></td><td>Pile BPB</td><td class="num best">0.74</td><td class="num">0.75</td></tr>
+<tr><td>HellaSwag / TriviaQA</td><td class="num best">77.1 / 64.8</td><td class="num">75.4 / 59.7</td></tr>
+<tr><td>MMLU</td><td class="num loss">45.0</td><td class="num">48.2</td></tr>
+<tr><td rowspan="4">LLaMA2-7B<br><span style="font-size:12px;color:var(--ink-soft)">39.6% 计算（74.4T vs 187.9T FLOPs）</span></td><td>Pile BPB</td><td class="num best">0.74</td><td class="num">0.76</td></tr>
+<tr><td>HumanEval / MATH</td><td class="num best">26.8 / 4.3</td><td class="num">14.6 / 2.6</td></tr>
+<tr><td>CEval / CMMLU</td><td class="num best">40.6 / 42.5</td><td class="num">33.9 / 32.6</td></tr>
+<tr><td>CHID</td><td class="num best">89.4</td><td class="num loss">37.9</td></tr>
+<tr><td rowspan="3">Chat 版（Table 5，同 SFT 数据，40% 计算）</td><td>GSM8K</td><td class="num">62.2</td><td class="num">63.4 / 62.6</td></tr>
+<tr><td>MATH / HumanEval / MBPP</td><td class="num best">15.2 / 45.7 / 46.2</td><td class="num">13.5/14.7 · 35.4/45.1 · 27.8/39.0</td></tr>
+<tr><td>MMLU</td><td class="num loss">47.2</td><td class="num">50.0 / 49.7</td></tr>
+</table>
+<p><strong>145B 初步外推</strong>：scaled 到 145B 参数时性能可比 DeepSeek 67B，仅用约 <strong>28.5%（甚至 18.2%）</strong>的计算量——虽属初步探索，但指明了「规模越大、算力经济越显著」的方向。另注：16B 多项选择短板归因于注意力参数仅 <code>~0.5B</code>（vs DeepSeek7B 2.5B）——MoE 只替换了 FFN，注意力侧未扩容。</p>
+
+<h3>4.4 第四重证据：专家专门化的四条行为学证据（§4.5）</h3>
+<ol>
+<li><strong>冗余更低</strong>：逐个关闭 top routed 专家时，DeepSeekMoE 性能衰减比 GShard×1.5 更陡峭——每个 routed 专家更不可替代，不存在「关了还有别人顶上」的冗余备份；</li>
+<li><strong>共享专家不可替代</strong>：关闭共享专家、代之以一个 routed 专家，Pile loss 从 <code>1.808</code> 恶化到 <code>2.414</code>——公共知识与专有知识确实分居两类专家，无法互相顶替；</li>
+<li><strong>组合能力</strong>：仅激活 4 个 routed 专家即可达到 GShard 全部激活专家的效果——细粒度组合的灵活性兑现了；</li>
+<li><strong>参数效率</strong>：只启用一半激活参数时仍超过 GShard——同一架构在不同预算下依然保持优势。</li>
+</ol>
+
+<h3>4.5 可部署性</h3>
+<p>DeepSeekMoE 16B 权重公开，<strong>单张 40GB GPU 无需量化即可部署</strong>；经过推理优化后速度约为同代 7B 稠密模型的 <code>2.5×</code>。（推断）这对当时「16B 级别必须多卡或强量化」的行业默认形成冲击，也是该模型在开源社区获得广泛下游应用的直接原因。</p>
+
+<div class="tldr"><span class="tag">一句话小结</span><p>证据体系呈金字塔形——底层是严格同坐标的 2B 全面领先，中层是逼近理论上限与 16B 的 40% 算力经济，顶层是专门化的行为学解剖；四重证据相互独立又指向同一结论。</p></div>
+</section>
+
+<section id="sec-critique">
+<h2><span class="secno">五</span>批判性分析</h2>
+
+<h3>5.1 作者自述局限的深层含义</h3>
+<ol>
+<li><strong>145B 结果仅为初步</strong>：摘要给出 28.5%/18.2% 计算比的亮眼数字，但正文无完整基准表——「规模越大越划算」在当时仍是外推而非实证；</li>
+<li><strong>多项选择任务受限</strong>：MMLU 45.0 落后于两个 7B 基线，归因于注意力参数仅 ~0.5B。深层含义：<strong>MoE 化是有偏的扩容</strong>——扩的是 FFN 侧知识存储而非注意力侧序列运算能力，任务短板由未扩容部分决定。这一发现直接催生了 DeepSeek-V2 时代对 MLA 注意力的补课；</li>
+<li><strong>中文评估的不确定性</strong>：SFT 评测因「结果不稳定」剔除 CHID，作者自述语料以英中为主——中文优势结论需注意评估协议的选择性；</li>
+<li><strong>无并行 scaling law</strong>：专家数、激活数、细粒度 m 的最优配置随规模如何变化未系统回答，「16B 以上仍可用更细粒度」是推测；</li>
+<li><strong>device-level 均衡未在最深处验证</strong>：16B 用 pipeline parallelism 且每层专家同设备，跨设备均衡 loss 实际未被启用。</li>
+</ol>
+
+<h3>5.2 独立观察到的疑点</h3>
+<div class="issue"><div class="issue-title">疑点① 「上限」参照系的人为性</div><p>Dense×16 作为「专家混合上限」本质是一个 2B 激活参数的稠密模型。「逼近上限」证明的是「细粒度 MoE 不比同参数稠密差多少」，而非达到真正的理论极限（无限专家、完美路由并无操作性定义）。（推断）这一表述更多是修辞性锚定，应理解为「与最强稠密参照持平」。</p></div>
+<div class="issue"><div class="issue-title">疑点② 消融的交叉验证缺口</div><p>共享专家数消融（1/2/4 → 1.808/1.806/1.811）与专家数消融（32/64 持续提升）各自成立，但<strong>「细粒度 × 共享」联合最优配置没有网格搜索</strong>——1:3 配比是局部选择产物，全局最优可能不同；α1 与专家粒度的交互效应未被讨论。</p></div>
+<div class="issue"><div class="issue-title">疑点③ 2B 规模外推的有效性</div><p>全部架构决策（m=4、1:3 配比、α1 量级）在 2B/100B tokens 上定夺后直接用于 16B/2T。「小规模结论可迁移」在 MoE 文献中并不总成立（路由动态随规模漂移屡有报告）。且 16B 未启用 device-level loss，意味着验证环境与最终环境本身就不一致。</p></div>
+<div class="issue"><div class="issue-title">疑点④ 首层不做 MoE 的信息量</div><p>16B 首层保留稠密 FFN，理由是「首层负载均衡难收敛」。这个工程补丁反证了路由机制在低层的脆弱性——（推断）低层 token 表征尚未分化，router 缺乏可靠判别信号。这与 Mixtral 等观察到的层级路由熵差异互洽，提示细粒度设计的收益主要在中高层。</p></div>
+<div class="issue"><div class="issue-title">疑点⑤ 对比基线缺席同期最强竞品</div><p>对比止步于 GShard/Switch 一代；发表时间相近的 Mixtral 8x7B（2023-12）采用相反的「粗专家少激活」路线却未进入对比。「细粒度占优」在同代最强竞品缺席下说服力打折——尽管 2B 内部对照的逻辑严密性弥补了部分缺憾。</p></div>
+
+<h3>5.3 批判综述</h3>
+<p>本文的证据纪律在同类工作中属于上乘：严格等参等算的对照组、多层级消融、以及罕见的行为学解剖（§4.5）。主要软肋集中在<strong>外推链条</strong>上——2B 决策直接迁移 16B、145B 只有初步数字、跨设备均衡悬置。这些缺口不影响「细粒度+共享在受控条件下有效」的核心结论，但提醒读者：把它当作「MoE 设计的完成答案」为时尚早。</p>
+</section>
+
+<section id="sec-insight">
+<h2><span class="secno">六</span>启示与影响</h2>
+
+<h3>6.1 可迁移的经验</h3>
+<ol>
+<li><strong>「组织颗粒度」是被低估的自由度</strong>：参数与算力恒定的约束下，仅改变知识的组织颗粒度（切细专家）即释放巨大性能——适用于一切「容量固定、组织僵化」的系统（缓存分片、数据库分区、团队分工）；</li>
+<li><strong>公共知识显式分离</strong>：共享专家隔离的本质是识别系统中的「重复劳动」并集中化。任何存在多组件各自维护相似能力的架构（多智能体公共记忆、微服务公共库）都可借鉴；</li>
+<li><strong>等算对照是架构研究的金标准</strong>：全文结论可信度的根基在于总参/激活/FLOPs 三坐标全部对齐——不锁算力的对比都是耍流氓；</li>
+<li><strong>行为学证据 &gt; 单一分数</strong>：「关闭专家看敏感性」实验比再多 benchmark 分更能说明「专门化是否真的发生」，机制层面的可解释性证据应当成为架构论文标配；</li>
+<li><strong>算力经济作为产品主张</strong>：40% 计算匹敌 7B 稠密、单卡 40GB 可部署——DeepSeek 自此把「性价比」写进技术叙事，贯穿其后所有 release 直至 V3/R1 的训练成本震撼。</li>
+</ol>
+
+<h3>6.2 历史定位与后续影响</h3>
+<p>DeepSeekMoE 是 DeepSeek 架构谱系的<strong>第一块基石</strong>：</p>
+<ul>
+<li><strong>纵向传承</strong>：V2 的 MoE 层沿用细粒度+共享（256 routed + 1 shared）；V3 进一步细化（sigmoid 门控替代 softmax 并引入 aux-loss-free 均衡）。（推断）后续所有 DeepSeek 模型的「高性价比」标签，源头都在这篇论文确立的「激活效率优先」哲学；</li>
+<li><strong>横向影响</strong>：细粒度专家与共享专家随后成为业界事实标准——Qwen 系 MoE、Moonshot Kimi 等均采纳类似结构；「shared expert」一词进入 MoE 通用词汇表；</li>
+<li><strong>方法论遗产</strong>：等算对照 + 行为学解剖的评估框架被后续架构论文广泛模仿。</li>
+</ul>
+<p>（推断）回望 2024 年 1 月这个时间点，Mixtral（粗粒度）与 DeepSeekMoE（细粒度）几乎同时发布，代表了 MoE 路线的一次方向表决。此后两年的工业实践一致倒向细粒度阵营，本文正是那次转向的技术原点。</p>
+</section>
+
+<section id="sec-conclusion" class="summarybox">
+<h2><span class="secno">◆</span>总结</h2>
+<p>《DeepSeekMoE》用一组极简的设计变更回答了一个根本问题：<strong>同样的参数预算，凭什么你的模型更强？</strong>它的诊断是传统 top-K MoE 存在知识混杂与知识冗余，药方是细粒度专家切分（120 → 44 亿种激活组合）与共享专家隔离（公共知识集中一份），疗效是 2B 上 Pile loss 1.808 逼近 Dense×16 的 1.806、16B 上以约 40% 计算匹敌 LLaMA2-7B 与 DeepSeek 7B、145B 初步显示 18.2–28.5% 计算比的可比性能。</p>
+<p>其批判面集中于外推链条（2B 决策迁移、145B 不完整、跨设备均衡悬置）与多项选择任务的注意力短板，但受控实验的严谨性与 §4.5 行为学解剖的说服力，使「终极专家专门化」从口号落为可验证的事实。更重要的是，这篇论文确立了 DeepSeek 此后一贯的技术人格——不靠堆料靠组织，把每一次参数效率的榨取都变成公开的、可复现的、可被同行检视的工程主张；细粒度+共享自此成为 MoE 世界的默认答案。</p>
+</section>
+
+<div class="footer">本报告数据与 00-源数据提取.md 保持一致 · 标注「（推断）」处为分析者推理补充 · 生成于 2026-08-26</div>
+
+</main>
+</div>
+</body>
+</html>

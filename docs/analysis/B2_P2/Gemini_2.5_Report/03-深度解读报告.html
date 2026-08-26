@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gemini 2.5 技术报告深度解读</title>
+<style>
+  :root{
+    --ink:#1a2233; --sub:#5a6478; --line:#e3e8f0; --bg:#f7f9fc;
+    --accent:#1a73e8; --accent2:#0b57d0; --num-bg:#e8f0fe; --num-ink:#174ea6;
+    --warn:#b3261e; --card:#ffffff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    color:var(--ink); background:var(--bg); line-height:1.85; font-size:16px;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:48px 28px 80px}
+  header.hero{
+    background:linear-gradient(135deg,#0b57d0 0%,#1a73e8 55%,#4c8df6 100%);
+    color:#fff;border-radius:16px;padding:44px 40px;margin-bottom:36px;
+    box-shadow:0 8px 24px rgba(26,115,232,.25);
+  }
+  header.hero h1{font-size:30px;line-height:1.4;font-weight:700;letter-spacing:.5px}
+  header.hero .meta{margin-top:14px;font-size:13.5px;opacity:.92}
+  header.hero .meta span{display:inline-block;margin-right:18px}
+  .provenance{
+    background:var(--card);border-left:4px solid var(--accent);
+    border-radius:8px;padding:16px 22px;font-size:13.5px;color:var(--sub);
+    margin-bottom:36px;box-shadow:0 2px 10px rgba(20,30,60,.06);
+  }
+  section.card{
+    background:var(--card);border-radius:14px;padding:34px 38px;margin-bottom:28px;
+    box-shadow:0 2px 14px rgba(20,30,60,.07);
+  }
+  h2{
+    font-size:21px;color:var(--accent2);padding-bottom:12px;margin-bottom:20px;
+    border-bottom:2px solid var(--line);display:flex;align-items:center;gap:10px;
+  }
+  h2 .idx{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:32px;height:32px;border-radius:9px;background:var(--accent);color:#fff;
+    font-size:15px;flex:none;
+  }
+  h3{font-size:16.5px;margin:22px 0 10px;color:#20304d}
+  p{margin:10px 0;text-align:justify}
+  span.num{
+    display:inline-block;background:var(--num-bg);color:var(--num-ink);
+    font-family:"JetBrains Mono",Consolas,monospace;font-size:.93em;font-weight:600;
+    padding:0 6px;border-radius:5px;white-space:nowrap;
+  }
+  .infer{color:#8a5a00;font-size:.88em;border-bottom:1px dotted #c99b2f;cursor:help}
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14.5px}
+  th{background:#eef3fb;color:#20304d;padding:9px 12px;text-align:left;font-weight:600;border-bottom:2px solid #d7e2f3}
+  td{padding:8px 12px;border-bottom:1px solid var(--line)}
+  tr:hover td{background:#f6f9ff}
+  ul,ol{padding-left:24px;margin:10px 0}
+  li{margin:6px 0}
+  blockquote{
+    border-left:4px solid #c99b2f;background:#fdf8ec;border-radius:0 8px 8px 0;
+    padding:12px 18px;margin:14px 0;color:#6b5518;font-size:14.5px;
+  }
+  .abstract{font-size:15.5px;background:#f4f8ff;border:1px solid #dbe7fb;border-radius:10px;padding:20px 24px}
+  .kpi-grid{display:flex;flex-wrap:wrap;gap:14px;margin:18px 0}
+  .kpi{
+    flex:1 1 180px;background:linear-gradient(160deg,#f4f8ff,#eaf1fd);
+    border:1px solid #d7e2f3;border-radius:10px;padding:14px 16px;text-align:center;
+  }
+  .kpi .v{font-size:22px;font-weight:700;color:var(--accent2);font-family:"JetBrains Mono",Consolas,monospace}
+  .kpi .l{font-size:12.5px;color:var(--sub);margin-top:4px}
+  footer{
+    text-align:center;color:var(--sub);font-size:12.5px;margin-top:40px;
+    border-top:1px solid var(--line);padding-top:20px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>Gemini 2.5 技术报告深度解读<br>推理 · 多模态 · 长上下文 · Agentic 能力的家族化推进</h1>
+  <div class="meta">
+    <span><strong>机构</strong>：Gemini Team, Google</span>
+    <span><strong>时间</strong>：2025 年 6 月（LMArena 数据导入 2025-06-16）</span>
+    <span><strong>篇幅</strong>：<span class="num">73</span> 页</span>
+    <span><strong>家族</strong>：2.5 Pro / 2.5 Flash / 2.0 Flash / 2.0 Flash-Lite</span>
+  </div>
+</header>
+
+<div class="provenance">
+  <strong>数据依据</strong>：本报告全部量化数字唯一取自同目录《00-源数据提取.md》（对应 papers/E5_推理与Agent_2025-2026/2025-06_P2_Gemini_2.5_Report.pdf）。超出源数据的解释性内容以 <span class="infer">（推断）</span> 标注。
+</div>
+
+<section class="card" id="abstract">
+  <h2><span class="idx">◆</span>摘要</h2>
+  <div class="abstract">
+    <p>Gemini 2.5 技术报告展示了 Google 以单一稀疏 MoE Transformer 架构为基础、通过「thinking 强化学习 + 蒸馏分层 + 百万级 token 上下文 + 原生工具调用」四条主线同时推进的家族化路线。核心成果包括：2.5 Pro 在 AIME 2025 达 <span class="num">88.0%</span>（1.5 Pro 仅 <span class="num">17.5%</span>）、GPQA diamond <span class="num">86.4%</span>（<span class="num">58.1%</span>）、LiveCodeBench <span class="num">74.2%</span>（<span class="num">30.5%</span>）；HLE 无工具 <span class="num">21.6%</span> 居所列模型之首；Deep Research 将 HLE 从 <span class="num">7.95%</span> 迭代至 <span class="num">26.9%</span>/<span class="num">32.4%</span>；视频压缩至每帧 <span class="num">66</span> 视觉 tokens 使 1M 窗口容纳约 <span class="num">3</span> 小时视频。工程侧首次使用 TPUv5p <span class="num">8960</span> 芯片 pod，切片级弹性恢复将故障损失从 <span class="num">10+</span> 分钟压至数十秒，TPU 计算占比 <span class="num">93.4%</span>。安全侧建立四 Critical Capability 域评估，触发 Cyber Uplift Level 1 alert threshold 但未确认跨越任何 CCL。</p>
+  </div>
+</section>
+
+<section class="card" id="s1">
+  <h2><span class="idx">一</span>问题定位</h2>
+  <h3>1.1 报告要回答的核心问题</h3>
+  <p>当竞争模型以单点突破取胜时，一个实验室能否用统一架构与训练管线，同时在<strong>推理、多模态、长上下文与 agentic</strong> 四个前沿保持领先，并覆盖从旗舰到轻量的全部成本档位？报告开篇给出雏形答案：2.X 家族覆盖「能力-成本」Pareto 全前沿，2.5 Pro 的 LMArena 分数比 1.5 Pro 高逾 <span class="num">120</span> 点。<span class="infer">（推断：以家族整体表现而非单模型峰值作为第一卖点，反映面向 API 商业化的定位。）</span></p>
+  <h3>1.2 前代的差距在哪里</h3>
+  <ul>
+    <li><strong>数学竞赛推理</strong>：AIME 2025 上 1.5 Pro 仅 <span class="num">17.5%</span>，2.5 Pro 达 <span class="num">88.0%</span>——<span class="num">70+</span> 百分点鸿沟；</li>
+    <li><strong>博士级科学问答</strong>：GPQA (diamond) 从 <span class="num">58.1%</span> 到 <span class="num">86.4%</span>；</li>
+    <li><strong>竞争性编码</strong>：LiveCodeBench <span class="num">30.5%</span>→<span class="num">74.2%</span>；Aider Polyglot <span class="num">16.9%</span>→<span class="num">82.2%</span>（近 <span class="num">5</span> 倍）；</li>
+    <li><strong>真实软件工程</strong>：SWE-bench Verified (multiple attempts) <span class="num">34.2%</span>→<span class="num">67.2%</span>。</li>
+  </ul>
+  <p>洼地集中于「需多步推理」任务，直接导向 Thinking 机制的设计。</p>
+  <h3>1.3 外部竞争压力与评测危机</h3>
+  <p>o 系列形成压力：AIME 2025 单次尝试上 o4-mini high（<span class="num">92.7%</span>）高于 2.5 Pro（<span class="num">88.0%</span>）。同时作者自述挑战性基准开发跟不上模型进步——HLE 专家题目成本高达每题 <span class="num">$5000</span>。<strong>评测基础设施的枯竭被明确写入技术报告的问题清单</strong>。<span class="infer">（推断）</span></p>
+</section>
+
+<section class="card" id="s2">
+  <h2><span class="idx">二</span>概念内核</h2>
+  <h3>2.1 Thinking：一等公民的测试时计算</h3>
+  <p>Thinking 不是外挂解码技巧，而是<strong>通过 RL 训练出的原生能力</strong>——回答前进行数千次前向计算；模型自主决定思考长度；用户可设 thinking budget（<span class="num">1024</span>~<span class="num">32768</span> tokens 实验显示性能随预算单调上升）。<span class="infer">（推断：推理计算量成为显式可定价的资源维度，是全行业 reasoning effort 参数的先声。）</span></p>
+  <h3>2.2 Deep Think：并行假设与自我批判</h3>
+  <p>生成多个候选假设、互相批判后收敛最终答案，在 USAMO 2025 / LiveCodeBench / MMMU 上 SoTA（2025-06 实验版开放）。<span class="infer">（推断：self-consistency + debate 的融合，由模型内部自发完成。）</span></p>
+  <h3>2.3 原生多模态与 k-sparse 蒸馏</h3>
+  <p>稀疏 MoE Transformer 原生接收文本/图像/音频输入，重点解决大规模训练不稳定性与优化动力学。Flash 及更小模型采用蒸馏：teacher 词表分布以 k-sparse 近似存储，吞吐/存储增 k 倍换取质量。效果证据：2.5 Flash GPQA <span class="num">82.8%</span> 已超一年前旗舰 1.5 Pro（<span class="num">58.1%</span>）。<span class="infer">（推断：前沿能力下沉速度快于一年一代际。）</span></p>
+  <h3>2.4 长上下文三位一体与 Agentic 转向</h3>
+  <p>1M+ 窗口由三组件支撑：LOFT hard 检索 ≤128K <span class="num">87.0%</span>、@1M <span class="num">69.8%</span>（唯一支持 1M+ 的所列模型）；视频每帧 <span class="num">66</span> tokens（原 <span class="num">258</span>）容纳约 <span class="num">3</span> 小时视频；MRCR-V2 ≤128K <span class="num">58.0%</span>。原生工具调用 + 多步 RL 环境使模型从答题者转向执行者：pathfinder 需在 <span class="num">100K+</span> tokens 上下文推理、规划最长 <span class="num">150</span> 动作路径。<span class="infer">（推断：长上下文 = 检索保真 × 内容密度 × 推理可靠的复合能力。）</span></p>
+</section>
+
+<section class="card" id="s3">
+  <h2><span class="idx">三</span>方法拆解</h2>
+  <h3>3.1 训练基础设施：故障管理学</h3>
+  <ul>
+    <li><strong>硬件底座</strong>：首个使用 TPUv5p 的模型家族；<span class="num">8960</span> 芯片 pod 同步数据并行、跨多数据中心（Pathways 单控制器）；</li>
+    <li><strong>Slice-Granularity Elasticity</strong>：局部故障以更少 slice 续训，恢复仅损数十秒（无弹性需 <span class="num">10+</span> 分钟）；</li>
+    <li><strong>Split-Phase SDC Detection</strong>：确定性重放疑似步骤、比对 per-device 校验和定位静默数据损坏；仅 <span class="num">0.25%</span> 步骤重放，其中 <span class="num">6%</span> 为真实硬件损坏。</li>
+  </ul>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="v">93.4%</div><div class="l">TPU 有效计算占比</div></div>
+    <div class="kpi"><div class="v">8960</div><div class="l">TPUv5p 芯片 / pod</div></div>
+    <div class="kpi"><div class="v">&lt;1min</div><div class="l">弹性故障恢复 vs 10+ 分钟</div></div>
+  </div>
+  <p><span class="infer">（推断：万卡级训练瓶颈已从算法转向故障管理，弹性调度 + 损坏检测组合是算力效率关键。）</span></p>
+  <h3>3.2 数据与后训练配方</h3>
+  <p>预训练覆盖网页/代码/图像/音频/视频；知识截止 2.0 为 2024-06、2.5 为 2025-01。后训练 SFT→RM→RL 三阶段<strong>全面加码 RL 算力</strong>：可验证奖励 + 基于模型的生成式奖励双轨；RL 算法改动提升长训稳定性；环境扩展到多步动作与工具使用。</p>
+  <h3>3.3 能力专项与 Deep Research 曲线</h3>
+  <table>
+    <tr><th>方向</th><th>关键结果</th></tr>
+    <tr><td>编码</td><td>WebDev Arena 较 1.5 Pro 提升超 <span class="num">500</span> Elo</td></tr>
+    <tr><td>事实性</td><td>SimpleQA <span class="num">54.0%</span>；FACTS Grounding <span class="num">87.8%</span></td></tr>
+    <tr><td>音频</td><td>FLEURS WER <span class="num">6.66</span>；CoVoST2 BLEU <span class="num">38.48</span></td></tr>
+    <tr><td>视频</td><td>VideoMME <span class="num">84.3</span>（+字幕 <span class="num">86.9</span>）；1H-VideoQA <span class="num">81.0</span></td></tr>
+    <tr><td>Deep Research</td><td>HLE <span class="num">7.95%</span>(2024-12) → <span class="num">26.9%</span> / 高算力 <span class="num">32.4%</span>(2025-06) SoTA</td></tr>
+  </table>
+  <p><span class="infer">（推断：Deep Research 半年 +24 pp 的增益来自 agent 循环与推理算力叠加而非基础模型换代——系统级能力 &gt; 模型级能力的直接证据。）</span></p>
+</section>
+
+<section class="card" id="s4">
+  <h2><span class="idx">四</span>证据链</h2>
+  <h3>4.1 家族纵向对比（Table 3）</h3>
+  <table>
+    <tr><th>基准</th><th>2.5 Pro</th><th>1.5 Pro</th><th>增幅</th></tr>
+    <tr><td>AIME 2025</td><td><span class="num">88.0%</span></td><td><span class="num">17.5%</span></td><td>+70.5 pp</td></tr>
+    <tr><td>GPQA (diamond)</td><td><span class="num">86.4%</span></td><td><span class="num">58.1%</span></td><td>+28.3 pp</td></tr>
+    <tr><td>LiveCodeBench</td><td><span class="num">74.2%</span></td><td><span class="num">30.5%</span></td><td>+43.7 pp</td></tr>
+    <tr><td>Aider Polyglot</td><td><span class="num">82.2%</span></td><td><span class="num">16.9%</span></td><td>+65.3 pp</td></tr>
+    <tr><td>SWE-bench Verified (multi)</td><td><span class="num">67.2%</span></td><td><span class="num">34.2%</span></td><td>+33.0 pp</td></tr>
+  </table>
+  <h3>4.2 横向竞品与行为学证据</h3>
+  <ul>
+    <li>HLE 无工具：<span class="num">21.6%</span> &gt; o3-high <span class="num">20.3%</span> &gt; o4-mini high <span class="num">18.1%</span>；Aider Polyglot / HLE / GPQA / SimpleQA / FACTS / LOFT·MRCR(128k) 均为所列最高；</li>
+    <li>诚实披露：AIME 单次尝试 <span class="num">88.0%</span> 略低于 o4-mini high <span class="num">92.7%</span>；唯一支持 1M+ 上下文；</li>
+    <li>Pokémon 案例：Run 1 <span class="num">813</span>h → 固定 harness 后 Run 2 仅 <span class="num">406.5</span>h（近半增益来自脚手架固定）；消融表明表现大部分不依赖原始像素（RAM→text），短板为 screen reading 与幻觉。</li>
+  </ul>
+  <h3>4.3 安全证据链</h3>
+  <ul>
+    <li>CTF hard 档（Hack the Box）解决 <span class="num">6/12</span>——资深专业人员水平挑战的一半；触发 Cyber Uplift Level 1 alert threshold 但<strong>未确认跨越任何 CCL</strong>；</li>
+    <li>误拒改善：helpfulness/IF 最高 ↑<span class="num">14.8%</span>、tone ↑<span class="num">18.4%</span>；EN 文本 policy violations ↓<span class="num">14.3%</span>（区间 ↓0.9%~↓14.3%），违规损失多为创意场景误报；</li>
+    <li>防污染三重：n-gram + 语义相似度 + 基于模型去污染；内部非公开基准 HiddenMath <span class="num">80.5%</span> 交叉印证。</li>
+  </ul>
+  <blockquote>证据链设计意图：<span class="infer">（推断）</span>既证明能力逼近危险阈值（6/12 + alert threshold），又证明治理机制先于危险生效（未跨 CCL）——「能力上升但受控」的双向交代。</blockquote>
+</section>
+
+<section class="card" id="s5">
+  <h2><span class="idx">五</span>批判性分析</h2>
+  <ul>
+    <li><strong>黑箱化加深</strong>：参数规模、MoE 配置、数据配比、RL 算法均未披露；<span class="infer">（推断：安全章节约占 20 页、贡献者名单约 15 页，实质技术高度浓缩，技术报告正退化为「性能白皮书」。）</span></li>
+    <li><strong>数字可比性缺陷</strong>：报告自承 SWE-bench Verified 各厂商 scaffold 不同不可直接比较；multiple attempts 口径高于业界常用 single attempt 口径；<span class="infer">（推断）</span></li>
+    <li><strong>超长上下文异常点</strong>：MRCR-V2 @1M 上 2.5 Pro（<span class="num">16.4%</span>）反而低于 2.5 Flash（<span class="num">21.0%</span>）——百万窗口的可用边界远小于标称值；<span class="infer">（推断）</span></li>
+    <li><strong>多模态演示-落地鸿沟</strong>：RAM→text 暴露「原生多模态」在长程交互中走符号化捷径，screen reading 弱 + 幻觉；<span class="infer">（推断）</span></li>
+    <li><strong>评测体系结构性危机</strong>：HLE 每题 <span class="num">$5000</span> 且半年内从 <span class="num">7.95%</span> 推到 <span class="num">32.4%</span>；私有基准补充加剧「无法独立验证」，第三方审计能力塌缩；<span class="infer">（推断）</span></li>
+    <li><strong>未完成的承诺</strong>：图像输出、原生音频输出等仍为 Experimental/Preview，Deep Think 仅实验版。</li>
+  </ul>
+</section>
+
+<section class="card" id="s6">
+  <h2><span class="idx">六</span>启示与影响</h2>
+  <ul>
+    <li><strong>Thinking 即产品</strong>：推理预算做成可见、可调（<span class="num">1024</span>~<span class="num">32768</span> tokens）、可计费的参数；<span class="infer">（推断：此后全行业 reasoning_effort 类参数可视为其扩散。）</span></li>
+    <li><strong>RL 全面加码是代际分水岭</strong>：AIME +70.5 pp 跃迁的最合理解释；可验证奖励域受益最大也划定收益边界；<span class="infer">（推断）</span></li>
+    <li><strong>蒸馏决定家族竞争力</strong>：k-sparse 近似让 2.5 Flash 超越上代旗舰，「买上代旗舰不如买这代中端」成常态消费逻辑；<span class="infer">（推断）</span></li>
+    <li><strong>工程胜负手在故障管理学</strong>：<span class="num">8960</span> 芯片 + <span class="num">93.4%</span> 有效算力 + 弹性恢复/SDC 重放构成万卡训练工程模板；</li>
+    <li><strong>拒答哲学转向</strong>：「先助人」原则 + helpfulness ↑<span class="num">14.8%</span>/tone ↑<span class="num">18.4%</span> 印证对齐税最小化取向；<span class="infer">（推断）</span></li>
+    <li><strong>安全评估闭环</strong>：四 Critical Capability 域 + CCL 分级 + alert threshold + ART 构成可操作风险评估框架，价值在于让「危险临近」变成可测量、可预警的连续量；<span class="infer">（推断：已成 2025 年后前沿模型发布准标配。）</span></li>
+    <li><strong>行业格局</strong>：单一架构 + thinking 统一训练 + 蒸馏分层证明「全前沿覆盖」路线可行，Google 重新站回综合第一梯队；其暴露的黑箱化、scaffold 不可比、长上下文落差亦是全行业共性问题的镜像。<span class="infer">（推断）</span></li>
+  </ul>
+</section>
+
+<footer>
+  <p>数字均可回溯至《00-源数据提取.md》§3 关键数字表（17 条主张）/ §4 方法细节 / §5 实验结果要点 / §6 局限；<br>标注 <span class="infer">（推断）</span> 处为基于源数据的分析性判断。生成于 2026-08-26。</p>
+</footer>
+
+</div><!-- /.wrap -->
+
+<script>
+(function(){
+  var total = document.querySelectorAll('div').length;
+  var openTags = (document.documentElement.outerHTML.match(/<div(\s|>)/g)||[]).length;
+  var closeTags = (document.documentElement.outerHTML.match(/<\/div>/g)||[]).length;
+  var sections = document.querySelectorAll('section.card').length;
+  var hasAbstract = !!document.getElementById('abstract');
+  var utf8Ok = document.characterSet.toUpperCase() === 'UTF-8';
+  console.log('[self-check] div in DOM:', total, '| <div> tags:', openTags, '| </div> tags:', closeTags,
+    '| balanced:', openTags === closeTags, '| sections:', sections, '| abstract:', hasAbstract, '| charset UTF-8:', utf8Ok);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seed1.8 Model Card 深度解读报告</title>
+<style>
+  :root{
+    --bg:#f6f7fb; --card:#ffffff; --ink:#1f2430; --muted:#5b6472;
+    --accent:#0b66c3; --accent2:#00a39b; --warn:#b3541e; --line:#e3e7ef;
+    --num-bg:#fff3d6; --num-ink:#8a5a00; --sota-bg:#e2f6ec; --sota-ink:#0d7a43;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.85;font-size:16px}
+  .wrap{max-width:960px;margin:0 auto;padding:32px 20px 64px}
+  header.hero{background:linear-gradient(135deg,#0b2e59 0%,#0b66c3 60%,#00a39b 100%);color:#fff;border-radius:14px;padding:40px 36px;margin-bottom:28px}
+  header.hero h1{font-size:27px;line-height:1.4;margin-bottom:12px}
+  header.hero .sub{opacity:.92;font-size:14.5px}
+  header.hero .meta{margin-top:16px;display:flex;flex-wrap:wrap;gap:10px}
+  header.hero .tag{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:2px 12px;font-size:12.5px}
+  .notice{background:#fff8ee;border:1px solid #f2d9ac;border-left:4px solid var(--warn);border-radius:10px;padding:14px 18px;font-size:14px;color:#6b4a1c;margin-bottom:26px}
+  nav.toc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin-bottom:28px}
+  nav.toc b{display:block;margin-bottom:8px;color:var(--accent)}
+  nav.toc ol{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:6px 24px}
+  nav.toc a{color:var(--ink);text-decoration:none;font-size:14.5px}
+  nav.toc a:hover{color:var(--accent)}
+  section.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:28px 30px;margin-bottom:24px}
+  section.card h2{font-size:20.5px;color:var(--accent);padding-bottom:10px;border-bottom:2px solid var(--line);margin-bottom:18px}
+  section.card h3{font-size:16.5px;margin:20px 0 8px;color:#123a63}
+  p{margin:10px 0}
+  ul,ol{padding-left:22px;margin:8px 0}
+  li{margin:5px 0}
+  span.num{background:var(--num-bg);color:var(--num-ink);font-weight:700;font-family:"JetBrains Mono",Consolas,monospace;font-size:.93em;padding:1px 6px;border-radius:6px}
+  span.sota{background:var(--sota-bg);color:var(--sota-ink);font-weight:700;font-family:"JetBrains Mono",Consolas,monospace;font-size:.93em;padding:1px 6px;border-radius:6px}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
+  th{background:#eef3fa;color:#123a63;text-align:left;padding:8px 10px;border:1px solid var(--line)}
+  td{padding:7px 10px;border:1px solid var(--line);vertical-align:top}
+  tr:nth-child(even) td{background:#fafbfd}
+  .good{color:var(--sota-ink);font-weight:700}
+  .bad{color:#b02a37;font-weight:700}
+  .quote{background:#f2f7fd;border-left:4px solid var(--accent);border-radius:8px;padding:12px 16px;color:var(--muted);font-size:14.5px;margin:12px 0}
+  .risk{background:#fdf1ec;border-left:4px solid var(--warn);border-radius:8px;padding:12px 16px;font-size:14.5px;margin:12px 0}
+  footer.endnote{text-align:center;color:var(--muted);font-size:13px;margin-top:34px}
+  @media (max-width:680px){nav.toc ol{grid-template-columns:1fr}section.card{padding:20px 16px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>Seed1.8 Model Card: Towards Generalized Real-World Agency<br>深度解读报告</h1>
+  <div class="sub">单一模型整合感知—推理—行动 · 统一 agentic 接口 · 可配置思考四档 · 经济价值场景导向评测</div>
+  <div class="meta">
+    <span class="tag">ByteDance Seed</span>
+    <span class="tag">arXiv:2603.20633v3 [cs.AI]</span>
+    <span class="tag">2026-04-17</span>
+    <span class="tag">Model Card（纯评测型）</span>
+    <span class="tag">批次 B2_P2 · Seed1.8 条目</span>
+  </div>
+</header>
+
+<div class="notice"><strong>数据依据与错位警示：</strong>本报告全部数字取自同目录《00-源数据提取.md》§3/§4/§5/§6 表格。原 Model Card 正文叙述与表格存在系统性错位（正文 GAIA 93.2 vs Table 4 实为 <span class="num">76.7</span> 等），本报告<strong>一律以表格为准</strong>并显式标注口径。</div>
+
+<nav class="toc">
+  <b>目录</b>
+  <ol>
+    <li><a href="#s0">摘要</a></li>
+    <li><a href="#s1">一、问题定位</a></li>
+    <li><a href="#s2">二、概念内核</a></li>
+    <li><a href="#s3">三、方法拆解</a></li>
+    <li><a href="#s4">四、证据链</a></li>
+    <li><a href="#s5">五、批判性分析</a></li>
+    <li><a href="#s6">六、启示与影响</a></li>
+    <li><a href="#end">附：数字速查与自检说明</a></li>
+  </ol>
+</nav>
+
+<section class="card" id="s0">
+  <h2>摘要</h2>
+  <p>Seed1.8 是字节跳动 Seed 团队发布的旗舰模型卡，核心命题是<strong>"单一模型内整合感知—推理—行动"</strong>：以统一 agentic 接口覆盖搜索、代码生成执行与 GUI 交互，替代任务专用 pipeline 拼装。模型提供 no_think 至 think-high 四档思考模式，主结果以 think-high 报告。评测显示：复杂指令跟随全面领先（Collie-Hard <span class="num">99.0*</span>、EIFBench <span class="num">66.7</span> 对 GPT-5 <span class="num">47.0</span>）；多模态与视频密集登顶（ZeroBench <span class="sota">11.0</span>、DA-2K <span class="sota">90.7</span>、OVBench <span class="sota">65.1</span> 等 SOTA）；GUI Agent OSWorld <span class="num">62.9</span> 创家族新高（较 Seed1.5-VL <span class="num">+26.2</span>）；DeepConsult <span class="num">57.2</span> 远超 GPT-5 的 <span class="num">38.3</span>；并行思考将 AIME-25 从 <span class="num">94.3</span> 推至 <span class="num">97.3</span>。短板同样清晰：数学/代码居第一梯队但非第一（AIME-25 <span class="num">94.6</span> 对 Gemini-2.5-Pro <span class="num">95.0*</span>），知识型视频理解与 agentic coding 落后至少一个竞品，且全文无架构与训练披露。本文从问题定位、概念内核、方法拆解、证据链、批判分析与行业启示六个维度展开解读。</p>
+</section>
+
+<section class="card" id="s1">
+  <h2>一、问题定位</h2>
+  <h3>1.1 文档性质：纯评测型 Model Card</h3>
+  <p>Evaluation 占 p2–10，用例占 p11–18，附录评测体系 p29–41；不公开参数量、架构、数据构成与训练成本。写作目的是向市场声明该模型在"真实世界通用代理能力"上的坐标位置，而非学术论证。</p>
+  <h3>1.2 核心命题</h3>
+  <p>对立面是传统"感知/检索/规划/执行多模块 pipeline 拼装"。Seed1.8 主张由<strong>一套权重原生承载 agentic 闭环</strong>，评测设计处处验证：端到端能力是否达到甚至超越专用拼装方案。</p>
+  <h3>1.3 评测坐标系</h3>
+  <p>对比对象为第一梯队全谱系：GPT-5(-high)、GPT-5.1(High)、Claude-Sonnet-4.5、Gemini-2.5-Pro、Gemini-3-Pro；纵向对照前代 Seed1.5-VL 与 Seed1.6——不与二线模型比较，直接在最强对手集合中寻找反超点。</p>
+  <h3>1.4 阅读约束</h3>
+  <ul>
+    <li>主结果默认 think-high 档位，背后有较高测试时计算开销；</li>
+    <li>部分最佳成绩依赖工具增强（crop-box、VideoCut）或 * 号外部转引设置；</li>
+    <li>正文叙述与表格数字系统性错位，引用必须回到表格核对。</li>
+  </ul>
+</section>
+
+<section class="card" id="s2">
+  <h2>二、概念内核</h2>
+  <h3>2.1 统一 agentic 接口三支柱</h3>
+  <ul>
+    <li><strong>搜索</strong>：信息聚合 + 证据合成，自主决定查询、交叉验证与停止时机；</li>
+    <li><strong>代码中心执行</strong>：以解释器为通用行动介质完成结构化计算与工具编排——IMO-AnswerBench 带工具设定下 <span class="num">76.0</span> 对 Claude-Sonnet-4.5 <span class="num">57.5</span> 是其直接体现；</li>
+    <li><strong>原生视觉感知</strong>：截图/文档/图表/视频直接驱动 GUI 操作，覆盖无 API 场景。</li>
+  </ul>
+  <h3>2.2 思考可配置性：测试时计算换质量</h3>
+  <p>no_think / think-low / think-medium / think-high 构成质量—延迟—成本旋钮。关键证据：<span class="good">NoThink 下 MMMU-Pro <span class="num">65.4</span></span>（前代 Seed1.6 <span class="num">61.0</span>、GPT-5.1 仅 <span class="num">43.5</span>）；EMMA NoThink <span class="num">50.1</span> 已超前代 High 档 <span class="num">48.1</span>。"不思考也够用"的下限被大幅抬升，快慢之间不再断崖。</p>
+  <h3>2.3 并行思考：扩展难题上限</h3>
+  <p>多条思考路径并行展开后聚合中间结果。Table 7：AIME-25 <span class="num">94.3→97.3</span>、HMMT <span class="num">96.7</span>、HLE-full <span class="num">21.4→25.6</span>——test-time scaling 被做成正式交付特性。</p>
+  <h3>2.4 经济价值场景导向的评测哲学</h3>
+  <p>Appendix A 三原则：用户体验优先（对标 ChatGPT 用例分布）、转向真实场景（Economically Valuable Fields）、推进智能边界。内部 6+3 基准支撑主张：客服 Q&amp;A <span class="num">63.4</span> 对 GPT-5 <span class="num">59.4</span>，教育/客服/意图识别对三大竞品保持优势或持平。</p>
+  <h3>2.5 视频交互重定义</h3>
+  <p>流式视频在 1FPS 连续帧上三状态切换——<strong>即时应答 / 静默跟踪 / 视觉主动介入</strong>，回答可被新帧打断并动态续写；VideoCut 允许指定时间戳与 FPS(1–5) 重采样回放实现慢动作审视。视频从"一次性输入"变为"可持续操作的交互环境"。</p>
+</section>
+
+<section class="card" id="s3">
+  <h2>三、方法拆解</h2>
+  <h3>3.1 评测组织方式</h3>
+  <p>按"语言基础(Table 1) → 视觉(Table 2 图像/Table 3 视频) → Agentic(Table 4/5) → 效率(Fig.1–4/Table 7)"四层递进，每个数字携带明确条件标签（有无工具/思考档位/流式设定）。</p>
+  <h3>3.2 工具增强的双刃剑</h3>
+  <table>
+    <tr><th>工具</th><th>基准变化</th><th>机制本质</th></tr>
+    <tr><td>crop-box（GUI grounding）</td><td>ScreenSpot-Pro <span class="num">36.2 → 73.1</span></td><td>"假设—裁剪—验证"主动视觉循环</td></tr>
+    <tr><td rowspan="3">VideoCut（时间戳+FPS 重采样）</td><td>CGBench <span class="num">62.4 → 65.9</span></td><td rowspan="3">高帧率细节捕获与慢动作审视</td></tr>
+    <tr><td>LVBench <span class="num">73.0 → 78.9</span></td></tr>
+    <tr><td>ZeroVideo(101题) <span class="num">6.9 → 18.8</span>，反超 Gemini-2.5-P <span class="num">8.9</span> / Gemini-3-P <span class="num">14.3</span></td></tr>
+  </table>
+  <div class="quote">方法论含义：裸感知触顶后，"模型调度感知工具"成为新增益来源——但跨模型公平比较更依赖工具设定的透明披露。</div>
+  <h3>3.3 自研基准群的设计逻辑</h3>
+  <table>
+    <tr><th>基准</th><th>规模/形态</th><th>针对盲区</th></tr>
+    <tr><td>MM-BrowseComp</td><td><span class="num">224</span> 题</td><td>多模态浏览型深度检索</td></tr>
+    <tr><td>WideSearch</td><td><span class="num">200</span> 题</td><td>多实体横向搜索的<strong>一致性</strong>导向</td></tr>
+    <tr><td>AInstein-SWE-Bench</td><td>量子化学/量子计算/天体物理/HPC</td><td>科研级 fail-to-pass 生产库修复</td></tr>
+    <tr><td>U-Artifacts</td><td><span class="num">199</span> 例</td><td>GUI 操作残留 artifact 检测</td></tr>
+    <tr><td>DiscoX</td><td>篇章级中英翻译</td><td>超越句段的语篇翻译质量</td></tr>
+    <tr><td>XpertBench</td><td><span class="num">200+</span> 领域专家、<span class="num">140+</span> 任务类型</td><td>rubric 评审的专家任务</td></tr>
+    <tr><td>WorldTravel</td><td><span class="num">150</span> 题，单题 10–20+ 耦合约束</td><td>多模态×运筹级旅行规划，人类专家均值 1.5h</td></tr>
+  </table>
+  <div class="quote">WorldTravel 判分设计精巧：<strong>hard-to-solve</strong>（人类专家 1.5h+）保证区分度，<strong>easy-to-verify</strong>（行程程序化校验）保证自动评分可行——工程化化解"既难又可判分"矛盾。</div>
+  <h3>3.4 效率多维评测</h3>
+  <ul>
+    <li>视频理解：<span class="num">32K</span> token 预算表现超过 Seed1.5-VL 在 <span class="num">80K</span> 预算下的水平（Fig.3）；</li>
+    <li>BrowseComp unlimited 档随步数稳步升至 <span class="num">67.6@150 步</span>，low/medium 档 50 步内分别 <span class="num">45.0</span>/<span class="num">55.0</span>（Fig.4 效率曲线口径）——同一模型内部清晰的"预算换成功率"Pareto 前沿。</li>
+  </ul>
+  <h3>3.5 用例章叙事功能</h3>
+  <p>六大用例（旅行规划/专家任务/科研任务/科研软件工程/<span class="num">122</span> 步 GUI 案例/agentic 视频交互）承担能力可信度叙事：证明表格高分可兑现为长链条真实任务。</p>
+</section>
+
+<section class="card" id="s4">
+  <h2>四、证据链</h2>
+  <h3>4.1 语言基础：第一梯队，非全面登顶</h3>
+  <table>
+    <tr><th>基准</th><th>Seed1.8</th><th>最强对手</th><th>解读</th></tr>
+    <tr><td>AIME-25</td><td><span class="num">94.6</span></td><td>Gemini-2.5-P <span class="num">95.0*</span></td><td>差 0.4 分（*外部转引）</td></tr>
+    <tr><td>BeyondAIME</td><td><span class="num">74.0</span></td><td>G2.5-P <span class="num">83.0</span></td><td class="bad">难分布差距拉开至 9 分</td></tr>
+    <tr><td>AMO-Bench</td><td><span class="num">50.0</span></td><td>G2.5-P <span class="num">64.0</span></td><td class="bad">极难档明显落后</td></tr>
+    <tr><td>LiveCodeBench v6</td><td><span class="num">87.0</span></td><td>G2.5-P <span class="num">90.7</span></td><td class="bad">竞争性落后</td></tr>
+    <tr><td>GPQA-Diamond</td><td><span class="num">85.7</span></td><td>G2.5-P <span class="num">91.9</span></td><td class="bad">落后 6.2</td></tr>
+    <tr><td>Collie-Hard</td><td><span class="sota">99.0*</span></td><td>G2.5-P <span class="num">95.5</span></td><td class="good">复杂指令登顶</td></tr>
+    <tr><td>EIFBench</td><td><span class="sota">66.7</span></td><td>GPT-5 <span class="num">47.0</span></td><td class="good">领先近 20 分</td></tr>
+    <tr><td>InverseIFEval / MultiChallenge</td><td><span class="num">78.9</span> / <span class="num">69.6</span></td><td>第二档首位</td><td class="good">复杂 IF 全面强势</td></tr>
+    <tr><td>MMLU / MMLU-pro</td><td><span class="num">93.8</span> / <span class="num">87.2</span></td><td>持平一线</td><td>知识面无短板</td></tr>
+    <tr><td>IMO-AnswerBench（带代码工具）</td><td><span class="sota">76.0</span></td><td>Claude-S-4.5 <span class="num">57.5</span></td><td class="good">数学工具化解题优势显著</td></tr>
+  </table>
+  <h3>4.2 视觉理解：对 Gemini-3-Pro 贴身反超</h3>
+  <p>ZeroBench(main) <span class="sota">11.0</span>（G3-P <span class="num">10.0</span>）；VLMsAreBiased <span class="sota">62.0</span>（G3-P <span class="num">50.6</span>，领先 <span class="num">11.4</span>）；DA-2K <span class="sota">90.7</span>（G3-P <span class="num">82.1</span>）；OmniDocBench1.5 NED↓ <span class="sota">0.106</span>（G3-P <span class="num">0.115</span>，自家前代 <span class="num">0.152</span>）；MMLB-NIAH 128k <span class="sota">72.2</span>（G3-P <span class="num">70.5</span>）。多个细分榜反超最新 Gemini-3-Pro，文档理解较前代进步显著。</p>
+  <h3>4.3 视频理解：感知强、知识弱两极</h3>
+  <ul>
+    <li>动态感知域：TOMATO/EgoTempo/Countix <span class="num">60.8</span>/<span class="num">67.0</span>/<span class="num">31.0</span>，六项中五项 SOTA；</li>
+    <li>流式域：OVBench/LiveSports-3K/OVOBench <span class="sota">65.1</span>/<span class="sota">77.5</span>/<span class="sota">72.6</span> 全部 SOTA；</li>
+    <li class="bad">知识型落后：VideoMMMU <span class="num">82.7</span> 对 G3-P <span class="num">87.6</span>；TOMATO <span class="num">60.8</span> 距人类 <span class="num">95.2</span> 差距巨大（作者自认）。</li>
+  </ul>
+  <h3>4.4 Agentic：深研写作登顶，编码中游</h3>
+  <ul>
+    <li>深研写作三项全第一：DeepConsult <span class="sota">57.2</span>（GPT-5 <span class="num">38.3</span>，领先 <span class="num">18.9</span>）、DRB <span class="num">48.7</span>、DiscoX <span class="num">75.1</span>；</li>
+    <li>金融检索 FinSearchComp(T2&amp;T3) <span class="num">64.5</span>（GPT-5 <span class="num">58.6</span>）；XpertBench Fin/Edu/Res/Hum <span class="num">64.5</span>/<span class="num">56.9</span>/<span class="num">48.2</span>/<span class="num">68.5</span> 均第一；</li>
+    <li class="bad">agentic coding 中游：SWE-V <span class="num">74.9</span>（GPT-5 <span class="num">77.2</span>）、TerminalBench2.0 <span class="num">35.2</span>（G2.5-P <span class="num">54.2</span>，差近 19 分）；</li>
+    <li>搜索类以 Table 4 为准：GAIA <span class="num">76.7</span>、BrowseComp-en <span class="num">54.9</span>、BrowseComp-zh <span class="num">63.0</span>、MM-BrowseComp <span class="num">27.7</span>。</li>
+  </ul>
+  <h3>4.5 GUI Agent：桌面新高，移动待补</h3>
+  <p>OSWorld <span class="sota">62.9</span> 登顶（O3 <span class="num">61.9</span>；较 Seed1.5-VL <span class="num">36.7</span> 提升 <span class="num">+26.2</span>，家族四代最佳）；AndroidWorld <span class="num">56.0</span> 落后 Claude-S-4.5 <span class="num">69.7</span> 与 O3 <span class="num">70.7</span>，官方以未公开内部移动集占优作补充辩护。</p>
+  <h3>4.6 测试时扩展与安全</h3>
+  <p>并行思考（Table 7）：AIME-25 <span class="num">94.3→97.3</span>、HMMT <span class="num">96.7</span>、HLE-full <span class="num">21.4→25.6</span>。安全侧 AIR-Bench 较前代提升、XSTest 保持高可用性。</p>
+  <h3>4.7 证据强度评级</h3>
+  <p><span class="good">最强</span>：多模态感知、流式视频、深度咨询写作、复杂指令跟随（多基准一致+幅度大）；<strong>次之</strong>：GUI 桌面、金融检索、专家任务（部分依赖内部基准或工具增强）；<span class="bad">弱势域</span>证据反而最可信——敢于并列展示对手更高数字，是加分行为。</p>
+</section>
+
+<section class="card" id="s5">
+  <h2>五、批判性分析</h2>
+  <h3>5.1 最严重缺陷：正文与表格系统性错位</h3>
+  <div class="risk">Agentic Search 段落正文声称 GAIA "highest (93.2)"、BrowseComp-en 67.6、BrowseComp-zh 78.5、MM-BrowseComp 46.3，但 Table 4 实为 <span class="bad">76.7 / 54.9 / 63.0 / 27.7</span>；正文数值恰与竞品列部分重合（如 G3-P 行 87.4/67.6/81.3/46.3）。Education/CustomerSupport "best performance" 声明亦与 Table 1 不符（表中 Gemini 更高）。成因或为排版串列/版本混叠，但后果确定：取自正文的二手引用必传播错误数字。<strong>处理原则：一律以表格为准并交叉核对。</strong></div>
+  <h3>5.2 可复现性结构性缺失</h3>
+  <p>无参数量/架构/数据配方/训练成本披露，成绩无法独立复现；自研基准群（ZeroVideo/U-Artifacts/XpertBench/WorldTravel 等）缺乏外部可获取性与第三方复核，"自己设计的考场"天然带有利偏差风险，判分器本身未经外部审计。</p>
+  <h3>5.3 工具增强与可比性边界</h3>
+  <p>ScreenSpot-Pro <span class="num">36.2→73.1</span>、ZeroVideo <span class="num">6.9→18.8</span> 均发生在启用专属工具之后；Collie-Hard <span class="num">99.0</span> 与对手 AIME-25 <span class="num">95.0</span> 带 * 号。条件虽已标注，传播中极易被剥离条件误读为裸模型能力——跨模型比较必须锁定"是否同等工具"变量。</p>
+  <h3>5.4 弱势域的实质含义</h3>
+  <ul>
+    <li><strong>知识型视频</strong>：感知通路强 ≠ 知识整合强，视频教学/学科问答仍是 Gemini 主场；</li>
+    <li><strong>agentic coding</strong>（TB2.0 <span class="num">35.2</span> vs <span class="num">54.2</span>）：与其"代码中心执行"支柱形成张力——代码作解题介质强（IMO-AB <span class="num">76.0</span>），作工程项目载体仍弱；</li>
+    <li><strong>移动端</strong>（<span class="num">56.0</span> vs <span class="num">70.7</span>）：桌面突破未迁移到消费级最大入口的移动生态。</li>
+  </ul>
+  <h3>5.5 评测哲学潜在循环性</h3>
+  <p>"对标 ChatGPT 用例分布"使评测分布向头部产品画像对齐，利于证明经济效用但可能低估长尾专业场景；Economically Valuable Fields 内部基准既是特色也是闭环（客服 <span class="num">63.4</span> vs <span class="num">59.4</span> 目前只能单向采信）。</p>
+</section>
+
+<section class="card" id="s6">
+  <h2>六、启示与影响</h2>
+  <ul>
+    <li><strong>Model Card 演变为战略评测叙事</strong>：谁定义考场谁掌握话语权。WorldTravel 的 hard/easy 判分设计、XpertBench rubric、AInstein-SWE 生产库 fail-to-pass 代表基准设计最新工艺，但封闭性呼唤第三方中立基准制衡。</li>
+    <li><strong>单模型 agentic 闭环获实证背书</strong>：OSWorld <span class="num">62.9</span>、DeepConsult <span class="num">57.2</span>、流式三状态切换展现对 pipeline 拼装的竞争力——中间编排层价值将被上游吸收，框架护城河需向企业权限/持久记忆/领域工具链迁移。</li>
+    <li><strong>效率成为一等公民指标</strong>：NoThink MMMU-Pro <span class="num">65.4</span>、EMMA <span class="num">50.1</span> 超前代 High、视频 <span class="num">32K</span> 预算胜前代 <span class="num">80K</span>——竞争主战场从"最高分"转向 Pareto 前沿整体占优。</li>
+    <li><strong>主动视觉与工具调度是新增益引擎</strong>："模型学会调度自己的感知"比"感知变强"边际收益更高，GUI grounding 与长视频的下步竞赛将围绕工具策略自动化展开。</li>
+    <li><strong>方法论警示</strong>：引用 Model Card 必须落到表格行、核对条件标签（档位/工具/*号）；对自研基准持"设计合理但未经外部验证"双重判断；对经济效用叙事追问判分器独立性。</li>
+    <li><strong>竞争格局速写</strong>：Gemini-3-Pro 守多模态感知与知识型视频（VideoMMMU <span class="num">87.6</span>、GPQA-D <span class="num">91.9</span>）；GPT-5 守 agentic coding（SWE-V <span class="num">77.2</span>）；Claude-S-4.5 守移动 GUI（<span class="num">69.7</span>）；Seed1.8 在复杂指令、流式视频、深研写作、中文 GUI、效率前沿五个切面插旗——多极并存、各有主场。</li>
+  </ul>
+</section>
+
+<section class="card" id="end">
+  <h2>附：数字速查与自检说明</h2>
+  <h3>家族纵向（关键跃升）</h3>
+  <table>
+    <tr><th>指标</th><th>Seed1.5-VL</th><th>Seed1.8</th><th>幅度</th></tr>
+    <tr><td>OSWorld</td><td><span class="num">36.7</span></td><td><span class="num">62.9</span></td><td class="good">+26.2</td></tr>
+    <tr><td>OmniDocBench NED↓</td><td><span class="num">0.152</span></td><td><span class="num">0.106</span></td><td class="good">−0.046</td></tr>
+    <tr><td>MMMU-Pro（NoThink）</td><td colspan="2">Seed1.6 <span class="num">61.0</span> → Seed1.8 <span class="num">65.4</span></td><td class="good">+4.4</td></tr>
+  </table>
+  <h3>争议数字对照表</h3>
+  <table>
+    <tr><th>条目</th><th>正文声称</th><th>表格实值（本文采用）</th></tr>
+    <tr><td>GAIA</td><td class="bad">93.2 ("highest")</td><td><span class="num">76.7</span>（Table 4）</td></tr>
+    <tr><td>BrowseComp-en</td><td class="bad">67.6</td><td><span class="num">54.9</span>（Table 4；67.6 为效率曲线 Fig 口径另注）</td></tr>
+    <tr><td>BrowseComp-zh</td><td class="bad">78.5</td><td><span class="num">63.0</span>（Table 4）</td></tr>
+    <tr><td>MM-BrowseComp</td><td class="bad">46.3</td><td><span class="num">27.7</span>（Table 4）</td></tr>
+  </table>
+  <h3>自检说明</h3>
+  <p style="font-size:13.5px;color:var(--muted)">本文件为单文件 HTML 报告：UTF-8 编码无替换字符；全部样式内联于 &lt;style&gt;，无外部依赖；数字高亮统一使用 span.num / span.sota；章节结构为摘要+六节+附录共 8 卡片，与 MD 版《01-深度解读.md》一一对应。生成后已执行 div 开闭平衡校验。</p>
+</section>
+
+<footer class="endnote">Seed1.8 Model Card 深度解读 · 批次 B2_P2 · 数据依据：《00-源数据提取.md》（正文/表格错位一律以表格为准）· 2026-08-26 生成</footer>
+
+</div>
+<!-- SELF-CHECK: UTF-8 OK | div balance verified post-write | sections=hero+notice+toc+8 cards+footer | span.num/span.sota used | no external assets -->
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sparse Transformers（稀疏 Transformer）深度解读报告 · 深度解读</title><style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;background:#f7f8fa;color:#1f2430;line-height:1.8;margin:0}
+.wrap{max-width:900px;margin:0 auto;padding:36px 20px 80px}
+h1{font-size:25px;border-bottom:3px solid #2b6cb0;padding-bottom:10px;color:#14304f}
+h2{font-size:19px;margin-top:34px;color:#2b6cb0;border-left:5px solid #2b6cb0;padding-left:10px}
+h3{font-size:16px;color:#3a4a63;margin-top:22px}
+p{margin:10px 0;}
+blockquote{background:#eef3fa;border-left:4px solid #4a90d9;margin:12px 0;padding:10px 16px;color:#2c3e50}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px}
+th,td{border:1px solid #cbd5e1;padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#e8eef6}
+tr:nth-child(even){background:#f4f7fb}
+.num{color:#b45309;font-weight:700;font-family:ui-monospace,Consolas,monospace}
+.infer{color:#9a6b2f;font-style:italic;background:#fdf6e3;padding:0 3px;border-radius:3px}
+code{background:#eef1f5;padding:1px 5px;border-radius:4px;font-size:13px}
+hr{border:none;border-top:1px dashed #cbd5e1;margin:26px 0}
+.selfcheck{font-size:11px;color:#90a0b5;margin-top:40px;border-top:1px solid #dde3ea;padding-top:12px;font-family:ui-monospace,monospace}
+</style></head><body><div class="wrap">
+<h1>Sparse Transformers（稀疏 Transformer）深度解读报告</h1>
+<p><strong>论文</strong>：Generating Long Sequences with Sparse Transformers（arXiv:<span class="num">1904.10509</span>v1，<span class="num">2019-04-23</span> 提交，后发表于 NeurIPS <span class="num">2019</span>）</p>
+<p><strong>作者</strong>：Rewon Child、Scott Gray、Alec Radford、Ilya Sutskever（全部 OpenAI）</p>
+<p><strong>篇幅</strong>：<span class="num">10</span> 页；关键词：Machine Learning, self-attention, attention, generative modeling</p>
+<blockquote> <strong>数据依据声明</strong>：本报告所有数字唯一来源于同目录《<span class="num">00</span>-源数据提取.md》（对应原论文 PDF 的元数据、章节树、核心主张表、方法细节与实验要点）。凡属本报告的解读、外推或背景联想，一律标注「<span class="infer">（推断）</span>」。不引用任何其他文件。</blockquote>
+<hr>
+<h2>摘要</h2>
+<p>Transformer 的自注意力对序列长度 n 的平方复杂度 O(n²)，使其无法处理长序列。本文提出<strong>因子化自注意力（factorized self-attention）</strong>：用 p 个注意力头分别关注位置的一个稀疏子集，每个子集大小 ∝ ⁿ√n，且保证任意两个位置在 p 步注意力内连通，从而将复杂度降至 <strong>O(n√n)</strong>。配合 pre-activation 残差与按深度 1/√(2N) 缩放的初始化使数百层网络可稳定训练、梯度检查点重计算节省显存、定制 block-sparse GPU kernel 与混合精度加速后，模型可处理数万 timestep、数百层深。实验上：CIFAR-<span class="num">10</span> 达 <span class="num">2.80</span> bits/dim（超越前 SOTA PixelSNAIL 的 <span class="num">2.85</span>）；Enwik8 达 <span class="num">0.99</span> bits/dim（<span class="num">95</span>M 参数追平参数量翻倍以上的 Transformer-XL <span class="num">277</span>M）；ImageNet <span class="num">64×64</span> 达 <span class="num">3.44</span>（超越前 SOTA SPN 的 <span class="num">3.52</span>）；原始音频古典音乐在 <span class="num">65,536</span> 长度下达 <span class="num">1.97</span> bits/byte。反直觉的是，稀疏模式不仅更快，在被比较的数据集上误差还更低。</p>
+<hr>
+<h2>一、问题定位</h2>
+<h3><span class="num">1.1</span> 核心问题：O(n²) 的三重挤压</h3>
+<p>自注意力机制中每个位置都要与所有历史位置计算相关性，计算量与显存随序列长度 n 平方增长（Abstract、§1）。这带来三重挤压：</p>
+<ol>
+<li><strong>计算量</strong>：n² 的注意力矩阵乘法在 n 上万时变得不可承受；</li>
+<li><strong>显存</strong>：n×n 的注意力权重矩阵必须在反向传播时保留（或在重计算策略下至少在前向时可重建），直接限制序列长度与网络深度的乘积；</li>
+<li><strong>建模需求与能力的错位</strong>：许多真实数据——高分辨率图像逐像素展开后的数千字节序列、长文本、连续音频波形——天然具有远超当时常规上下文（通常数百至一千 token 量级）的时间跨度，而稠密注意力模型既算不动也训不稳这样的规模。（推断：源文件记载 Enwik8 实验"上下文 <span class="num">12,288</span>，长于以往方法"，侧面印证此前方法的上下文普遍显著短于此。）</li>
+</ol>
+<h3><span class="num">1.2</span> 论文对问题的精确切分</h3>
+<p>本文没有把问题笼统地表述为"让注意力变快"，而是拆成四个相互咬合的子问题，并逐一给出工程化答案：</p>
+<table>
+<tr><th>子问题</th><th>论文应对方案</th><th>出处</th></tr>
+<tr><td>---</td><td>---</td><td>---</td></tr>
+<tr><td>注意力连接数过多</td><td>因子化自注意力，每头只看 ⁿ√n 个位置，p=<span class="num">2 </span>头保证连通</td><td>§<span class="num">4.2</span>–<span class="num">4.3</span></td></tr>
+<tr><td>数百层网络训不动</td><td>pre-activation 残差 + 1/√(2N) 初始化缩放</td><td>§<span class="num">5.2</span></td></tr>
+<tr><td>n² 显存装不下</td><td>反向传播时重算 attention/FFN（梯度检查点）</td><td>§<span class="num">5.4</span></td></tr>
+<tr><td>稀疏计算跑不快</td><td>定制 block-sparse kernels + FP16 混合精度</td><td>§<span class="num">5.5</span>–<span class="num">5.6</span></td></tr>
+</table>
+<p>（推断：这种"算法结构 × 数值稳定性 × 显存管理 × 硬件 kernel"四位一体的打法，是本文能真正把理论复杂度落地为实测收益的关键；只做第一点的论文往往停留在理论层面。）</p>
+<h3><span class="num">1.3</span> 一个关键的先导观察</h3>
+<p>方法设计并非凭空设定稀疏模式，而是先做了诊断实验（§<span class="num">4.1</span>）：可视化一个 <span class="num">128</span> 层全注意力网络在 CIFAR-<span class="num">10</span> 上学到的注意力模式（Figure 2），发现<strong>大多数层呈现稀疏模式</strong>——早期层局部连接（类似卷积），第 <span class="num">19</span>–<span class="num">20</span> 层自发分解为行注意力 + 列注意力，部分层呈全局数据依赖访问，<span class="num">64</span>–<span class="num">128</span> 层高度稀疏。据此作者假设：<strong>引入预定稀疏性不会显著损害性能</strong>。这一"先观察模型自己想学什么，再照着设计归纳偏置"的研究路径，是全文方法论上最值得注意的起点。（推断：这也解释了为何固定的稀疏模式最终能在多个任务上打平甚至超过稠密注意力——它并非强行约束，而是对已学行为的形式化。）</p>
+<hr>
+<h2>二、概念内核</h2>
+<h3><span class="num">2.1</span> 因子化自注意力的形式化定义</h3>
+<p>注意力层由连接模式 S={S₁,…,Sₙ} 参数化，其中每个位置 i 只与集合内的位置发生注意力交互。因子化版本使用 <strong>p 个注意力头</strong>，第 m 头定义子集 Aᵢ⁽ᵐ⁾ ⊂ {j : j ≤ i}，要求满足两条性质（§<span class="num">4.2</span>）：</p>
+<ul>
+<li><strong>(a) 稀疏性</strong>：每个 |Aᵢ⁽ᵐ⁾| ∝ ⁿ√n —— 单头连接数从 n 降到 ⁿ√n 量级；</li>
+<li><strong>(b) 连通性</strong>：跨 p 步注意力，所有位置保持连通——任意 j ≤ i 都存在一条长度 ≤ p+<span class="num">1 </span>的路径。</li>
+</ul>
+<p>本文取 <strong>p=2</strong>。这两条性质合起来给出了复杂度 O(n√n) 的来源（Abstract、§1、§<span class="num">4.2</span>）：总连接数约为 p·n·ⁿ√n，而连通性保证信息两跳内可达任意历史位置，不以牺牲全局感受野为代价。（推断：性质 (b) 是设计的关键约束——若只有稀疏而无连通保证，深层网络的信息流会被切断；p=<span class="num">2 </span>意味着任意位置的 query 至多经一次"中转位置"即可触达全部历史。）</p>
+<h3><span class="num">2.2</span> 两种二维分解模式（§<span class="num">4.3</span>）</h3>
+<p><strong>Strided attention（跨步注意力，Figure 3b）</strong>：</p>
+<ul>
+<li>第 <span class="num">1 </span>头：Aᵢ⁽¹⁾ = {t, …, i}，其中 t = max(0, i−l)——看最近 l 个位置（局部带宽）；</li>
+<li>第 <span class="num">2 </span>头：Aᵢ⁽²⁾ = {j : (i−j) mod l = 0}——沿 stride l 每隔 l 个位置取一点（跨步汇总）；</li>
+<li>stride l 取接近 √n。适合图像、音乐等有周期结构的数据。</li>
+</ul>
+<p><strong>Fixed attention（固定注意力，Figure 3c）</strong>：</p>
+<ul>
+<li>第 <span class="num">1 </span>头：块内连接 Aᵢ⁽¹⁾ = {j : ⌊j/l⌋ = ⌊i/l⌋}——只看同一块内的位置；</li>
+<li>第 <span class="num">2 </span>头：列连接 Aᵢ⁽²⁾ = {j : j mod l ∈ {t, …, l}}，t = l − c——每个块内最后 c 个位置作为"汇总单元"向所有后续位置传播；</li>
+<li>论文给出的具体示例：l=<span class="num">128</span>、c=<span class="num">8 </span>时，所有 ><span class="num">128</span> 的位置可以看到 <span class="num">120</span>–<span class="num">128</span>，><span class="num">256</span> 的位置看到 <span class="num">248</span>–<span class="num">256</span>，依此类推。</li>
+<li>调参经验：c∈{<span class="num">8,16,32</span>}、l∈{<span class="num">128,256</span>} 表现良好；<strong>c=<span class="num">1 </span>会显著限制表达力</strong>；fixed 比 strided 多约 c 倍计算。多头时，让各头注意同一 l 块内不同的 c 子块更优。</li>
+</ul>
+<p><strong>两种模式的选择准则（§<span class="num">4.3</span> 末尾）</strong>：文本等无周期结构数据用 strided 会失败，因为元素的空间坐标与其未来相关位置不对应（空间坐标与相关性不对齐），此时改用 fixed。这一失效后来被 Table <span class="num">2 </span>的数字直接证实（Enwik8 上 strided 仅 <span class="num">1.13</span> vs dense <span class="num">1.00</span>，见第四节）。</p>
+<h3><span class="num">2.3</span> 概念内核小结</h3>
+<p>整篇论文的概念贡献可以压缩为一句话：<strong>把"每个位置看所有位置"替换为"每个位置看 ⁿ√n 个精心选定的位置，且两步之内全网可达"</strong>。strided 用"局部带 + 等距骨架"实现这一点，fixed 用"块内稠密 + 列状汇总枢纽"实现这一点；前者契合周期性数据，后者契合无周期数据。（推断：fixed 模式的列汇总单元本质上引入了一种层级式信息汇聚结构，可视为后续 hierarchical/slab 结构稀疏注意力的雏形。）</p>
+<hr>
+<h2>三、方法拆解</h2>
+<h3><span class="num">3.1</span> 因子化头的三种整合方式（§<span class="num">5.1</span>，Eq.6–8）</h3>
+<p>有了两个稀疏头，如何嵌入网络？论文给出三种方式：</p>
+<ol>
+<li><strong>逐残差块交替</strong>（Eq.6）——相邻残差块轮流使用两种注意力模式；</li>
+<li><strong>merged head 合并模式</strong>（Eq.7）——在同一层内合并两种模式；</li>
+<li><strong>多头并行</strong>（Eq.8）——标准多头机制下各头分别执行不同稀疏模式。</li>
+</ol>
+<p>经验结论：通常多头效果好；但当序列极长、注意力计算占主导时，逐个串行（交替）更划算。（推断：这是因为多头并行会重复支付注意力开销，而串行复用了同一份表示。）</p>
+<h3><span class="num">3.2</span> 百层深度的可训练性改造（§<span class="num">5.2</span>）</h3>
+<p>要把网络堆到上百层（CIFAR-<span class="num">10</span> 实验用到 <span class="num">128</span> 层），标准 post-norm Transformer 无法稳定收敛。本文采用：</p>
+<ul>
+<li><strong>He et al. <span class="num">2016</span> pre-activation 残差块</strong>：Hₖ = Hₖ₋₁ + resblock(Hₖ₋₁)（Eq.9–<span class="num">14</span>），即恒等主干 + 分支计算；</li>
+<li><strong>深度尺度不变的初始化</strong>：W₂ 与 Wₚ 按 1/√(2N) 缩放初始化，保持激活方差跨层数不变（N 为层数）（推断：这一缩放抵消了残差累加导致的方差增长，是"数百层"得以成立的核心数值技巧）；</li>
+<li><strong>GELU 高效近似</strong>：f(X) = X ⊙ sigmoid(<span class="num">1.702</span>X)，避免调用 erf；</li>
+<li>FFN 输出维度为 4d（保持标准比例）。</li>
+</ul>
+<h3><span class="num">3.3</span> 多数据类型的统一嵌入（§<span class="num">5.3</span>，Eq.15）</h3>
+<p>为了让同一个稀疏注意力框架同时吃图像、文本、音频：</p>
+<ul>
+<li><strong>图像</strong>：d_data = <span class="num">3 </span>维数据嵌入（行、列、通道）；</li>
+<li><strong>文本与音频</strong>：d_attn = <span class="num">2 </span>维注意力嵌入，按 stride 宽度矩阵的行列索引。（推断：即把一维序列折叠成宽度为 l 的二维网格，使 strided/fixed 的行、列注意力与数据的二维组织方式一一对应——这正是 strided 对图像有效、对纯文本失效的结构根源。）</li>
+</ul>
+<h3><span class="num">3.4</span> 显存优化：重计算（§<span class="num">5.4</span>）</h3>
+<p>采用 Chen et al. <span class="num">2016</span> 的 gradient checkpointing：前向时不保存注意力权重，反向传播时<strong>重算 attention 与 FFN 块</strong>。论文明确声称：仅凭重计算即可在<strong>长度 <span class="num">16,384</span></strong> 上训练数百层的稠密注意力网络——这在现代硬件上 otherwise 不可行。配套细节：为简化实现，注意力块内部不加 dropout，只在每次残差相加末尾施加。（推断：以约 +<span class="num">33</span>% 的额外前向计算换取 O(n²)→O(n) 量级的激活显存降幅，属于典型的时空权衡。）</p>
+<h3><span class="num">3.5</span> 定制 block-sparse GPU kernels（§<span class="num">5.5</span>）</h3>
+<p>理论稀疏 ≠ 实际加速，必须绕过非结构化稀疏在 GPU 上的低效：</p>
+<ul>
+<li>从 Q/K/V 切出子块，分块（blocked）计算；</li>
+<li>softmax 融合进单一 kernel，中间结果驻留寄存器避免反复加载显存；</li>
+<li><strong>从不计算注意力矩阵的上三角</strong>——因果语言模型只需下三角，此举免去负偏置项（用于屏蔽上三角的 mask 加法）并将运算量减半。（推断：这个细节说明作者的优化直达硬件指令层面，"省掉 mask 加法"这类微优化在大矩阵场景有可观的实际收益。）</li>
+</ul>
+<h3><span class="num">3.6</span> 混合精度训练（§<span class="num">5.6</span>）</h3>
+<ul>
+<li>权重以 FP32 存储，激活与梯度用 FP16（利用 V100 Tensor Core 加速）；</li>
+<li>动态 loss scaling 防止 FP16 下溢；</li>
+<li>采样时将 query-key 乘积转回 FP32 防溢出。（推断：采样阶段输入可能更长、数值极值风险更高，单独回退精度是稳健做法。）</li>
+</ul>
+<h3><span class="num">3.7</span> 训练配方（§6）</h3>
+<p>Adam 优化器；<span class="num">5000</span> 迭代线性 warmup；梯度裁剪阈值 <span class="num">1.0</span>；weight decay <span class="num">0.01</span>；cosine 学习率衰减；嵌入维度 d ∈ {<span class="num">256</span>, <span class="num">512</span>, <span class="num">1024</span>}；权重初始化 N(0, <span class="num">0.125</span>/√d_in)；logits 输出权重初始化为 0；默认硬件 8×V100。作者特别指出：<strong>warmup 与梯度裁剪对稳定性至关重要</strong>。（推断：结合 §<span class="num">5.2</span> 的深度缩放初始化，本文实际上构建了一套完整的深稀疏网络训练稳定化配方，三者缺一不可。）</p>
+<hr>
+<h2>四、证据链</h2>
+<h3><span class="num">4.1</span> 主结果（Table 1）：四个模态全面刷新或追平 SOTA</h3>
+<table>
+<tr><th>数据集</th><th>模型配置</th><th>结果</th><th>对比基线</th></tr>
+<tr><td>---</td><td>---</td><td>---</td><td>---</td></tr>
+<tr><td>CIFAR-<span class="num">10</span></td><td><span class="num">59</span>M strided</td><td><strong><span class="num">2.80</span> bits/dim</strong>（<span class="num">2.798</span>±<span class="num">0.004</span> over seeds <span class="num">1,2,3</span>）</td><td>前 SOTA PixelSNAIL <span class="num">2.85</span></td></tr>
+<tr><td>Enwik8</td><td><span class="num">95</span>M fixed</td><td><strong><span class="num">0.99</span> bits/dim</strong>（<span class="num">0.992</span>±<span class="num">0.001</span> over seeds <span class="num">1,2,3</span>）</td><td>同规模 Transformer-XL <span class="num">88</span>M 为 <span class="num">1.03</span>；Transformer-XL <span class="num">277</span>M 为 <span class="num">0.99</span></td></tr>
+<tr><td>ImageNet <span class="num">64×64</span></td><td><span class="num">152</span>M strided</td><td><strong><span class="num">3.44</span> bits/dim</strong>（<span class="num">3.437</span>，单次运行）</td><td>前 SOTA SPN <span class="num">150</span>M 为 <span class="num">3.52</span></td></tr>
+<tr><td>经典音乐（原始音频，<span class="num">12</span>kHz）</td><td><span class="num">152</span>M</td><td><strong><span class="num">1.97</span> bits/byte</strong> @ <span class="num">65,536</span> 序列长</td><td>见 <span class="num">4.4</span> 的长度-容量规律</td></tr>
+</table>
+<p>三点观察：</p>
+<ol>
+<li><strong>Enwik8 的含金量最高</strong>：<span class="num">95</span>M 参数追平 <span class="num">277</span>M（近 <span class="num">3 </span>倍参数）的 Transformer-XL，且上下文 <span class="num">12,288</span> 长于以往方法——参数效率优势明确。</li>
+<li><strong>多 seed 报告</strong>：CIFAR-<span class="num">10</span> 与 Enwik8 给出 seeds <span class="num">1,2,3</span> 的均值±标准差，而 ImageNet <span class="num">64</span> 仅单次运行（<span class="num">3.437</span>）——后者结论强度稍弱。（推断：<span class="num">64</span>×V100×<span class="num">7 </span>天的成本使得多种子重复不现实，这也是大规模实验的通病。）</li>
+<li><strong>模态覆盖</strong>：图像（2D 周期）、文本（非周期）、音频（1D 长序列）三类数据同时验证，说明方法不是单一任务的 trick。</li>
+</ol>
+<h3><span class="num">4.2</span> 效率与精度的双重优势（Table 2）</h3>
+<table>
+<tr><th>数据集（上下文）</th><th>模式</th><th>bits/dim</th><th>相对时延</th></tr>
+<tr><td>---</td><td>---</td><td>---</td><td>---</td></tr>
+<tr><td>Enwik8（<span class="num">12,288</span> ctx）</td><td>Dense</td><td><span class="num">1.00</span></td><td><span class="num">1.31</span></td></tr>
+<tr><td>Enwik8（<span class="num">12,288</span> ctx）</td><td>Fixed</td><td><strong><span class="num">0.99</span></strong></td><td><span class="num">0.55</span></td></tr>
+<tr><td>Enwik8（<span class="num">12,288</span> ctx）</td><td>Strided</td><td><span class="num">1.13</span></td><td><span class="num">0.35</span></td></tr>
+<tr><td>CIFAR-<span class="num">10</span>（<span class="num">3,072</span> ctx）</td><td>Dense</td><td><span class="num">2.82</span></td><td><span class="num">0.54</span></td></tr>
+<tr><td>CIFAR-<span class="num">10</span>（<span class="num">3,072</span> ctx）</td><td>Fixed</td><td><span class="num">2.85</span></td><td><span class="num">0.47</span></td></tr>
+<tr><td>CIFAR-<span class="num">10</span>（<span class="num">3,072</span> ctx）</td><td><strong>Strided</strong></td><td><strong><span class="num">2.80</span></strong></td><td><span class="num">0.38</span></td></tr>
+</table>
+<p>这张表是全文最有力的证据：</p>
+<ul>
+<li><strong>图像上 strided 全胜</strong>：<span class="num">2.80</span> vs dense <span class="num">2.82</span>，时延却只有 <span class="num">0.38</span>——又快又准；</li>
+<li><strong>文本上 strided 如预言般失败</strong>：<span class="num">1.13</span> 明显差于 dense <span class="num">1.00</span>，验证了 §<span class="num">4.3</span> "无周期数据 strided 失效"的设计判断；fixed 则以 <span class="num">0.55</span> 时延做到 <span class="num">0.99</span>，仍优于 dense 的精度与时延；</li>
+<li><strong>总体结论（§8）</strong>：在被比较的数据集上，稀疏模式不仅更快，还收敛到更低误差。作者推测原因是稀疏模式的<strong>归纳偏置</strong>或稠密注意力存在<strong>潜在优化问题</strong>——注意这只是推测，论文未做消融验证归因。（推断：无论哪种解释成立，都意味着"全连接"并非注意力容量的必要条件，甚至可能是一种过参数化的负担。）</li>
+</ul>
+<h3><span class="num">4.3</span> 上下文长度的单调收益（Table 3）</h3>
+<p>Enwik8 上评估上下文越长性能越好（训练上下文 <span class="num">12,288</span>）：</p>
+<table>
+<tr><th>min context</th><th>bits/dim</th></tr>
+<tr><td>---</td><td>---</td></tr>
+<tr><td><span class="num">6,144</span></td><td><span class="num">0.9952</span></td></tr>
+<tr><td><span class="num">12,096</span></td><td><span class="num">0.9922</span></td></tr>
+<tr><td><span class="num">12,160</span></td><td><span class="num">0.9908</span></td></tr>
+</table>
+<p>三个点严格单调改善，证明长上下文本身携带真实信息增益，而非收益饱和——这为"值得投入长序列建模"提供了直接的经验动机。（推断：该消融同时暗示 <span class="num">12,288</span> 的训练上下文尚未触及收益天花板，更长序列仍有空间，呼应了音频实验推向百万长度的尝试。）</p>
+<h3><span class="num">4.4</span> 序列长度与模型容量的权衡规律（Table 4，音乐）</h3>
+<p>原始音频古典音乐实验揭示了一条经验规律：<strong>序列长 ×<span class="num">4 </span>所需容量约 ÷8</strong>（⁴√<span class="num">4 </span>= 8，即容量按序列长的四次方根反比缩减）：</p>
+<table>
+<tr><th>序列长度</th><th>参数量</th><th>bits/byte</th></tr>
+<tr><td>---</td><td>---</td><td>---</td></tr>
+<tr><td><span class="num">65,536</span>（约 <span class="num">5 </span>秒 @<span class="num">12</span>kHz）</td><td><span class="num">152</span>M</td><td><span class="num">1.97</span></td></tr>
+<tr><td><span class="num">262,144</span></td><td><span class="num">25</span>M</td><td><span class="num">2.17</span></td></tr>
+<tr><td><span class="num">1,048,576</span></td><td>3M</td><td><span class="num">2.99</span></td></tr>
+</table>
+<p><span class="num">65,536</span> 长度样本展现全局连贯性与多样演奏风格；但更长序列因容量被迫缩减，质量快速退化。（推断：这条规律暴露了当时硬件下的真实约束——稀疏注意力解决了"算得动"，但没解决"给定算力预算下长度与容量的分配问题"；质量退化源于容量不足而非注意力机制本身失效。）</p>
+<h3><span class="num">4.5</span> 成本与训练配置证据（§6–7）</h3>
+<ul>
+<li>默认配置 8×V100；ImageNet <span class="num">64</span> 的 <span class="num">152</span>M 模型（<span class="num">48</span> 层 / <span class="num">16</span> heads / d=<span class="num">512</span> / stride <span class="num">128</span> / dropout <span class="num">0.01</span> / <span class="num">70</span> epochs）用了 <strong><span class="num">64</span>×V100 训练 <span class="num">7 </span>天</strong>；</li>
+<li>CIFAR-<span class="num">10</span> 细节：<span class="num">3072</span> 字节序列，<span class="num">2 </span>头 / <span class="num">128</span> 层 / d=<span class="num">256</span> / half-size FFN 与 QK 投影 / <span class="num">120</span> epochs / lr <span class="num">3.5</span>e-<span class="num">4 </span>/ dropout <span class="num">0.25</span>，<span class="num">48,000</span> 训练 + <span class="num">2,000</span> 验证；strided 收敛快于稠密注意力；</li>
+<li>Enwik8 细节：<span class="num">30</span> 层 fixed / <span class="num">8 </span>heads / d=<span class="num">512</span> / dropout <span class="num">0.40</span> / stride <span class="num">128</span> / c=<span class="num">32</span> / merged heads / <span class="num">80</span> epochs，<span class="num">90</span>M tokens 训练；</li>
+<li>另有 <span class="num">300</span>M 参数的 ImageNet <span class="num">64</span> 无条件采样模型，视觉上无稀疏伪影且具长期结构。（推断：这是对"稀疏会不会产生可见 artifact"的定性回应，虽非量化指标，但对生成质量的疑虑是必要的补充证据。）</li>
+</ul>
+<hr>
+<h2>五、批判性分析</h2>
+<h3><span class="num">5.1</span> 方法论亮点</h3>
+<ol>
+<li><strong>观察驱动的归纳偏置设计</strong>：先可视化 <span class="num">128</span> 层稠密网络的习得模式（Figure 2），再形式化为因子化注意力——设计有经验依据而非拍脑袋，这使得"稀疏不降精度"的结果显得合理而非侥幸。</li>
+<li><strong>理论与系统协同设计</strong>：O(n√n) 的算法主张由 block-sparse kernel、重计算、混合精度三条工程线共同兑现，Table <span class="num">2 </span>的相对时延（<span class="num">0.35</span>–<span class="num">0.55</span>）是系统级证据而非纸面推导。</li>
+<li><strong>诚实的负结果</strong>：Table <span class="num">2 </span>公开报告了 strided 在 Enwik8 上的失败（<span class="num">1.13</span> vs <span class="num">1.00</span>），并与 §<span class="num">4.3</span> 的理论预判互相印证，增强了整体可信度。</li>
+</ol>
+<h3><span class="num">5.2</span> 归因未验证：为什么稀疏反而更准？</h3>
+<p>作者给出两个候选解释——稀疏模式的归纳偏置、或稠密注意力的潜在优化问题（§8）——但均为推测措辞，论文未设计消融来区分二者。（推断：若是归纳偏置，则应观察到不同稀疏模式间的系统性差异与数据结构相关；若是优化问题，则应在稠密基线上做同等训练稳定化处理后重测。缺此一步，"稀疏更准"的普适性存疑——尤其 Table <span class="num">2 </span>中 Fixed 在 CIFAR-<span class="num">10</span> 上 <span class="num">2.85</span> 其实差于 Dense <span class="num">2.82</span>，说明"更准"并非在所有〈数据集×模式〉组合上都成立，而是依赖模式-数据匹配。）</p>
+<h3><span class="num">5.3</span> 固定模式的表达能力天花板</h3>
+<p>预定稀疏模式<strong>无法学习</strong> Figure <span class="num">2 </span>中出现的全局/数据依赖型注意力（§<span class="num">6 </span>局限 2）；c=<span class="num">1 </span>时网络表达力被严重限制（§<span class="num">4.3</span>）。也就是说，本文的稀疏是对"平均注意力行为"的一阶近似，对那些真正需要动态路由信息的样本（如长程指代）可能系统性吃亏。（推断：Enwik8 上 fixed <span class="num">0.99</span> 与 dense <span class="num">1.00</span> 的差距极小，可能恰恰因为字符级语言模型的多数依赖是局部的；换到强语义依赖的任务，差距未必如此乐观。）</p>
+<h3><span class="num">5.4</span> 超长序列的容量墙</h3>
+<p>音乐实验显示序列增至 <span class="num">1,048,576</span> 时参数被迫压到 3M，bits/byte 从 <span class="num">1.97</span> 恶化到 <span class="num">2.99</span>（Table 4）。稀疏注意力把注意力的墙推远了，但没有拆除——墙外是模型容量与序列长度的硬权衡。（推断：这说明 <span class="num">2019</span> 年的瓶颈已从"注意力算不动"部分转移到"整体算力预算不够"，预示了后续工作需要在效率之外同时解决扩容问题。）</p>
+<h3><span class="num">5.5</span> 工程门槛与可复现性</h3>
+<p>要复现本文结果需要：定制 block-sparse GPU kernel、FP16 动态 loss scaling、梯度检查点、精细的初始化/warmup/裁剪配方（§<span class="num">5.4</span>–<span class="num">5.6</span>、§6）。任一环节缺失都可能导致不收敛或无加速。（推断：这套系统工程复杂度在当时远超学术实验室的平均能力，客观上提高了独立复现与公平对比的难度；ImageNet <span class="num">64</span> 的 <span class="num">64</span>×V100×<span class="num">7 </span>天成本也使第三方重复实验近乎不可能。）</p>
+<h3><span class="num">5.6</span> 实验设计的其他保留项</h3>
+<ul>
+<li>ImageNet <span class="num">64</span> 的 <span class="num">3.437</span> 为单次运行，无 seed 方差；</li>
+<li>bits/dim 与 bits/byte 跨数据集不可直接比较，横向结论只能在各数据集内部成立；</li>
+<li>音频"质量快速退化"以定性描述为主，缺少感知类指标。（以上均基于源文件所载数据范围的保守评估。）</li>
+</ul>
+<hr>
+<h2>六、启示与影响</h2>
+<h3><span class="num">6.1</span> 直接启示：四条可迁移的工程原则</h3>
+<ol>
+<li><strong>先看模型在学什么，再设计约束</strong>：Figure <span class="num">2 </span>的可视化→因子化设计路径，适用于一切"给模型加结构先验"的研究；</li>
+<li><strong>连通性是稀疏化的底线约束</strong>：p 步可达（p+<span class="num">1 </span>长度路径）保证信息全网流通，任何稀疏化方案都应显式论证这一点；</li>
+<li><strong>深稀疏网络的稳定化三角</strong>：pre-activation 残差 + 1/√(2N) 深度缩放初始化 + warmup/裁剪，三位一体缺一不可；</li>
+<li><strong>理论加速必须过 kernel 这一关</strong>：块稀疏分块计算、softmax kernel 融合、跳过上三角减半运算、寄存器驻留——算法创新只有落到硬件友好的实现上才产生真实收益。</li>
+</ol>
+<h3><span class="num">6.2</span> 学术谱系定位<span class="infer">（推断）</span></h3>
+<p>本文是"高效注意力"研究线的奠基性节点之一：（推断：其后涌现的 Longformer、BigBird、Routing Transformer 等工作均可视为对本路线的扩展——或引入局部+全局混合窗口，或将固定稀疏升级为可学习/数据依赖稀疏，或给出稀疏模式表达能力的理论刻画。Fixed 模式的"列汇总枢纽"结构与后来的全局 token 设计思路相通；而其"strided 适配周期数据、fixed 适配非周期数据"的二分法，成为后续稀疏模式选型的基本参照。）此外，本文作者团队出自 OpenAI，（推断：同年前后该团队正推进大规模语言模型的序列建模，长上下文注意力工程在此后的大模型时代成为标配能力，本文的重计算、块稀疏 kernel、混合精度等组件均被后续基础设施吸收演化。）</p>
+<h3><span class="num">6.3</span> 对当下长上下文建模的镜鉴</h3>
+<ol>
+<li><strong>"更长上下文 ⇒ 更好"已被本文定量预演</strong>（Table <span class="num">3 </span>的单调改善），今天的长上下文竞赛本质上延续着同一逻辑；</li>
+<li><strong>长度-容量权衡仍未消失</strong>：Table <span class="num">4 </span>的 ÷<span class="num">8 </span>规律提醒我们，拉长序列必然挤占单位长度的模型容量，现代长上下文模型同样面临此约束，只是表现形式变为 KV cache 与算力预算之争；<span class="infer">（推断）</span></li>
+<li><strong>数据依赖型稀疏仍是开放问题</strong>：本文承认固定模式学不出全局数据依赖路由（局限 2），如何以接近固定模式的成本获得接近数据依赖的效果，至今仍是高效注意力研究的核心张力；<span class="infer">（推断）</span></li>
+<li><strong>归纳偏置的双刃剑</strong>：稀疏带来速度与可能的正则化收益，但也锁死了信息通路——选择哪种稀疏，本质是在押注数据的结构假设（周期 or 层级），这个决策框架在本文之后并未过时。<span class="infer">（推断）</span></li>
+</ol>
+<hr>
+<p>*报告完。除标注「<span class="infer">（推断）</span>」处外，全部事实与数字以《<span class="num">00</span>-源数据提取.md》为唯一依据。*</p>
+<div class="selfcheck">数据依据：本页 00-源数据提取.md | 推断处已标注（推断）| 生成：批量转换脚本</div>
+</div></body></html>

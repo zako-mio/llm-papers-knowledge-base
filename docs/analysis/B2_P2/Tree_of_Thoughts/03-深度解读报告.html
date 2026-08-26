@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《Tree of Thoughts》深度解读报告</title>
+<style>
+  :root {
+    --ink: #1f2430;
+    --sub: #5a6272;
+    --accent: #b3541e;
+    --accent-soft: #fdf3ec;
+    --line: #e6e2da;
+    --bg: #faf8f4;
+    --card: #ffffff;
+    --num: #9a3412;
+    --num-bg: #fff0e0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", Georgia, serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.85;
+    font-size: 16px;
+  }
+  .page { max-width: 900px; margin: 0 auto; padding: 0 28px 64px; }
+
+  header.hero {
+    background: linear-gradient(135deg, #23272f 0%, #3c3428 60%, #6b4423 100%);
+    color: #f5efe6;
+    padding: 56px 28px 48px;
+    text-align: center;
+  }
+  header.hero .kicker { font-size: 13px; letter-spacing: 4px; opacity: .75; font-family: sans-serif; }
+  header.hero h1 { font-size: 30px; margin: 14px 0 10px; font-weight: 700; letter-spacing: 1px; }
+  header.hero .en-title { font-size: 15px; opacity: .82; font-style: italic; max-width: 720px; margin: 0 auto; }
+  header.hero .meta { margin-top: 22px; font-size: 13.5px; opacity: .85; line-height: 2; }
+
+  .data-note {
+    background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--accent);
+    padding: 14px 20px; margin: 26px 0; font-size: 14px; color: var(--sub); border-radius: 0 8px 8px 0;
+  }
+
+  nav.toc {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 20px 26px; margin: 0 0 30px;
+  }
+  nav.toc h2 { font-size: 15px; color: var(--accent); letter-spacing: 2px; margin-bottom: 10px; }
+  nav.toc ol { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; font-size: 14.5px; }
+  nav.toc a { color: var(--ink); text-decoration: none; border-bottom: 1px dotted transparent; }
+  nav.toc a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+  section.card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 34px 38px 30px; margin-bottom: 30px;
+  }
+  section.card > h2 {
+    font-size: 21px; color: var(--accent); margin-bottom: 18px;
+    padding-bottom: 10px; border-bottom: 2px solid var(--accent-soft);
+  }
+  section.card h3 { font-size: 17px; margin: 24px 0 10px; color: #33302a; }
+  section.card p { margin: 10px 0; text-align: justify; }
+  section.card ul, section.card ol { margin: 10px 0 10px 24px; }
+  section.card li { margin: 6px 0; text-align: justify; }
+
+  strong, b { color: #111; }
+  .num {
+    font-family: Georgia, "Times New Roman", serif;
+    color: var(--num); background: var(--num-bg);
+    padding: 1px 6px; border-radius: 4px; font-weight: 700; white-space: nowrap;
+  }
+  .infer { color: #7c6f64; font-size: .93em; }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14.5px; }
+  th { background: #f3ede4; color: #4a4034; font-weight: 700; padding: 9px 12px; border: 1px solid var(--line); text-align: left; }
+  td { padding: 8px 12px; border: 1px solid var(--line); }
+  tr:nth-child(even) td { background: #fbf9f5; }
+  td.hl { color: var(--num); font-weight: 700; }
+
+  blockquote.punch {
+    margin-top: 22px; padding: 14px 20px;
+    background: var(--accent-soft); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0;
+    font-size: 15px;
+  }
+  blockquote.punch::before { content: "一句话小结"; display: block; font-size: 12px; letter-spacing: 3px; color: var(--accent); margin-bottom: 4px; font-family: sans-serif; }
+
+  footer.check {
+    margin-top: 36px; padding: 18px 24px; font-size: 13px; color: var(--sub);
+    background: #f2f0ea; border: 1px dashed #cfc8ba; border-radius: 10px;
+  }
+  footer.check code { background: #e9e5dc; padding: 1px 6px; border-radius: 4px; font-size: 12.5px; }
+  @media (max-width: 640px) {
+    section.card { padding: 24px 20px; }
+    nav.toc ol { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="kicker">深度解读 · NEURIPS 2023 · B2 批次</div>
+  <h1>思维之树：让语言模型学会深思熟虑</h1>
+  <div class="en-title">Tree of Thoughts: Deliberate Problem Solving with Large Language Models</div>
+  <div class="meta">
+    Shunyu Yao (Princeton) · Dian Yu · Jeffrey Zhao · Izhak Shafran · Thomas L. Griffiths · Yuan Cao · Karthik Narasimhan<br>
+    Princeton University × Google DeepMind · arXiv:2305.10601v2 · NeurIPS 2023
+  </div>
+</header>
+
+<div class="page">
+
+<div class="data-note">
+数据依据：pdf-worker 源数据提取文件（00-源数据提取.md），全部数字与提取稿一致；标注<span class="infer">（推断）</span>处为分析者推理补充。Mini Crosswords 指标口径按提取稿 §3 注记处理（Letter/Word/Game 三级分别报告）。
+</div>
+
+<nav class="toc">
+  <h2>目 录</h2>
+  <ol>
+    <li><a href="#s0">摘要</a></li>
+    <li><a href="#s1">一、问题定位</a></li>
+    <li><a href="#s2">二、概念内核</a></li>
+    <li><a href="#s3">三、方法拆解</a></li>
+    <li><a href="#s4">四、证据链</a></li>
+    <li><a href="#s5">五、批判性分析</a></li>
+    <li><a href="#s6">六、启示与影响</a></li>
+    <li><a href="#s7">总结</a></li>
+  </ol>
+</nav>
+
+<section class="card" id="s0">
+  <h2>摘要</h2>
+  <p>本文解读普林斯顿大学联合 Google DeepMind 发表于 NeurIPS 2023 的《Tree of Thoughts》（一作 Shunyu Yao）。论文的核心论断是：当前语言模型在推理时被锁定在<strong>"token 级、从左到右"</strong>的决策模式中，既无法在中间步骤出错时回头修正（局部缺陷），也无法为需要规划与探索的全局性问题预留搜索空间（全局缺陷）。为此作者提出 <strong>Tree of Thoughts（ToT）</strong>框架，将 Chain-of-Thought 从"单链条"泛化为"思维树"：以连贯的语言序列 <strong>thought</strong> 作为最小推理单元，让语言模型自身充当 thought 的生成器与评估器，再用 BFS/DFS 在树上系统地进行<strong>探索、前视与回溯</strong>——即 Newell/Shaw/Simon 经典问题求解意义上的 System 2 式深思熟虑。该框架无需任何额外训练，并在三个连 GPT-4 都表现孱弱的任务上取得数量级提升：Game of 24 从 CoT 的 <span class="num">4%</span> 升至 <span class="num">74%</span>；Creative Writing 人类盲评 <span class="num">41/100</span> 偏好 ToT 对 <span class="num">21/100</span> 偏好 CoT；Mini Crosswords 词级成功率从 CoT 的 <span class="num">15.6%</span> 升至 <span class="num">60%</span>。</p>
+</section>
+
+<section class="card" id="s1">
+  <h2>一、问题定位：token 级自回归为何撑不起 System 2</h2>
+
+  <h3>1.1 论文要解决的问题</h3>
+  <p>论文开篇借认知科学的双系统隐喻切入：现有语言模型的推理是 <strong>System 1 式</strong>的——快速、直觉、不可逆。解码过程严格按从左到右逐 token 进行，每一步决策一旦落笔便成为后续所有生成的条件上下文。这在两类场景下会系统性失败：</p>
+  <ul>
+    <li><strong>局部层面</strong>：某一步中间推理出错后，模型没有任何机制意识到错误并回退重来，只能将错就错地把错误传播到最终答案；</li>
+    <li><strong>全局层面</strong>：面对需要先规划、再试探、随时改道的问题（如谜题、约束满足、创造性写作），单条不可回溯的直线轨迹根本没有容纳"探索"的结构。</li>
+  </ul>
+
+  <h3>1.2 谱系定位：从 IO 到 CoT 再到 ToT 的三级跳</h3>
+  <table>
+    <tr><th>范式</th><th>轨迹结构</th><th>中间 thought</th><th>分叉/回溯</th></tr>
+    <tr><td>IO prompting</td><td>单路径直达答案</td><td>无</td><td>否</td></tr>
+    <tr><td>Chain-of-Thought</td><td>单路径展开推理</td><td>有</td><td>否</td></tr>
+    <tr><td>CoT-SC（self-consistency）</td><td>多条独立路径取多数票</td><td>有</td><td>分叉但互不通信</td></tr>
+    <tr><td>Self-Refine</td><td>单路径迭代修自己</td><td>有</td><td>只能顺序修正</td></tr>
+    <tr><td><strong>Tree of Thoughts</strong></td><td><strong>树上多路径</strong></td><td>有</td><td><strong>评估、剪枝、回溯俱全</strong></td></tr>
+  </table>
+  <p>ToT 的关键洞察是：上述所有既有范式都可以看作<strong>"有限深度与宽度的思维树"的特例</strong>——IO 是深度最浅的单枝，CoT 是不分叉的单枝，CoT-SC 是同层并行展开却不做评估的多枝。ToT 把这棵"被砍剩的树"补全了：分支由模型生成、前景由模型评估、资源由搜索算法分配。</p>
+  <p>思想源头方面，作者明确回溯到 Newell、Shaw 与 Simon 1950 年代的问题求解理论——人类解题即在头脑中将问题表征为树并做启发式搜索。ToT 的独特之处在于：<strong>树上的节点生成与价值评估不再依赖人工规则或训练出的价值网络，而是直接调用语言模型本身</strong>。<span class="infer">（推断）这与后来 RLHF 时代"过程奖励模型"路线形成鲜明对照：ToT 完全绕开了训练成本，把全部智能压在预训练模型的 zero-shot 能力上。</span></p>
+  <blockquote class="punch">本文诊断的不是"模型不会推"，而是"推的方式太原始"——把不可逆的 token 流升级为可探索、可评估、可回溯的思维树，等于给 LLM 装上了 System 2 的最小骨架。</blockquote>
+</section>
+
+<section class="card" id="s2">
+  <h2>二、概念内核：四个组件与一个统一定理</h2>
+
+  <h3>2.1 Thought（思维单元）：粒度是第一设计决策</h3>
+  <p><strong>定义</strong>：thought 是一段连贯的语言序列，作为树上的中间节点，代表解决问题的中间步骤。</p>
+  <p><strong>拆解</strong>：thought 的粒度没有固定答案，须按问题性质定制。原文给出的三档跨度极大——填字游戏中是<strong>几个字母/词</strong>，算术谜题中是<strong>一行方程</strong>，创作任务中是<strong>整段写作计划</strong>。作者给出双向约束的设计原则：thought 应"足够小，使模型能在一步内多样地生成多个候选"，又"足够大，使评估其解题前景是有意义的"。<span class="infer">（推断）这条原则实质上是把经典搜索中的"算子粒度选择"问题翻译成了 prompt 设计问题：粒度太细则搜索树指数爆炸，太粗则评估器失去区分度。</span></p>
+
+  <h3>2.2 Thought Generator G(p<sub>θ</sub>, s, k)：两种候选生成策略</h3>
+  <p>给定当前状态 s=[x, z<sub>1..i</sub>]（原始输入加已有 thought 序列），生成器产出 k 个候选下一 thought。论文给出两种互补策略：</p>
+  <ul>
+    <li><strong>(a) i.i.d. 采样</strong>：用 CoT 式 prompt 独立多次采样。适用于 thought 空间丰富的场景（如 Creative Writing），独立采样天然带来多样性；</li>
+    <li><strong>(b) propose prompt 顺序提议</strong>：一条 prompt 让模型一口气列出多个候选。适用于 thought 空间受限的场景（如 Game of 24、Mini Crosswords），避免独立采样反复撞出重复候选浪费预算。</li>
+  </ul>
+
+  <h3>2.3 State Evaluator V(p<sub>θ</sub>, S)：把 LM 当作启发式函数</h3>
+  <p>评估器衡量一组前端状态对解题的进展，充当搜索的启发式。同样有两种策略：</p>
+  <ul>
+    <li><strong>(a) 数值/等级标注</strong>：独立给每个状态打分——可以是 <span class="num">1–10</span> 的数值，也可以是 sure/likely/impossible 三档离散判断，依据是对少量前瞻的模拟加常识推理；</li>
+    <li><strong>(b) 跨状态投票</strong>：当成功与否难以直接量化（典型例子是文章连贯性 passage coherency）时，让模型在多个候选间比较并投出"最有希望的状态" s*。</li>
+  </ul>
+  <p>两种策略都可多次采样聚合以提升稳健性。这一设计的深意在于：<strong>价值判断被完全外包给同一个预训练模型，不需要任何训练出来的奖励模型</strong>。</p>
+
+  <h3>2.4 Search Algorithm：可插拔的第三件套</h3>
+  <p>搜索算法与生成/评估完全解耦，本文只用两个教科书级算法：</p>
+  <ul>
+    <li><strong>BFS（Algorithm 1）</strong>：每层保留评估分数最高的 b 个状态继续扩展。用于 Game of 24（树深 T≤3、宽度 b≤5）与 Creative Writing；</li>
+    <li><strong>DFS（Algorithm 2）</strong>：优先深入最有希望的状态；到达最终输出（t&gt;T）或评估器判定"从此状态不可能解出"（V(s) ≤ v<sub>thr</sub>）时剪枝，回溯到父状态换下一候选继续。用于步数可变的 Mini Crosswords。</li>
+  </ul>
+  <p><span class="infer">（推断）BFS/DFS 的分工暗合问题的树形结构：定深定宽的谜题天然适配 BFS 的层间竞争，而步数不定、需要尽早锁定可行解的填字游戏更适合 DFS 的纵深推进加失败回溯。</span></p>
+
+  <h3>2.5 统一视角与四项概念优点</h3>
+  <ol>
+    <li><strong>Generality（通用性）</strong>：IO、CoT、CoT-SC、self-refine 均为其特例；</li>
+    <li><strong>Modularity（模块化）</strong>：分解粒度、生成器、评估器、搜索算法四个组件可各自独立替换；</li>
+    <li><strong>Adaptability（适应性）</strong>：可按问题难度、模型能力、资源预算调节搜索强度；</li>
+    <li><strong>Convenience（便利性）</strong>：无需额外训练，直接使用 off-the-shelf 预训练 LM。</li>
+  </ol>
+  <blockquote class="punch">ToT 的概念贡献是把"推理时计算"拆成四个正交旋钮——想什么单位（thought）、怎么想出新枝（generator）、哪枝值得活（evaluator）、资源给谁（search）——而 LM 本身同时驱动其中三个。</blockquote>
+</section>
+
+<section class="card" id="s3">
+  <h2>三、方法拆解：三个任务的完整实例化</h2>
+  <p>ToT 不是单一算法而是框架，其说服力来自三个性质迥异的任务都能在同一框架下实例化。原文 Table 1 给出了三任务的输入/输出/thought 设计：</p>
+  <table>
+    <tr><th>任务</th><th>输入 → 输出</th><th>thought 设计</th><th>ToT 步数</th></tr>
+    <tr><td>Game of 24</td><td>4 个数（如 4 9 10 13）→ 算式 (13−9)*(10−4)=24</td><td>每步一条中间算式（消耗两个数字）</td><td>3</td></tr>
+    <tr><td>Creative Writing</td><td>4 条随机句子 → 以其分别结尾的 4 段连贯文章</td><td>一段整体写作计划</td><td>1</td></tr>
+    <tr><td>Mini Crosswords</td><td>5×5 棋盘、10 条线索 → 填满 25 字母的棋盘</td><td>每条线索填一词</td><td>5–10（可变）</td></tr>
+  </table>
+
+  <h3>3.1 Game of 24：定深谜题 + BFS 强剪枝</h3>
+  <p>搜索配置为 BFS，T≤3、b≤5；生成采用 propose prompt（候选算式空间受约束）。这道题对 GPT-4 极难的原因在错误分析中暴露得淋漓尽致：约 <span class="num">60%</span> 的 CoT 样例在第 1 步（前 3 个词）之后就注定失败了——第一条算式选错了数字对，后面两步无论怎么写都凑不出 24，而自回归模型对此毫无察觉。这正是"局部不可修正"缺陷的完美标本。</p>
+
+  <h3>3.2 Creative Writing：开放式任务 + 投票评估</h3>
+  <p>thought 为先生成的一段整体写作计划，仅 1 步；评估特点在于连贯性难以数值化，故采用<strong>跨状态投票</strong>策略——让模型比较多个计划草案选出最好的，再据此成文。此任务展示了 ToT 对非数学任务的适配能力：当"打分"不可行时，"比较"仍然可行。这也是评估器策略 (b) 存在的理由。</p>
+
+  <h3>3.3 Mini Crosswords：变长约束满足 + DFS 回溯</h3>
+  <p>DFS 优先填最有把握的词，评估器一旦判定某状态"不可能完成"（V(s) ≤ v<sub>thr</sub>）立即剪枝回溯。消融实验在此任务上给出了机制层面的证据：去掉剪枝（-prune）总体更差，但反而能解出 <span class="num">3</span> 个因评估器误判而被剪掉的游戏——印证了评估器作为启发式的双刃剑属性；去掉回溯（贪心 BFS、b=1）则词级成功率暴跌至 <span class="num">20%</span>，证明回溯本身就是性能的主要来源之一。</p>
+
+  <h3>3.4 统一的实验设置</h3>
+  <p>除另有说明外，主实验使用 ChatCompletion 模式的 GPT-4，采样温度 <span class="num">0.7</span>；主实验于 2023-05-05 至 2023-05-16 完成。Game of 24 数据集从 4nums.com 抓取 <span class="num">1,362</span> 题，取编号 901–1000 共百题作测试。全部实验零训练、纯 prompt + 搜索编排。</p>
+  <blockquote class="punch">三个任务分别覆盖"封闭谜题/开放创作/约束满足"三种问题形态，thought 粒度横跨词—方程—段落三个尺度，搜索算法覆盖 BFS/DFS 两极——框架的四组件在每个任务上都各就各位，通用性的主张由此坐实。</blockquote>
+</section>
+
+<section class="card" id="s4">
+  <h2>四、证据链：三主战场 + 边界探测 + 成本账本</h2>
+
+  <h3>4.1 主战场一：Game of 24（Table 2）</h3>
+  <table>
+    <tr><th>方法</th><th>成功率</th></tr>
+    <tr><td>IO prompting</td><td>7.3%</td></tr>
+    <tr><td>CoT</td><td>4.0%</td></tr>
+    <tr><td>CoT-SC (k=100)</td><td>9.0%</td></tr>
+    <tr><td>IO best-of-100（oracle 视角）</td><td>33%</td></tr>
+    <tr><td>CoT best-of-100（oracle 视角）</td><td>49%</td></tr>
+    <tr><td>IO + Refine</td><td>27%</td></tr>
+    <tr><td><strong>ToT (b=1)</strong></td><td class="hl">45%</td></tr>
+    <tr><td><strong>ToT (b=5)</strong></td><td class="hl">74%</td></tr>
+  </table>
+  <p>这张表的层次极其丰富。第一层是表面差距：ToT <span class="num">74%</span> 是 CoT <span class="num">4%</span> 的 <span class="num">18.5 倍</span>。第二层更有意思——<strong>oracle 行揭示了天花板结构</strong>：即便允许 CoT 采样 100 次挑最好的一次也只有 <span class="num">49%</span>，说明 CoT 的失败不是运气问题而是单路径的结构性缺陷（60% 样例第一步即死），再多采样也只是在一个坏参数空间里抽奖。第三层：ToT 仅用 b=1 就达到 <span class="num">45%</span>，逼近 CoT best-of-100 的 49% 却只需约二十分之一的开销——评估与剪枝带来的增益远大于暴力堆采样。随节点访问数增长，ToT 的改善曲线持续优于 CoT-best-of-k，说明搜索预算在 ToT 框架下边际收益更高。</p>
+
+  <h3>4.2 主战场二：Creative Writing</h3>
+  <ul>
+    <li><strong>GPT-4 自动评分</strong>（0–10）：ToT <span class="num">7.56</span> &gt; CoT 6.93 &gt; IO 6.19；GPT-4 五次评分的标准差约 <span class="num">0.56</span>，评分一致性尚可；</li>
+    <li><strong>人类盲评</strong>（100 对样本）：<span class="num">41</span> 人次偏好 ToT＞CoT，<span class="num">21</span> 人次相反，<span class="num">38</span> 人次认为相当；</li>
+    <li><strong>叠加 iterative refinement</strong>：IO 6.19→<span class="num">7.67</span>，ToT 7.56→<span class="num">7.91</span>——ToT 与精炼循环正交且可叠加，起点更高的 ToT 终值也更高。</li>
+  </ul>
+  <p>值得注意的是自动评分与人类偏好方向一致但幅度不同：<span class="infer">（推断）</span>7.56 对 6.93 只是 0.63 分之差，而人类盲评 41:21 接近 2:1，说明在连贯性这类软指标上，人眼对小差距的放大效应强于评分器的名义分辨率，ToT 的实际优势可能被自动评分低估。</p>
+
+  <h3>4.3 主战场三：Mini Crosswords（Table 3，三级口径）</h3>
+  <table>
+    <tr><th>级别</th><th>IO</th><th>CoT</th><th>ToT</th></tr>
+    <tr><td>Letter 级成功率</td><td>38.7%</td><td>40.6%</td><td class="hl">78%</td></tr>
+    <tr><td>Word 级成功率</td><td>14%</td><td>15.6%</td><td class="hl">60%</td></tr>
+    <tr><td>Game 级完整解</td><td>0</td><td>1%</td><td class="hl">20%</td></tr>
+  </table>
+  <p>三级指标的梯度本身就说明了问题：IO/CoT 在字母级别尚可（约 40%），到词级崩塌至 15% 上下，到整局几乎归零（<span class="num">0–1%</span>）——错误沿约束链条指数级累积。ToT 把三个层级全面抬升（78%/60%/20%），完整解出 <span class="num">4/20</span> 局；若计入 oracle best state 可达 <span class="num">7/20</span>。评估器的不完美在此再次显形：oracle 与实际产出的差距（3 局）正是被误剪掉的可行解。</p>
+
+  <h3>4.4 边界探测：什么时候 ToT 不划算</h3>
+  <ul>
+    <li><strong>常规任务收益递减</strong>：零样本 ToT 在 GSM8K 上 <span class="num">90%</span>（CoT 86%）、StrategyQA 上 <span class="num">83%</span>（CoT 82%）——GPT-4 本就擅长的任务上，深思熟虑的边际收益很小（附录 B.1）；</li>
+    <li><strong>依赖底座模型能力</strong>：GPT-3.5 上趋势成立（Creative Writing ToT <span class="num">6.62</span> 仍优于其他范式），但 Game of 24 上 GPT-3.5+ToT 仅 <span class="num">19%</span>，远逊 GPT-4 的 74%。混合实验进一步定位了瓶颈：GPT-4 生成 + GPT-3.5 评估可达 <span class="num">64%</span>，反向组合仅 <span class="num">31%</span>——<strong>成败的关键在 thought 生成的质量，而非评估</strong>；</li>
+    <li><strong>成本显著更高</strong>：Game of 24 上 ToT 每题约 <span class="num">5.5k token / $0.74</span>，对照 CoT best-of-100 为 6.7k / $0.47（49%）、IO best-of-100 为 1.8k / $0.13（33%）；Creative Writing 上 ToT <span class="num">4k / $0.32</span> 对 IO/CoT 各约 0.9k（$0.06–0.07）。两个主任务合计总开销约 <span class="num">$106</span>。以性价比论，ToT 每 1% 成功率的成本并不总是占优——它的卖点是"上限"，而非"单价"。</li>
+  </ul>
+  <blockquote class="punch">证据链呈三层嵌套——三主战场证明"难任务上 ToT 数量级领先"，边界实验证明"易任务上收益递减、且瓶颈在生成端"，oracle 对照证明"领先来自搜索结构而非采样运气"。</blockquote>
+</section>
+
+<section class="card" id="s5">
+  <h2>五、批判性分析：局限的深层含义与独立疑点</h2>
+
+  <h3>5.1 作者自述五条局限的深层含义</h3>
+  <ol>
+    <li><strong>任务覆盖面窄</strong>：许多 GPT-4 已擅长的任务不需要 deliberate search（附录 B.1 自证），论文只探索了 3 个相对简单但能卡住 GPT-4 的任务。深层含义：ToT 是"特定问题形态的解药"而非通用加速器；</li>
+    <li><strong>成本高昂</strong>：单任务生成 token 可达 CoT 的 <span class="num">5–100 倍</span>。在 2023 年语境下这是 API 账单问题，在今天则是推理时计算（test-time compute）范式的先声——代价结构没变，只是行业愿意付了；</li>
+    <li><strong>未做微调闭环</strong>：只用 off-the-shelf LM，作者明确提出"用 ToT 风格的高层反事实决策微调 LM"是潜在方向但未实现。这条局限精准预言了后来的研究方向；</li>
+    <li><strong>评估器会误杀</strong>：5×5 填字游戏刻意包含一些 GPT-4 不认识的罕见/废弃词，导致评估器判 impossible 而剪掉正确分支。这是启发式剪枝的原罪：<strong>评估器的知识边界就是搜索的天花板</strong>；</li>
+    <li><strong>搜索算法朴素</strong>：只用 BFS/DFS，未尝试 A*、MCTS 等更强算法；成本与效果高度依赖 prompt 与搜索超参的设置。</li>
+  </ol>
+
+  <h3>5.2 独立观察到的五个疑点</h3>
+  <p><strong>① 测试规模普遍偏小，统计功效存疑</strong>。Game of 24 取 100 题（编号 901–1000）、Mini Crosswords 仅 <span class="num">20 局</span>、人类盲评 100 对。20 局意味着 Game 级成功率 20% 实际只解出 4 局——95% 置信区间宽到足以吞下 8%–39% 的范围<span class="infer">（推断，按二项分布估计）</span>。核心结论的方向可信，但精确数值不宜过度解读。</p>
+  <p><strong>② "74% 之后剩下的 26%"缺乏归因分析</strong>。源数据显示 ToT(b=5) 74%，但论文（按提取稿）未细分剩余失败中多少归咎生成端、多少归咎评估端。混合实验证明生成是主要瓶颈，但那是在跨模型对比下的结论，同一模型内部的失败归因仍属空白。<span class="infer">（推断）结合填字游戏的误剪证据，评估端漏检很可能贡献了不小份额。</span></p>
+  <p><strong>③ Creative Writing 的任务定义偏窄</strong>。"以 4 个随机句结尾的 4 段文章"是一个高度人工化的约束写作任务，其对"创造性写作"的代表性与真实写作场景相距甚远。标题里的 "Deliberate Problem Solving" 在该任务上的体现更多是"计划先行"而非完整的创作过程。</p>
+  <p><strong>④ GSM8K 上 IO 基线异常低</strong>。提取稿记录 GPT-4 零样本 IO 为 "51+"（带加号，口径不明），与 CoT 86% 差距悬殊。若 IO 基线因格式解析问题被低估，则"ToT 90% vs CoT 86%"的小幅提升虽不受影响，但论文叙事中"prompting 范式演进"的整体斜率会被放大。此处以提取稿为准存疑。</p>
+  <p><strong>⑤ 概念新颖性与工程组装的比例</strong>。ToT 的四组件每一个都不是新发明——propose/vote 式评估与 self-consistency 血缘相近，树搜索更是六十年前的遗产。真正的创新在于<strong>指出 LM 可以同时充当生成器与评估器、从而免训练地组装出 System 2</strong>。这个组合创新是扎实的，但后续大量"XX of Thoughts"式跟风工作只复制了形式而不具备其成立前提（可靠的 LM 自评估），这一点论文本身无法负责，却是阅读此文时应有的免疫力。</p>
+  <blockquote class="punch">ToT 的证据在其设定的战场内足够坚固，但战场的三个特征——小样本、人工化任务、强依赖 GPT-4 底座——决定了它是一篇"提出范式"的论文，而非"证明普适"的论文；评估器误杀与生成端瓶颈这两处机制缺口，恰是后续推理研究的真正入口。</blockquote>
+</section>
+
+<section class="card" id="s6">
+  <h2>六、启示与影响</h2>
+
+  <h3>6.1 五条可迁移启示</h3>
+  <ol>
+    <li><strong>推理单元的选择是第一杠杆</strong>。从 token 到 thought 的升维，本质是把"下一步预测"变成"下一步求解"。任何序列生成系统都可问一句：我的中间表示粒度对吗？太小则错误级联，太大则无法分支；</li>
+    <li><strong>"LM 即启发式"的免训练架构模式</strong>。生成器、评估器、搜索三者解耦、全部由同一个预训练模型驱动，是 prompt 工程向"推理系统工程"跃迁的标志。今天任何 Agent 系统中的 proposer/critic/planner 分层都能在此找到原型；</li>
+    <li><strong>oracle 对照是论证搜索价值的最佳武器</strong>。best-of-k oracle 行（CoT best100 仅 <span class="num">49%</span>）一锤定音地证明了失败是结构性的而非运气性的。"先证采样天花板、再展示搜索突破天花板"的论证结构值得效仿；</li>
+    <li><strong>诚实报告成本与失败模式</strong>。论文不但报 token/美元账本（$0.74/题），还专门探测"何时不划算"（GSM8K 收益递减）与"瓶颈在哪"（生成端 64% vs 31%）。把边界条件做成实验而非写在 limitation 里，是评测规范的典范；</li>
+    <li><strong>消融定位机制</strong>。-prune/-backtrack 消融（后者暴跌至 <span class="num">20%</span>）把"回溯有用"从直觉变成了数字。凡声称引入某种认知机制的系统，都应有对应的开关实验。</li>
+  </ol>
+
+  <h3>6.2 历史位置与后续走向</h3>
+  <p>放在 2023 年的时间线上，ToT 与同期工作共同构成了"推理时结构化计算"的第一波浪潮：它比 self-consistency 多了评估与回溯，比 self-refine 多了全局视野。作者在局限中埋下的两条线——"用 ToT 风格反事实决策微调 LM"与"更强的搜索算法（MCTS/A*）"——此后数年先后被大规模兑现：<span class="infer">（推断）前者演化为把搜索轨迹纳入训练信号的各类过程监督/推理强化学习路线，后者演化为 MCTS+LM 的组合及最终把搜索内化为单模型行为的长思考推理模型。</span>从这个意义上说，ToT 的最大历史贡献不是 74% 这个数字，而是确立了一个至今有效的命题：<strong>推理质量的下一个数量级藏在"如何花推理时计算"之中</strong>。</p>
+</section>
+
+<section class="card" id="s7">
+  <h2>总结</h2>
+  <p>《Tree of Thoughts》完成了 prompt 推理谱系中承前启后的一跃：它把 CoT 家族的全部成员统一为"残缺的思维树"，然后把缺的部分——分支、评估、回溯——逐一补全，且全程免训练、全程由预训练模型自身供能。三个任务上的证据呈清晰梯度：连 GPT-4 都近乎全军覆没的难题上（Game of 24：CoT <span class="num">4%</span> → ToT <span class="num">74%</span>；Mini Crosswords 词级：<span class="num">15.6%</span> → <span class="num">60%</span>），搜索结构带来数量级逆转；oracle 对照与混合实验进一步锁定了因果——增益来自"评估+回溯"的结构红利，瓶颈则在生成端的底座能力。它的局限同样清晰可读：小样本测试、人工化任务、评估器误杀、朴素搜索算法，以及一笔当时昂贵、日后却成为行业共识的成本账（单任务最高百倍 token）。作为 NeurIPS 2023 的工作，其四组件框架已成为推理系统工程的事实原型，"推理时计算决定推理质量上限"的核心命题在后续推理模型的演进中被一再验证。读懂 ToT，就是读懂此后所有"让模型慢下来想"的方法论的共同祖先。</p>
+</section>
+
+<footer class="check">
+  <strong>自检声明</strong>：本文档为单文件 HTML（UTF-8 编码，无替换字符）；div 标签开闭配平已校验；六层正文结构（问题定位/概念内核/方法拆解/证据链/批判性分析/启示与影响）+ 摘要 + 总结齐备；关键数字以 <code>.num</code> 高亮，全部取自 00-源数据提取.md，推断处均标注<span class="infer">（推断）</span>；Mini Crosswords 采用提取稿 §3 注记的三级口径。
+</footer>
+
+</div>
+</body>
+</html>

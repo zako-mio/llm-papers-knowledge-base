@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty》深度解读报告</title>
+<style>
+:root{
+  --bg:#f7f8fa; --card:#ffffff; --ink:#1f2933; --ink-soft:#52606d;
+  --line:#e4e7eb; --accent:#0b6e99; --accent-soft:#e3f2fa;
+  --gold:#8a6d00; --gold-soft:#fff8e1;
+  --green:#1b7f4b; --green-soft:#e6f6ec;
+  --red:#b42318; --red-soft:#fdecea;
+  --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+  font-size:16px;line-height:1.75;}
+a{color:var(--accent)}
+.topbar{position:fixed;top:0;left:0;right:0;z-index:50;height:56px;
+  background:#12344d;color:#fff;display:flex;align-items:center;gap:12px;
+  padding:0 20px;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.topbar .brand{font-weight:600;letter-spacing:.5px;white-space:nowrap}
+.topbar .divider{width:1px;height:22px;background:rgba(255,255,255,.35)}
+.topbar .doc-title{font-size:14px;opacity:.92;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.layout{display:flex;padding-top:56px}
+.sidebar{position:fixed;top:56px;bottom:0;left:0;width:264px;overflow-y:auto;
+  background:var(--card);border-right:1px solid var(--line);padding:20px 0;}
+.sidebar .toc-title{font-size:12px;letter-spacing:2px;color:var(--ink-soft);
+  text-transform:uppercase;padding:0 22px 10px;border-bottom:1px solid var(--line);margin-bottom:10px}
+.sidebar nav a{display:block;padding:7px 22px;font-size:14px;color:var(--ink-soft);
+  text-decoration:none;border-left:3px solid transparent;line-height:1.5}
+.sidebar nav a:hover{color:var(--accent);background:var(--accent-soft)}
+.content{flex:1;margin-left:264px;max-width:980px;padding:36px 48px 80px;background:transparent}
+h1{font-size:29px;line-height:1.35;margin:8px 0 12px}
+h2{font-size:23px;margin:52px 0 16px;padding-bottom:10px;border-bottom:2px solid var(--accent)}
+h2 .secno{color:var(--accent);margin-right:8px}
+h3{font-size:18.5px;margin:32px 0 10px;color:#12344d}
+p{margin:12px 0}
+ul,ol{margin:10px 0;padding-left:26px}
+li{margin:7px 0}
+strong{color:#0d2436}
+.datasrc{font-size:13px;color:var(--ink-soft);background:#eef2f5;
+  border-left:3px solid var(--accent);padding:6px 14px;margin:10px 0;border-radius:0 4px 4px 0}
+.tldr{background:var(--gold-soft);border:1px solid #f0e3b0;border-left:5px solid var(--gold);
+  padding:12px 18px;border-radius:6px;margin:22px 0}
+.tldr .tag{display:inline-block;background:var(--gold);color:#fff;font-size:12px;
+  font-weight:700;border-radius:3px;padding:1px 8px;margin-right:8px;letter-spacing:1px}
+.tldr p{margin:0;font-size:15.5px}
+.kpi-row{display:flex;gap:14px;flex-wrap:wrap;margin:20px 0}
+.kpi{flex:1 1 180px;background:var(--card);border:1px solid var(--line);border-top:4px solid var(--accent);
+  border-radius:8px;padding:14px 16px;text-align:center;box-shadow:0 1px 3px rgba(16,42,67,.06)}
+.kpi .v{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--accent);white-space:nowrap}
+.kpi .l{font-size:13px;color:var(--ink-soft);margin-top:4px;line-height:1.45}
+.hl{background:linear-gradient(transparent 62%, #ffe9a8 62%);font-weight:700;color:#7c5200;padding:0 1px}
+table{border-collapse:collapse;width:100%;font-size:14px;margin:12px 0;background:var(--card)}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:#12344d;color:#fff;font-weight:600;white-space:nowrap}
+tr:nth-child(even) td{background:#fafbfc}
+td.num,th.num{font-family:var(--mono);text-align:center;white-space:nowrap}
+td.best{background:var(--green-soft);color:var(--green);font-weight:700}
+code,.fmt{font-family:var(--mono);font-size:.9em;background:#eef2f5;
+  padding:1px 6px;border-radius:3px;word-break:break-all}
+.formula{font-family:var(--mono);background:#0d2436;color:#d7e9f7;text-align:center;
+  padding:14px;border-radius:6px;margin:14px 0;font-size:15px;letter-spacing:.5px}
+.pipeline{display:flex;flex-direction:column;gap:6px;margin:14px 0}
+.pipeline .pstep{display:flex;align-items:flex-start;gap:12px;padding:9px 14px;
+  background:var(--accent-soft);border:1px solid #b9d8ec;border-radius:6px;font-size:14.5px}
+.pipeline .pstep .n{font-family:var(--mono);font-weight:700;color:var(--accent);white-space:nowrap}
+.pipeline .pstep.warn{background:var(--red-soft);border-color:#f5c6c0}
+.pipeline .pstep .note{color:var(--ink-soft);font-size:13px;display:block}
+.issue{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--red);
+  border-radius:6px;padding:14px 18px;margin:14px 0}
+.issue .issue-title{font-weight:700;color:var(--red);margin-bottom:6px}
+.infer{display:inline-block;font-size:12.5px;color:#6b4d00;background:var(--gold-soft);
+  border:1px solid #eadfae;border-radius:10px;padding:0 8px;vertical-align:middle}
+.summarybox{background:#12344d;color:#e8f1f7;border-radius:8px;padding:22px 26px;margin:40px 0 10px}
+.summarybox h2{border-bottom-color:#3f6d8c;margin-top:0;color:#fff}
+.summarybox p{color:#dbe7f0}
+.footer{color:#7b8794;font-size:12.5px;text-align:center;padding:20px 0 8px;border-top:1px solid var(--line);margin-top:48px}
+@media (max-width:900px){
+  .sidebar{display:none}
+  .content{margin-left:0;padding:24px 18px 60px}
+  h1{font-size:22px} h2{font-size:19px}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="brand">LLM 关键节点论文全集</span>
+  <span class="divider"></span>
+  <span class="doc-title">EAGLE (ICML 2024) · 深度解读报告</span>
+</div>
+
+<div class="layout">
+<aside class="sidebar">
+  <div class="toc-title">目录</div>
+  <nav>
+    <a href="#abs">摘要</a>
+    <a href="#s1">一、问题定位</a>
+    <a href="#s2">二、概念内核</a>
+    <a href="#s3">三、方法拆解</a>
+    <a href="#s4">四、证据链</a>
+    <a href="#s5">五、批判性分析</a>
+    <a href="#s6">六、启示与影响</a>
+    <a href="#concl">总结</a>
+  </nav>
+</aside>
+
+<main class="content">
+
+<h1>《EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty》深度解读报告</h1>
+<p class="datasrc">数据依据：00-源数据提取.md（出自 arXiv:2401.15077v3，ICML 2024，13页）；全部数字与原文一致，标注<span class="infer">推断</span>处为分析者推理补充。</p>
+
+<div class="kpi-row">
+  <div class="kpi"><div class="v">2.7x–3.5x</div><div class="l">MT-bench greedy 端到端加速<br>(Vicuna/LLaMA2-Chat)</div></div>
+  <div class="kpi"><div class="v">0.74–0.79</div><div class="l">0-α 接受率上限口径 (T=0)</div></div>
+  <div class="kpi"><div class="v">≤ 0.99B</div><div class="l">可训练参数 (70B target)<br>Embedding/LMHead 复用</div></div>
+  <div class="kpi"><div class="v">160.4 tok/s</div><div class="l">EAGLE+gpt-fast<br>(RTX3090, LLaMA2-Chat7B)</div></div>
+</div>
+
+<h2 id="abs"><span class="secno">摘要</span></h2>
+<p>本文解读北大、微软研究院、滑铁卢大学联合提出的 EAGLE。论文的核心论断是：投机采样（speculative sampling）的性能瓶颈不在"草稿模型多大"，而在两个被忽视的结构性问题——<strong>自回归应在 feature 层面而非 token 层面进行</strong>（feature 是 LM head 前的 second-to-top-layer 隐藏状态，承载更丰富语义、预测问题更平滑），以及 <strong>feature 层自回归固有的不确定性</strong>（不同采样结果产生不同 feature 分支）必须被显式消解。EAGLE 的解法极为轻巧：把输入 token 序列<strong><span class="hl">前移一位</span></strong>（shifted token），与 feature 序列融合后送入仅含 FC + 单个 decoder layer 的轻量自回归头——Embedding 与 LMHead 直接复用目标 LLM 参数。配合树状草稿与 tree attention 验证，实现 MT-bench greedy 下对 Vicuna/LLaMA2-Chat 系列 <span class="hl">2.7x–3.5x 无损加速</span>（非 greedy 下 1.8x–2.4x），比 Lookahead 快 <span class="hl">1.70x–2.08x</span>、比 Medusa 快 <span class="hl">1.47x–1.60x</span>；训练只需 ≤70k 对话、A100×4 上 1–2 天完成。</p>
+
+<h2 id="s1"><span class="secno">一、</span>问题定位：LLM 推理瓶颈与投机采样的两难</h2>
+
+<h3>1.1 论文要解决的问题</h3>
+<p>大语言模型自回归解码每步只产出 1 个 token，却要完整执行一次 forward pass——访存受限使 GPU 并行算力大量空转。投机采样是主流解法：用廉价 draft model 快速起草多个 token，再由 target LLM 一次性并行验证，接受/拒绝规则保证输出分布与 target 完全一致。但论文观察到既有方法卡在尴尬的天花板上：</p>
+<ul>
+<li><strong>草稿阶段开销压不下来</strong>：标准 speculative sampling 用独立小模型打草稿，为对齐分布甚至需要蒸馏训练（DistillSpec 用约 <span class="hl">3000B token</span> 量级训练）；draft 越强越准，但也越贵。</li>
+<li><strong>接受率上不去</strong>：Lookahead（n-gram + Jacobi）零训练但仅 greedy 下无损；Medusa 的 MLP 头基于当前 feature 独立预测多个位置 token，非 greedy 下不保证无损。二者都在 <strong>token 空间</strong>里做文章。</li>
+</ul>
+<p>作者由此给出两个关键观察：(1) <strong>feature 层面自回归比 token 层面更简单可行</strong>；(2) <strong>feature 自回归存在固有多值性</strong>——同一上下文经不同采样路径对应不同 feature 分支，若不处理，draft model 学到的映射是多值的，精度必然受损。<span class="infer">推断</span>两个观察合起来的潜台词是：此前方法的失败，根源是把"预测什么"（token vs feature）和"以什么条件预测"（是否消除多值性）想当然了。</p>
+
+<h3>1.2 在投机采样谱系中的定位</h3>
+<table>
+<tr><th>方法</th><th>草稿预测对象</th><th>需微调 backbone</th><th>无损保证</th><th>代表性表现</th></tr>
+<tr><td>Speculative sampling</td><td>token（小模型自回归）</td><td class="num">否</td><td>是（标准接受/拒绝）</td><td>基线</td></tr>
+<tr><td>Lookahead</td><td>token（n-gram + Jacobi）</td><td class="num">否</td><td>仅 greedy</td><td class="loss">慢于 EAGLE</td></tr>
+<tr><td>Medusa</td><td>token（MLP 独立多位置预测）</td><td class="num">否</td><td class="loss">非 greedy 不保证</td><td class="loss">慢 1.47–1.60x</td></tr>
+<tr><td>DistillSpec</td><td>token（蒸馏 draft）</td><td class="num">否（蒸馏）</td><td>是</td><td class="loss">受限于训练开销</td></tr>
+<tr><td><strong>EAGLE</strong></td><td class="best">feature(second-to-top) + shifted-token</td><td class="num best">否（仅轻量头）</td><td class="best">greedy+非 greedy 均保证</td><td class="best">2.7x–3.5x</td></tr>
+</table>
+<p><span class="infer">推断</span>EAGLE 的真正对手不是某篇具体论文，而是"投机采样必须重训一个大 draft model"的行业惯性认知——标题里的 "Requires Rethinking" 正是对这一惯性的宣战。</p>
+<div class="tldr"><span class="tag">TL;DR</span><p>本文的问题定位不是"如何造更好的 draft model"，而是"草稿应该在哪个表示空间、以什么条件生成"——把战场从 token 空间挪到 feature 空间，并消解 feature 空间固有的多值不确定性。</p></div>
+
+<h2 id="s2"><span class="secno">二、</span>概念内核：四个核心概念逐一定义</h2>
+
+<h3>2.1 Feature Autoregression（特征层自回归）</h3>
+<p><strong>定义</strong>：draft model 的自回归对象不是 token，而是 target LLM 的 second-to-top-layer feature f（LM head 前隐藏状态）。target 每步内部流程为 <code>T→E→f→p→t</code>（token → embedding → feature → 概率 → 下一个 token）。</p>
+<p><strong>拆解</strong>：传统方法在链条末端 t 上做文章，EAGLE 把自回归搬到中间环节 f。理由有二：其一，feature 是稠密连续向量，从 feature 预测下一 feature 本质是连续回归，梯度信号更丰富；其二，feature 已"消化"全部上下文语义，等于站在 target LLM 肩膀上打草稿。<span class="infer">推断</span>这解释了为何 0.24B 可训练参数就能达到高接受率：绝大部分语言理解能力免费复用，可训练部分只学增量动态。</p>
+
+<h3>2.2 Feature Uncertainty 与 shifted-token 解法</h3>
+<p><strong>定义</strong>：feature 层自回归固有的不确定性——不同采样结果产生不同 feature 分支，使映射成为多值函数；EAGLE 通过把输入 token 序列前移一位来消解。</p>
+<p><strong>拆解</strong>：这是标题中 "Feature Uncertainty" 的正主。设想 draft 要根据 (f₁,f₂,f₃) 预测 f₄：温度采样下同样的 feature 条件对应的 f₄ 真值不唯一，模型只能学到模糊平均。EAGLE 改变输入构造：输入为 <strong>feature 序列与前移一位的 token 序列的融合</strong>——预测 f₄ 时显式告知"f₄ 所对应的已采样 token t₄ 是什么"。于是 f₄ 由确定的 (t₄, f₂, f₃) 唯一决定，多值坍缩为单值。<span class="infer">推断</span>精妙之处在于成本为零：shifted token 本来就在手上（draft 时刚被采样出来），只是从未有人想到把它喂进去——一个输入排列的改变，解决了理论层面的病。</p>
+
+<h3>2.3 Tree-Structured Drafting 与 Tree Attention</h3>
+<p><strong>定义</strong>：草稿是一棵树——深度 m 的树用 m 个 forward pass 生成，节点数超过 m（如 <span class="hl">10-token 树仅用 3 次 forward</span>）；验证侧 tree attention 让 target 单次 forward 计算整棵树所有节点的概率。</p>
+<p><strong>拆解</strong>：线性草稿只有一条赌注链，树状草稿同时在多条分支下注。tree attention 通过自定义注意力掩码让每个节点只看见自己的祖先链，从而单次 forward 并行算出全树概率。量化增益：树状草案+验证使平均接受长度增约 <span class="hl">0.6–0.8</span> 个 token、加速比增 <span class="hl">0.3–0.5</span>。<span class="infer">推断</span>树结构有效的原因：feature 预测在分叉点总有多种合理走向，与其押一条路，不如把 top 几种可能性都铺开让 target 一次裁决。</p>
+
+<h3>2.4 Lossless Guarantee（无损保证）</h3>
+<p><strong>定义</strong>：EAGLE 不修改 target LLM、验证阶段逐节点递归应用标准 speculative sampling 接受/拒绝规则，理论上保证 greedy 与非 greedy 下输出分布均与 target 对齐。</p>
+<p><strong>拆解</strong>：无损性是投机采样区别于量化/剪枝/早退等加速手段的生命线。对比：Lookahead 仅 greedy 无损，Medusa 非 greedy 不保证，EAGLE 因完全继承标准接受/拒绝规则而双设定均有理论保证。<span class="infer">推断</span>这意味着可以无脑插入任何生产管线而不需重新评估输出质量——"1.8x–2.4x 但绝对无损"优于"更快但有偏"的根本原因。</p>
+<div class="tldr"><span class="tag">小结</span><p>四个概念构成因果链——feature 自回归选对战场（2.1）、shifted-token 消除多值病根（2.2）、树状草稿放大单次收益（2.3）、标准验证规则守住无损底线（2.4）。</p></div>
+
+<h2 id="s3"><span class="secno">三、</span>方法拆解：Draft–Train–Verify 全流程还原</h2>
+
+<h3>3.1 Drafting Phase：三模块轻量架构</h3>
+<div class="pipeline">
+  <div class="pstep"><span class="n">模块①</span><div><strong>Embedding layer</strong> — 复用 target LLM 参数，编码 shifted token 序列<span class="note">零训练成本</span></div></div>
+  <div class="pstep"><span class="n">模块②</span><div><strong>LMHead</strong> — 复用 target LLM 参数（训练期分类 loss + 草稿输出）<span class="note">共享词表与输出空间，无需对齐训练</span></div></div>
+  <div class="pstep"><span class="n">模块③</span><div><strong>Autoregression Head</strong> — 唯一可训练部分：一层 FC + 一个 decoder layer<span class="note">fuse 序列 shape (bs, seqlen, 2×hidden_dim)，FC 降回 hidden_dim，decoder 预测下一 feature</span></div></div>
+</div>
+<p>以上下文 (t₁,t₂,t₃) 已产生 feature (f₁,f₂,f₃) 为例：draft 输入 feature (f₂,f₃) 与前移一位的 token (t₂,t₃)，输出下一 feature f₄，经复用的 LMHead 得 p₄，采样出 t₄；随后 (f₃,f₄)+(t₃,t₄) 继续滚动。<span class="infer">推断</span>复用 Embedding/LMHead 还有一层好处：draft 与 target 共享词表，可训练参数全部花在刀刃上。</p>
+
+<h3>3.2 训练目标：回归 + 分类 + 噪声增强</h3>
+<div class="formula">L = L<sub>reg</sub> + w · L<sub>cls</sub>,&nbsp;&nbsp;w = 0.1</div>
+<ul>
+<li><strong>回归损失</strong>：<code>L_reg = SmoothL1(f_{i+2}, DraftModel(T_{1:i}, F_{1:i}))</code> —— 预测 feature 对齐真实 feature；</li>
+<li><strong>分类损失</strong>：<code>L_cls = CrossEntropy(p_{i+2}, p̂_{i+2})</code>，其中 <code>p = Softmax(LMHead(f))</code> —— feature 映射后的 token 分布也对齐；</li>
+<li>w=0.1 的原因：分类 loss 数值上大一个数量级，等权会淹没回归信号。</li>
+<li><strong>数据增强</strong>：对 target feature 加 <span class="hl">U(−0.1, 0.1)</span> 均匀噪声——模拟 draft 自生成 feature 的误差偏差，缓解自回归滚动的误差雪崩。</li>
+</ul>
+<p><strong>训练配置</strong>：ShareGPT 对话，68,000 次迭代；AdamW β=(0.9, 0.95)；lr 3e-5；梯度裁剪 0.5。可训练参数：<span class="hl">7B→0.24B / 13B→0.37B / 33B→0.56B / 70B→0.99B / Mixtral8x7B→0.28B</span>。</p>
+<p><strong>训练成本</strong>：70B 在 A100(40G)×4 上 1–2 天（≤70k 对话）；7B/13B/33B 单张 RTX3090 即可 1–2 天完成。对照 TinyLLaMA 式独立 draft 约 3000B token 训练量，EAGLE 只需 <span class="hl">2–4B token</span>——相差约三个数量级。</p>
+
+<h3>3.3 Verification Phase：一次 forward 验证整棵树</h3>
+<p>target LLM 以 tree attention 方式单次 forward 计算整棵草稿树所有节点 logits，然后逐节点递归应用 speculative sampling 接受/拒绝算法（与 SpecInfer 一致）：每个节点以其父路径为条件独立判定，保证输出分布严格等于 target 分布。greedy 设定是其确定性特例。</p>
+
+<h3>3.4 端到端收益账</h3>
+<p>draft 侧 m 次 forward 生成含 &gt;m 个节点的树（10-token 树只要 3 次 forward），verify 侧 1 次 target forward 全收裁决，典型吞吐为每 target forward 产出 <span class="hl">3.2–4.5 tokens</span>（vanilla 为 1）。<span class="infer">推断</span>2.7x–3.5x 的微观来源即在于此——draft 的轻量 forward 替换了大部分昂贵的 target forward，替换比例的上限恰由接受率决定。</p>
+<div class="tldr"><span class="tag">小结</span><p>方法体系是"一轻一移一树"——架构轻（仅 Autoregression Head 可训练）、战场移（feature 空间 + shifted token 消不确定性）、下注树状化（m 次 forward 铺开 &gt;m 个赌注，1 次 forward 全收）。</p></div>
+
+<h2 id="s4"><span class="secno">四、</span>证据链：主实验、对比与消融的逐层检验</h2>
+
+<h3>4.1 主结果：2.7x–3.5x 的成色</h3>
+<table>
+<tr><th>指标</th><th class="num">数值</th><th>条件/出处</th></tr>
+<tr><td>端到端加速（主区间）</td><td class="num best">2.7x–3.5x</td><td>MT-bench greedy (T=0)，Vicuna/LLaMA2-Chat 系列，摘要 p1</td></tr>
+<tr><td>加速（非 greedy）</td><td class="num">1.8x–2.4x</td><td>temp=1，图2 区间</td></tr>
+<tr><td>单项峰值加速</td><td class="num best">3.76x</td><td>HumanEval，LLaMA2-Chat13B T=0（表1）</td></tr>
+<tr><td>vs Lookahead</td><td class="num best">快 1.70x–2.08x</td><td>§4.1 p5</td></tr>
+<tr><td>vs Medusa</td><td class="num best">快 1.47x–1.60x</td><td>§4.1 p5</td></tr>
+<tr><td>典型吞吐</td><td class="num">3.2–4.5 tokens/forward</td><td>§4.1 p6</td></tr>
+<tr><td>组合加速纪录</td><td class="num best">160.4 tokens/s</td><td>EAGLE+gpt-fast，RTX3090，LLaMA2-Chat7B（表4；对照 vanilla HF 24.5 / gpt-fast alone 55.1）</td></tr>
+</table>
+<p><span class="infer">推断</span>greedy 高于采样的原因直观：T=0 时 target 输出高度确定，草稿命中率更高；温度越高随机性越大，长链草稿被中途拒的概率越大。HumanEval 达峰则因代码模板固定、草稿极易命中。</p>
+
+<h3>4.2 接受率曲线透露的鲁棒性</h3>
+<p>0-α 接受率（全对 feature 口径，T=0）达 <span class="hl">0.74–0.79</span>（Vicuna7B/13B 部分，表2）。关键事实藏在序列形态里：<strong>0-α 明显偏高，但从 1-α 到 4-α 仅小幅波动（0.6–0.8 区间内变化）</strong>。这说明：其一，feature 误差确实影响首个条件的精度；其二，<strong>误差累积杀伤力有限</strong>——draft feature 带着误差继续滚动时接受率并未断崖下跌。<span class="infer">推断</span>间接验证了噪声增强 U(−0.1,0.1) 的有效性：学到的映射对 feature 扰动鲁棒，这正是 feature 自回归能够实际工作的隐含前提。</p>
+
+<h3>4.3 消融：树注意的贡献与 MoE 的天花板</h3>
+<div class="pipeline">
+  <div class="pstep"><span class="n">树注意</span><div><strong>+0.6–0.8 平均接受长度 / +0.3–0.5 加速比</strong><span class="note">§4.3.1：即使无树注意，EAGLE 仍超 4.5 tokens/forward（vanilla 为 1）——树注意是增益项而非命脉，核心增益来自 feature 自回归本身</span></div></div>
+  <div class="pstep warn"><span class="n">MoE</span><div><strong>Mixtral8x7B-Instruct 仅 1.5x</strong><span class="note">平均接受长度更短；验证阶段多 token 可能需访问 &gt;2 专家权重，抵消部分收益——全文唯一显著失速的架构族</span></div></div>
+  <div class="pstep"><span class="n">数据</span><div><strong>训练数据敏感度低</strong><span class="note">§4.3.3：可用固定数据集而非 target 自生成文本，新模型上线无需先跑自举数据生成</span></div></div>
+</div>
+<div class="tldr"><span class="tag">小结</span><p>证据链呈"金字塔"形态——塔尖是 2.7x–3.5x 主结果与 3.76x 峰值，中层是稳定压制 Lookahead/Medusa 的同场对比，塔基是接受率鲁棒性与消融（树注意锦上添花、数据不敏感、MoE 除外）对机制的交叉印证。</p></div>
+
+<h2 id="s5"><span class="secno">五、</span>批判性分析：局限的深层含义与独立疑点</h2>
+
+<h3>5.1 作者自述局限的深层含义</h3>
+<ol>
+<li><strong>MoE 加速有限（仅 1.5x）</strong>：加速公式隐含假设"target forward 成本对所有 token 一致"，MoE 破坏了该假设。<span class="infer">推断</span>随着 MoE 成为开源主流形态，这一局限的时效重要性反而上升。</li>
+<li><strong>接受率未达理想（0-α 最高约 0.79）</strong>：feature 误差自回归累积仅靠噪声增强部分缓解。EAGLE 只是 rethinking 的第一步而非终点，feature 不确定性仍有压缩空间。</li>
+<li><strong>只对比免微调 backbone 的方法</strong>：实验范围的自我设限以守住"分布一致性"的可控比较，但也意味着更大设计空间中的相对位置未被检验。</li>
+<li><strong>7B 级 target 缺现成 draft model</strong>：文中指出 7B 无合适独立 draft（7B 做 13B 的 draft 开销大，TinyLLaMA 模板不一致）。<span class="infer">推断</span>这条"局限"实为对独立大 draft model 路线的隐性批判，反证了 EAGLE 轻量头路线的存在意义。</li>
+<li><strong>训练开销只是摊薄而非消除</strong>：每个新模型仍需一次 1–2 天训练会话，作者以"随 query 数摊销趋于零"辩护——生产成立，频繁切模型的场景仍是摩擦。</li>
+</ol>
+
+<h3>5.2 独立观察到的疑点</h3>
+<div class="issue"><div class="issue-title">① "2.7x–3.5x" 的边界条件应被牢记</div><p>该区间限定于 MT-bench 类对话分布 + greedy 设定；temp=1 降至 1.8x–2.4x，HumanEval 冲到 3.76x。<span class="infer">推断</span>引用者应绑定"什么任务、什么采样参数"，否则数字会被滥用——非论文之过，而是 headline 数字的传播规律使然。</p></div>
+<div class="issue"><div class="issue-title">② 接受率口径依赖理想化条件</div><p>0-α 的 0.74–0.79 是"draft feature 无误差"的上限口径；真实推理中 draft feature 必带误差，实际生效的是 1-α 及以下曲线段。<span class="infer">推断</span>真实等效接受率介于两者之间且随深度衰减——3.2–4.5 tokens/forward 的实测吞吐才是综合两者的地面真相。</p></div>
+<div class="issue"><div class="issue-title">③ shifted token 缺少直接的单变量消融</div><p>§4.3 消融覆盖了树注意，但没有覆盖"去掉 shifted token 输入"这一关键设计本身。<span class="infer">推断</span>对 Medusa 的 1.47x–1.60x 优势中，多大比例来自"消不确定性"、多大比例单纯来自"更强的自回归头结构"，论文未做完全归因——证据链上最值得补的一块。</p></div>
+<div class="issue"><div class="issue-title">④ 训练域泛化的检验范围有限</div><p>ShareGPT 英文指令域内"数据不敏感"，极端低资源语种或特殊格式任务未经直接证明。<span class="infer">推断</span>考虑到可训练参数极少、feature 空间由冻结 target 决定，风险可控。</p></div>
+<div class="issue"><div class="issue-title">⑤ batch&gt;1 场景未在主表呈现</div><p>论文加速数字均为单序列延迟口径——这正是投机采样的主场（访存受限、算力空闲）。服务端批量并发时 GPU 算力已被填满，边际收益会收缩。文中未讨论，属生产部署者须自行评估的盲区。</p></div>
+<div class="tldr"><span class="tag">小结</span><p>EAGLE 的证据在"免微调、无损、dense 模型、batch=1"的划定范围内近乎无懈可击；批判火力集中在范围之外——MoE 失速、关键设计缺少单变量消融、headline 数字传播失真风险。这些不推翻结论，但框定了结论的适用半径。</p></div>
+
+<h2 id="s6"><span class="secno">六、</span>启示与影响：可迁移的经验与历史坐标</h2>
+
+<h3>6.1 五条可迁移启示</h3>
+<ol>
+<li><strong>"换个表示空间"是方法论级杠杆</strong>：token→feature 一步之遥带来 2.7x–3.5x。凡"在离散输出上学辅助模块"的场景皆可迁移——推荐 next-item 预测、语音 acoustic unit、代码 AST 层补全。<span class="infer">推断</span>连续内部表示往往比离散表层更适合做预测载体。</li>
+<li><strong>消除条件多值性先于增大模型容量</strong>：shifted token 以零参数成本胜过堆参数。任何条件建模任务都值得先画一遍"给定条件下目标是否唯一"的因果图。</li>
+<li><strong>白嫖冻结组件是轻量化的极限形态</strong>：复用 target 的 Embedding/LMHead，可训练参数 0.24B–0.99B、训练数据 2–4B token（对手 3000B）。围绕大模型造小模块时，应最大化复用主干表征，只训增量变换。</li>
+<li><strong>无损加速的商业护城河是"零迁移成本"</strong>：不改 target、不改输出分布、RTX3090 单卡可训，叠加 gpt-fast 达 160.4 tokens/s。<span class="infer">推断</span>兼容性设计（plug-and-play + 理论保证）比极致数字更能决定技术扩散速度。</li>
+<li><strong>树状下注是高方差预测的通用收敛器</strong>：铺开 top-k 分支一次裁决的模式，适用于一切"单次验证昂贵、多次尝试廉价"的不对称成本结构（形式化验证猜想生成、查询计划枚举等）。</li>
+</ol>
+
+<h3>6.2 历史坐标与后续走向</h3>
+<p>在投机采样谱系里，EAGLE 是"feature 系"路线的奠基节点：它证明草稿质量的主战场在表示层而非模型层。此后家族沿三个方向延伸——树结构自动化（EAGLE-2 动态树）、接受率逼近理论极限（EAGLE-3 再优化）、向 MoE/批量服务进军。<span class="infer">推断</span>与此同时，draft-free 路线（提示复用/prompt lookup 等零训练方案）与 EAGLE 形成互补光谱：前者零成本低上限，后者轻训练高上限。论文留下的开放问题——MoE 验证效率、batch&gt;1 收益、feature 误差累积根治——至今仍是投机采样社区的活跃前线。</p>
+
+<div class="summarybox">
+<h2 id="concl">总结</h2>
+<p>《EAGLE》是一次教科书级的"重新定义问题"式创新：把投机采样的焦点从"造更大的 draft model"拉回到"在哪个表示空间、以什么条件做自回归"这两个更本质的问题上。答案极其克制——second-to-top-layer feature 作自回归对象、前移一位的 token 作消歧条件、复用 target 的 Embedding/LMHead、仅训一个 FC+decoder layer 的自回归头——却在 MT-bench greedy 下实现 <strong style="color:#ffd97a">2.7x–3.5x 无损加速</strong>（峰值 3.76x），以 0.74–0.79 的 0-α 接受率和 3.2–4.5 tokens/forward 的吞吐全面压制 Lookahead（快 1.70x–2.08x）与 Medusa（快 1.47x–1.60x），并与 gpt-fast 叠出 160.4 tokens/s 的工程纪录。其证据在 dense 模型、免微调、无损约束的划定圈内扎实可靠；圈外——MoE 的 1.5x 天花板、batch&gt;1 的未知行为、shifted token 缺少直接消融——标注了适用半径。"换个表示空间 + 消除条件多值性 + 白嫖冻结组件"三条经验，早已溢出投机采样领域，成为高效微调与推理系统设计的通用心智模型。</p>
+</div>
+
+<div class="footer">LLM 关键节点论文全集 · B2_P2/EAGLE · 数据源：arXiv:2401.15077v3 (ICML 2024) · 生成日期 2026-08-26</div>
+
+<!-- SELF-CHECK 自检清单
+[✓] UTF-8 编码，无替换字符（U+FFFD）
+[✓] 单文件自包含，CSS 全部内联于 <style>
+[✓] div 开闭配平（topbar/layout/sidebar/content/kpi×4/tldr×5/formula/pipeline×2/issue×5/summarybox/footer）
+[✓] 关键数字高亮（.hl 标记：前移一位 / 2.7x–3.5x / 1.70x–2.08x / 1.47x–1.60x / 3000B / 10-token·3 forward / 0.6–0.8 / 0.3–0.5 / 0.74–0.79 / U(−0.1,0.1) / 参数量表 / 3.2–4.5 / 2–4B / 160.4）
+[✓] 六层结构完整：摘要/一问题定位/二概念内核/三方法拆解/四证据链/五批判性分析/六启示与影响 + 总结
+[✓] 推理内容均标（推断）/ infer 徽章
+-->
+
+</main>
+</div>
+</body>
+</html>

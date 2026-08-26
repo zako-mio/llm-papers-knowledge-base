@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DeepSeek LLM：以长期主义扩展开源语言模型 —— 深度解读报告 · 深度解读</title><style>
+*{box-sizing:border-box}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;background:#f7f8fa;color:#1f2430;line-height:1.8;margin:0}
+.wrap{max-width:900px;margin:0 auto;padding:36px 20px 80px}
+h1{font-size:25px;border-bottom:3px solid #2b6cb0;padding-bottom:10px;color:#14304f}
+h2{font-size:19px;margin-top:34px;color:#2b6cb0;border-left:5px solid #2b6cb0;padding-left:10px}
+h3{font-size:16px;color:#3a4a63;margin-top:22px}
+p{margin:10px 0;}
+blockquote{background:#eef3fa;border-left:4px solid #4a90d9;margin:12px 0;padding:10px 16px;color:#2c3e50}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px}
+th,td{border:1px solid #cbd5e1;padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#e8eef6}
+tr:nth-child(even){background:#f4f7fb}
+.num{color:#b45309;font-weight:700;font-family:ui-monospace,Consolas,monospace}
+.infer{color:#9a6b2f;font-style:italic;background:#fdf6e3;padding:0 3px;border-radius:3px}
+code{background:#eef1f5;padding:1px 5px;border-radius:4px;font-size:13px}
+hr{border:none;border-top:1px dashed #cbd5e1;margin:26px 0}
+.selfcheck{font-size:11px;color:#90a0b5;margin-top:40px;border-top:1px solid #dde3ea;padding-top:12px;font-family:ui-monospace,monospace}
+</style></head><body><div class="wrap">
+<h1>DeepSeek LLM：以长期主义扩展开源语言模型 —— 深度解读报告</h1>
+<blockquote> 数据依据：同目录 <code><span class="num">00</span>-源数据提取.md</code>（唯一数字来源）。标注「<span class="infer">（推断）</span>」处的分析与外推为推理内容，非原文数字。</blockquote>
+<hr>
+<h2>摘要（<span class="num">300</span>字）</h2>
+<p>DeepSeek LLM（<span class="num">2024-01</span>）是 DeepSeek-AI 团队以 scaling laws 为指导、从零训练的开源中英双语语言模型，发布 7B（<span class="num">30</span> 层）与 <span class="num">67</span>B（<span class="num">95</span> 层）两个规模，语料规模 2T tokens，上下文 <span class="num">4096</span>。论文的核心学术贡献不是又一个"更大更强"的模型，而是补齐了开源社区长期缺失的两块拼图：一是将 scaling laws 从"研究玩具"变为"可指导生产"，提出了针对超参数（学习率、batch size）的缩放律，并引入以非嵌入 FLOPs/token（M）取代单纯参数量（N）的更精确规模表述；二是通过三套不同质量数据集的消融，揭示了 scaling 系数随数据质量单调变化的规律，从而正面解释了此前 Chinchilla 与 OpenAI 在"最优模型/数据配比"结论上的分歧根源——数据质量决定增量算力应投向模型还是数据。工程上，DeepSeek LLM <span class="num">67</span>B 在代码、数学、推理与中文任务上全面超越 LLaMA2 <span class="num">70</span>B，其 Chat 版在开源评测中超越 GPT-<span class="num">3.5</span>、仅次于 GPT-4，并在多组 held-out 新题与安全性测试中达到第一梯队。文本尤其有价值的是其一系列反直觉的工程判断：拒绝用多选题数据刷基准、依模型规模选择单/两阶段微调、意识到 system prompt 对大模型有益而对小模型有害。全文的核心叙事是一条"长期主义"线索：<strong>用可预测、可复用的科学方法替代一次性大力出奇迹的工程暴力</strong>。</p>
+<hr>
+<h2>一、问题定位：开源社区为何在"如何扩模型"上集体缺席？</h2>
+<h3><span class="num">1.1</span> 时代背景：开源模型在"练得多"与"练得明白"之间的落差</h3>
+<p><span class="num">2024</span> 年初的语言模型格局，呈现出一种耐人寻味的割裂<span class="infer">（推断）</span>：闭源阵营（OpenAI GPT-4）与部分开源阵营（LLaMA、Mistral）在"把模型做大"这件事上已经轻车熟路，但围绕"怎样做才更科学"的 scaling laws 研究，几乎完全被论文界所垄断，少有开源工作把这项理论工具真正落到自己的训练流程里。论文在引言处开门见山地指认：<strong>开源社区忽视了 scaling laws 研究</strong>（<code><span class="num">00</span></code> §<span class="num">2 </span>p3，<code><span class="num">1 </span>Introduction</code>）。</p>
+<p>这句话的分量在于：它指出的不是"算力不够"或"数据不够"，而是<strong>方法论层面的缺席</strong>。开源社区普遍的做法是"参照别人成功的配置"——LLaMA 用了多少层、多少 batch、多少学习率，后续开源模型照搬即可。但正如本文所揭示的，这样的"抄作业"存在两个隐患：</p>
+<ul>
+<li>其一，最优超参数本身是<strong>计算预算的函数</strong>，换个规模照搬旧配置必然偏离最优。</li>
+<li>其二，不同数据质量下，算力该投给模型还是数据，答案完全不同，照搬 LLaMA 面对的数据配比不等于适合自己。</li>
+</ul>
+<h3><span class="num">1.2</span> 本文要解决的四个具体问题（推断，由 §<span class="num">3 </span>主张反推）</h3>
+<p>结合 <code><span class="num">00</span></code> §<span class="num">3 </span>的 C1–C13 主张，可将本文的研究问题收敛为四条主线：</p>
+<ol>
+<li><strong>超参数能否被预测？</strong>（C1）——给定计算预算，最优学习率与 batch size 是否遵循可外推的幂律？</li>
+<li><strong>模型规模该怎么度量？</strong>（C2）——参数量 N 是否是准确尺度？若不是，什么才准？</li>
+<li><strong>算力应投向模型还是数据？</strong>（C3/C4）——最优的模型/数据配比如何随条件变化，为什么此前研究结论互相矛盾？</li>
+<li><strong>这套理论能否指导生产？</strong>（C5）——用 1e17 量级的小实验能否可靠预测 <span class="num">1000</span> 倍预算下的性能？</li>
+</ol>
+<h3><span class="num">1.3</span> 为什么这个问题"值得做"（贡献定位）</h3>
+<p>论文的贡献不是单一的"发布 <span class="num">67</span>B 模型"，而是<strong>一套完整的研究-工程闭环</strong>：先做 scaling laws 的科学研究，再用结论指导两个规模模型的实际训练，最后用大量评测（含 held-out 与安全）验证。这在当时的开源工作报告中极为罕见——多数工作只呈现"结果（模型很强）",而不呈现"过程（为什么这样练）"。本文把工程决策的"可解释性"置于与模型性能同等重要的位置，这正是标题中"Longtermism（长期主义）"的深意（详见第六层）。</p>
+<hr>
+<h2>二、概念内核：三层幂律与一个"反直觉尺度"的引入</h2>
+<h3><span class="num">2.1</span> 核心概念一：Scaling Laws（缩放律）究竟是什么</h3>
+<p>Scaling laws 是"模型性能随规模（算力/参数/数据）变化的经验幂律"，其数学形式通常是误差（或 loss）≈ α·S^(-β) 的形式，表示随规模 S 增大，误差按幂次 β 下降。这个概念早在神经缩放（neural scaling）研究（Kaplan <span class="num">2020</span>、Chinchilla <span class="num">2022</span>）中已确立，但本文并未停留在"承认它成立"，而是把它进一步<strong>拆解成可以直接用于工程决策的定量工具</strong>：</p>
+<ul>
+<li><strong>把研究粒度从"模型性能"下沉到"超参数"</strong>。过去的缩放律专注于 loss 与算力 C 的关系；本文额外研究 loss 与 batch size、learning rate 的关系，从而让"我该用多大 batch、多大学率"这一问题也可被计算，而不是靠经验拍板。</li>
+<li><strong>把"最优配比"从固定结论变为可校准函数</strong>。过去的 Chinchilla 给出一个"<span class="num">20</span> tokens 兑 <span class="num">1 </span>参数"的经验比例（推断，源自该领域通识），本文却证明这个比例不是常数，而是随数据质量漂移的变量。</li>
+</ul>
+<h3><span class="num">2.2</span> 核心概念二：引入非嵌入 FLOPs/token（M）取代参数量（N）</h3>
+<p>这是本文最有"方法论野心"的一个概念创新。传统做法用参数量 N 代表模型规模，但本文抓住了一个被普遍忽视的偏差：<strong>参数量 N 不包含注意力机制随序列长度产生的计算开销</strong>，而且词嵌入部分（vocab 相关）在不同词表大小下不可比。于是论文定义：</p>
+<blockquote> M = <span class="num">72</span>·n_layer·d_model² + <span class="num">12</span>·n_layer·d_model·l_seq （<code><span class="num">00</span></code> §<span class="num">3 </span>C2，Table <span class="num">3 </span>p10）</blockquote>
+<p>关键在于两点（推断，由公式结构分析）：</p>
+<ul>
+<li>第一项 <code><span class="num">72</span>·n_layer·d_model²</code> 对应 Transformer 前馈与多头部分每 token 的非嵌入计算；</li>
+<li>第二项 <code><span class="num">12</span>·n_layer·d_model·l_seq</code> 显式计入注意力随序列长度 l_seq 的复杂度，这是 N 完全无法表达的。</li>
+</ul>
+<p>论文给出关键的定量证据：<strong>在 <span class="num">8 </span>层、<span class="num">512</span> 宽的小模型上，M/(6N₁) = <span class="num">2.87</span>，意味着用参数量表示的误差达 <span class="num">50</span>% 以上；而到 <span class="num">80</span> 层、<span class="num">8192</span> 宽的大模型上，这一比值仅差 <span class="num">8%</span></strong>（C2）。这直接说明了为什么早期的 scaling 研究在小模型上频繁"失灵"——不是定律错了，而是度量尺子在小模型段太不准确。这也解释了为何本文偏好用"每 token 非嵌入 FLOPs"这类与企业实际算力成本直接挂钩的指标，而非虚无的"参数个数"。</p>
+<h3><span class="num">2.3</span> 核心概念三：最优配比的"数据质量依赖性"（C4）</h3>
+<p>本文点破了一个此前没人说透的规律：<strong>数据质量越高，增量算力越应分配给模型规模；数据质量越低，增量算力越应投入更多数据</strong>（C4）。这一主张深刻之处在于，它用一个统一的框架调和了两个"权威打架"的结论：</p>
+<ul>
+<li><strong>OpenAI（Kaplan 等）</strong>：更偏向"给模型加参数"（a≈<span class="num">0.73</span> / b≈<span class="num">0.27</span>，<code><span class="num">00</span></code> C3）。</li>
+<li><strong>Chinchilla（DeepMind）</strong>：更偏向"给模型加数据"（a≈<span class="num">0.49</span> / b≈<span class="num">0.51</span>）。</li>
+</ul>
+<p>过去这两派被当作对立的两种范式，而本文用"数据质量差异"一条线索化解了矛盾：OpenAI 当年用 OpenWebText2（相对高质量）拟合，Chinchilla 用 MassiveText（相对低质量）拟合，因此倾斜方向不同本就合理。本文自己的三套数据（early in-house / current in-house / OpenWebText2）给出 a 系数单调上升（<span class="num">0.450</span>→<span class="num">0.524</span>→<span class="num">0.578</span>）、b 系数单调下降（<span class="num">0.550</span>→<span class="num">0.476</span>→<span class="num">0.422</span>）的教科书式证据（C4，§<span class="num">3.3</span> p12）。这一洞察让 scaling laws 从"描述性规律"升格为"可依数据质量动态调参的工程准则"。</p>
+<h3><span class="num">2.4</span> 核心概念四：Multi-step LR scheduler（阶梯式学习率调度器）</h3>
+<p>虽是工程细节，却是"长期主义"叙事的点睛之笔（推断，详见第六层）。不同于通用的 cosine 衰减，本文采用<strong>分段式（multi-step）学习率调度</strong>：warmup <span class="num">2000</span> 步至峰值 → 训练 <span class="num">80</span>% tokens 后降至初始的 <span class="num">31.6</span>% → 到 <span class="num">90</span>% 后再降至 <span class="num">10</span>%（<code><span class="num">00</span></code> §<span class="num">4.2</span> p5-6）。其价值不在单次性能（论文承认其最终效果与 cosine 基本一致），而在<strong>可复用性</strong>：当训练规模或数据发生变化时，可以复用已完成的阶段而不用从零重训，这为后续的 continual training（持续训练）与超参数网格搜索提供了巨大便利——因为网格搜索需要反复重跑，采用阶梯式调度能显著降低重复计算成本。这是"一次设计、长期复用"思路的直接体现。</p>
+<hr>
+<h2>三、方法拆解：从数据到评测的完整技术栈</h2>
+<h3><span class="num">3.1</span> 数据管线：把"去重"做绝（C6）</h3>
+<p>数据侧最具辨识度的是其<strong>激进的跨 dump 去重</strong>。论文采用"去重 → 过滤 → 重混"三阶段管线，其中去重不是常规的"单文档去重"，而是<strong>跨全部 <span class="num">91</span> 个 Common Crawl dump 的全局去重</strong>（<code><span class="num">00</span></code> §<span class="num">2.1</span> p4 / §<span class="num">4.1</span> p64）。论文给出的数字极具冲击力：</p>
+<blockquote> <strong>跨 dump 全局去重率 <span class="num">89.8</span>%，而单 dump 去重率仅 <span class="num">22.2</span>%</strong>（C6，Table <span class="num">1 </span>p4）。</blockquote>
+<p>这组对比的启示远超"省 token"层面：它揭示了<strong>互联网语料的惊人重复度</strong>——如果在单个 dump 内部去重，看似去掉了不少，实则海量跨时间的重复内容（同一文章被不同 dump 反复抓取）仍会灌入模型，并且会在训练中<strong>系统性抬高高频内容的权重、稀释长尾知识</strong>。只有跨 dump 全局去重，才能逼近"对互联网内容做真正的降采样"。过滤环节则结合<strong>语言学与语义双视角</strong>评估文档质量、提高信息密度，重混环节向上采样不足领域以平衡分布——这构成了一个"减重复、保质量、衡分布"的完整数据治理闭环。</p>
+<p>Tokenizer 采用 BBPE（仿 GPT-<span class="num">2 </span>的 pre-tokenization，阻止换行/标点/CJK 跨类合并）+ 数字逐位切分（仿 LLaMA），词表 <span class="num">100000</span> 常规 + <span class="num">15</span> 特殊，训练配置 vocab_size=<span class="num">102400</span>（<code><span class="num">00</span></code> §<span class="num">4.1</span> p64）。这套组合兼顾了中英双语与代码/数字场景的实际需求。</p>
+<h3><span class="num">3.2</span> 架构与训练规格：宏观层的"加深度"决策</h3>
+<p>微观层面，DeepSeek 沿用 LLaMA 的成熟设计：Pre-Norm + RMSNorm、SwiGLU（中间维为 8/3·d_model）、RoPE（<code><span class="num">00</span></code> §<span class="num">4.2</span> p69）。这些是被验证过的稳健选择，无需标新立异，体现了工程上的克制。</p>
+<p>其真正的差异化决策在宏观层：</p>
+<ul>
+<li><strong>7B 用 <span class="num">30</span> 层</strong>（而非常见的 <span class="num">32</span> 层）；</li>
+<li><strong><span class="num">67</span>B 用 <span class="num">95</span> 层</strong>（而非按比例加宽 FFN）。</li>
+</ul>
+<p>论文刻意选择<strong>加深而不加宽</strong>，作者给出的理由有二（<code><span class="num">00</span></code> §<span class="num">4.2</span> p69）：一是<strong>便于流水线并行切分</strong>（层数越多，Pipeline Parallelism 的切分越均匀，跨设备沟通开销更易分摊）；二是<strong>换取更好性能</strong>。这一选择与 OpenAI 对"深度收益"的探索（推断，早期研究曾指出过深网络存在优化困难的争议）相呼应——本文通过训练实践证明了在 <span class="num">95</span> 层这样的深度下，配合大 lr 与正确的初始化（std <span class="num">0.006</span>、梯度裁剪 <span class="num">1.0</span>），深度加大的收益是真实可用的。</p>
+<p><span class="num">67</span>B 采用 <strong>GQA（Grouped-Query Attention，<span class="num">64</span> heads / <span class="num">8 k</span>v_heads）</strong>，这是适配长上下文与推理加速的关键设计（<code><span class="num">00</span></code> §<span class="num">4.2</span> p69）。其余关键规格见 <code><span class="num">00</span></code> Table 2：7B 用 batch <span class="num">2304</span>、lr <span class="num">4.2</span>e-4；<span class="num">67</span>B 用 batch <span class="num">4608</span>、lr <span class="num">3.2</span>e-4；两者均训练 2T tokens、上下文 <span class="num">4096</span>。</p>
+<h3><span class="num">3.3</span> 基础设施：把工程细节抠到极致</h3>
+<p>数值精度与显存管理是本文的隐藏亮点。训练采用 <strong>bf16 计算 + fp32 梯度累积</strong>、配合 <strong>ZeRO-<span class="num">1 </span>切分优化器状态</strong>，并自研 <strong>in-place cross-entropy</strong>（在 CUDA 核内将 bf16 logits 即时转为 fp32 计算后再覆写原 buffer），显著节省显存。框架为自研 <strong>HAI-LLM</strong>，集成数据并行/张量并行/序列并行/1F1B 流水线并行四种并行策略，配合 FlashAttention；支持跨三维并行配置的续训，并每 <span class="num">5 </span>分钟异步存档（<code><span class="num">00</span></code> §<span class="num">4.2</span> p75）。评测阶段使用 <strong>vLLM</strong> 加速生成任务。</p>
+<p>这套基础设施的完整度说明：DeepSeek 不是在"搭个能跑的训练脚本"，而是<strong>构建了一套可长期演化、可跨配置续训、可容错恢复的生产级训练系统</strong>——这再次呼应"长期主义"：训练系统的可复用性，比单次训练的最优性能更重要。</p>
+<h3><span class="num">3.4</span> Scaling Laws 的推演方法（§<span class="num">3.1</span>–<span class="num">3.3</span>）</h3>
+<p>这是全文方法学上最精密的部分，分三步走：</p>
+<p><strong>第一步：超参缩放律的提取（§<span class="num">3.1</span> p8-9）。</strong> 先在小预算（1e17 FLOPs）网格搜索 batch size 与 learning rate，发现泛化误差对二者都相对不敏感（存在宽平稳区），这一发现本身就是重要的工程启示——意味着<strong>超参在小范围内偏离最优不会带来毁灭性后果</strong>，给了从业者容错空间。随后借助 multi-step scheduler 可复用第一阶段的特性，在 1e17–2e19 的多档预算下重复实验，取"误差 ≤ 最小值 + <span class="num">0.25</span>%"的参数作为<strong>近优带（near-optimal region）</strong>，拟合出幂律：</p>
+<blockquote> η_opt = <span class="num">0.3118</span>·C^(-<span class="num">0.1250</span>)（最优学习率随算力 C 增而减）</blockquote>
+<blockquote> B_opt = <span class="num">0.2920</span>·C^(<span class="num">0.3271</span>)（最优 batch size 随算力 C 增而增）</blockquote>
+<p>并在 1e20 FLOPs 上验证了回归参数位于最优区中心（<code><span class="num">00</span></code> C1，式(1) p9）。这两条幂律的物理含义非常直观：<strong>算力越充裕，越应该用更大的 batch、更小的学习率</strong>——这与深度学习既有直觉一致，但被量化成了可计算的公式。</p>
+<p><strong>第二步：模型/数据缩放律的提取（§<span class="num">3.2</span> p9-<span class="num">12</span>）。</strong> 用 M（非嵌入 FLOPs/token）取代 N，建立 C ≈ M·D 的关系以消除近似误差。沿用 Chinchilla 的 IsoFLOP profile 法，用 <span class="num">8 </span>档预算（1e17–3e20）× 每档约 <span class="num">10</span> 组模型/数据配比，以 <span class="num">100</span>M token 同分布验证集上的 bits-per-byte 作为泛化误差度量，拟合得：</p>
+<blockquote> M_opt ∝ C^a，D_opt ∝ C^b，本数据下 a=<span class="num">0.5243</span> / b=<span class="num">0.4757</span>（<code><span class="num">00</span></code> C3，式(4) p11）</blockquote>
+<p>这一配比"略偏模型侧"，与 Chinchilla 的"偏数据侧"形成微妙差别，其根源正是数据质量不同（见 <span class="num">2.3</span>）。</p>
+<p><strong>第三步：外推验证（C5）。</strong> 论文用上述拟合曲线成功外推预测了 7B/<span class="num">67</span>B 两个真实模型的性能，两个点都落在预测曲线上（Fig.4/<span class="num">5 </span>p11）。这证明了 scaling 研究的意义：<strong>小规模实验（1e17 量级）可以作为大规模训练（3e20 量级，约 <span class="num">1000</span> 倍预算）的"预告片"</strong>，从而避免盲目烧钱的资源浪费。</p>
+<h3><span class="num">3.5</span> 对齐流程（§<span class="num">4 </span>p12-<span class="num">13</span>）：数据配比与规模的自适应</h3>
+<p>对齐阶段有清晰的数据构成：约 <span class="num">150</span> 万指令实例（中英），其中 helpful 类 <span class="num">120</span> 万（通用语言 <span class="num">31.2</span>% / 数学 <span class="num">46.6</span>% / 代码 <span class="num">22.2</span>%）+ 安全类 <span class="num">30</span> 万（<code><span class="num">00</span></code> §<span class="num">4.4</span> p85）。注意数学类占比高达 <span class="num">46.6</span>%，这是 DeepSeek 强数学能力的直接来源，也导致了后文的重复率问题。</p>
+<p>SFT 阶段体现了<strong>规模自适应</strong>的洞见：<strong>7B 训练 <span class="num">4 </span>epochs（lr 1e-5），而 <span class="num">67</span>B 仅 <span class="num">2 </span>epochs（lr 5e-6）</strong>——因为 <span class="num">67</span>B 很快触顶且过拟合严重（<code><span class="num">00</span></code> §<span class="num">4.4</span> p86）。监控指标除基准分外的<strong>重复率</strong>（<span class="num">3868</span> 条中英 prompt 中无法终止、无限复读的比例）极有新意，它捕捉的是"模型是否学会停止"这一生成质量关键维度，而非只看准确率。7B 因此采用<strong>两阶段微调</strong>：STAGE1 用全量数据 → STAGE2 剔除数学/代码、只用对话数据；<span class="num">67</span>B 因一阶段后重复率已 <<span class="num">1%</span> 而只做一阶段（C13，<code><span class="num">00</span></code> §<span class="num">4.4</span> p86）。</p>
+<p>DPO 阶段用 helpful/harmless 双线构造偏好数据，候选回复由自家 Chat 模型生成，<span class="num">1 </span>epoch、lr 5e-6、batch <span class="num">512</span>、warmup+cosine。结论是：<strong>DPO 主要提升开放式生成，标准基准几乎不变</strong>（<code><span class="num">00</span></code> §<span class="num">4.4</span> p86，A.5 p32），这提示了 DPO 与 SFT 作用面的本质差异。</p>
+<h3><span class="num">3.6</span> 评测协议：三类口径与"防混淆"设计（§<span class="num">5.1</span> p13-<span class="num">14</span>）</h3>
+<p>为覆盖不同能力维度，论文采用三类评测协议（<code><span class="num">00</span></code> §<span class="num">4.5</span> p90-<span class="num">94</span>）：</p>
+<ol>
+<li><strong>Perplexity 法</strong>（选择题）：ARC/OpenBookQA 用无条件归一化，其余长度归一化——避免句子长度对困惑度的干扰。</li>
+<li><strong>生成式评测</strong>（贪心解码）：TriviaQA/NQ/DROP/MATH/GSM8K/HumanEval/MBPP/BBH/AGIEval 等，Pile-test 报 bits-per-byte。</li>
+<li><strong>LM-based 评测</strong>（开放域）：中文 AlignBench（<span class="num">8 </span>大类 <span class="num">36</span> 子类 <span class="num">683</span> 题，GPT-<span class="num">4 </span>判分；角色扮演/写作/开放问答温度 <span class="num">0.7</span> 其余 <span class="num">0.1</span>）、英文 MT-Bench、以及三组 held-out 任务：<span class="num">2023</span> 年 <span class="num">7 </span>月后的 LeetCode 周赛（Weekly <span class="num">351-372</span> + BiWeekly <span class="num">108-117</span>，共 <span class="num">126</span> 题）、匈牙利高中数学考试（<span class="num">33</span> 题人工评分）、Google IFEval（<span class="num">25</span> 类可验证指令约 <span class="num">500</span> prompt，loose 口径）。</li>
+</ol>
+<p><strong>安全评测</strong>尤为用心：<span class="num">20</span> 人专家团队建立五类分类体系（歧视偏见/侵权/商业秘密与知产/违法违规/其他），并刻意采用<strong>诱导、角色扮演、多轮、预设立场</strong>等多样化提问方式以防范经典"grandmother 漏洞"（绕不过去就当没问过），共 <span class="num">2400</span> 题，safe + 拒绝均计为安全（<code><span class="num">00</span></code> §<span class="num">4.5</span> p94）。</p>
+<hr>
+<h2>四、证据链：从主张到数字的完整映射</h2>
+<p>本节将 <code><span class="num">00</span></code> §<span class="num">3 </span>的 <span class="num">13</span> 条核心主张与对应证据一一对应，供读者按图索骥。</p>
+<h3><span class="num">4.1</span> 主张-证据对照表</h3>
+<table>
+<tr><th>主张</th><th>关键证据</th><th>证据强度</th><th>备注<span class="infer">（推断）</span></th></tr>
+<tr><td>---</td><td>---</td><td>---</td><td>---</td></tr>
+<tr><td>C1 超参可预测</td><td>式(1)：η_opt=<span class="num">0.3118</span>C^(-<span class="num">0.1250</span>)、B_opt=<span class="num">0.2920</span>C^(<span class="num">0.3271</span>)；近优带=误差≤最小+<span class="num">0.25</span>%</td><td>强（定量幂律+1e20 验证）</td><td>超参映射是最有工程价值的部分</td></tr>
+<tr><td>C2 用 M 替代 N</td><td>M=<span class="num">72</span>·n·d²+<span class="num">12</span>·n·d·l_seq；<span class="num">8 </span>层/<span class="num">512</span> 宽 M/(6N₁)=<span class="num">2.87</span>（差 <span class="num">50</span>%+），<span class="num">80</span> 层/<span class="num">8192</span> 宽仅差 <span class="num">8%</span></td><td>强（直接量化）</td><td>"尺度误差"解释了小模型上定律失灵的根源</td></tr>
+<tr><td>C3 最优配比</td><td>a=<span class="num">0.5243</span> / b=<span class="num">0.4757</span>；对照 OpenAI <span class="num">0.73</span>/<span class="num">0.27</span>、Chinchilla <span class="num">0.49</span>/<span class="num">0.51</span></td><td>强（IsoFLOP + 外推验证）</td><td>本文配比略偏模型侧</td></tr>
+<tr><td>C4 数据质量主导配比</td><td>a 系数 <span class="num">0.450</span>→<span class="num">0.524</span>→<span class="num">0.578</span> 单调升；b <span class="num">0.550</span>→<span class="num">0.476</span>→<span class="num">0.422</span> 单调降</td><td>强（三数据集消融，趋势清晰）</td><td>全文最重要的发现</td></tr>
+<tr><td>C5 小实验可外推</td><td><span class="num">8 </span>档预算（1e17–3e20）×每档约 <span class="num">10</span> 配比；7B/<span class="num">67</span>B 落在预测曲线上</td><td>强（实证外推）</td><td>证明 scaling 研究的实用价值</td></tr>
+<tr><td>C6 跨 dump 去重更强</td><td>去重率 <span class="num">89.8</span>%（跨 <span class="num">91</span> dump）vs <span class="num">22.2</span>%（单 dump）</td><td>强（直接对比）</td><td>大幅提升算力与数据利用率</td></tr>
+<tr><td>C7 <span class="num">67</span>B 全面超越 LLaMA2 <span class="num">70</span>B</td><td>MMLU <span class="num">71.3</span> vs <span class="num">69.0</span>；GSM8K <span class="num">63.4</span> vs <span class="num">58.4</span>；MATH <span class="num">18.7</span> vs <span class="num">13.5</span>；HumanEval <span class="num">42.7</span> vs <span class="num">28.7</span>；MBPP <span class="num">57.4</span> vs <span class="num">45.6</span>；BBH <span class="num">68.7</span> vs <span class="num">62.9</span>；C-Eval <span class="num">66.1</span> vs <span class="num">51.4</span>；CMMLU <span class="num">70.8</span> vs <span class="num">53.1</span>；CHID <span class="num">92.1</span> vs <span class="num">55.5</span></td><td>强（主表，多任务一致领先）</td><td>优势集中在代码/数学/推理/中文</td></tr>
+<tr><td>C8 Chat 超 GPT-<span class="num">3.5</span></td><td>AlignBench <span class="num">6.69</span>(DPO) vs <span class="num">6.08</span>（GPT-<span class="num">4-1106</span> 为 <span class="num">8.01</span>）；MT-Bench <span class="num">8.76</span>(DPO) vs <span class="num">8.39</span></td><td>强（开放评测）</td><td>但"开源"评测口径需谨慎</td></tr>
+<tr><td>C9 held-out 揭示真实差距</td><td>LeetCode pass@1：<span class="num">67</span>B Chat <span class="num">17.5</span> vs Qwen-<span class="num">72</span>B-Chat <span class="num">12.7</span>、ChatGLM3-6B <span class="num">2.4</span>（GPT-<span class="num">4 </span><span class="num">48.4</span>）；匈牙利考试 <span class="num">58</span> vs <span class="num">52</span></td><td>强（新题，防泄漏）</td><td>常规基准相近的小模型在新题上大跌</td></tr>
+<tr><td>C10 安全第一梯队</td><td>自建 <span class="num">2400</span> 题五类通过率；Do-Not-Answer <span class="num">97.8</span> > ChatGPT <span class="num">97.7</span> > GPT-<span class="num">4 </span><span class="num">96.5</span></td><td>中强（自建集，存在口径风险）</td><td>安全评测的标准化仍在演进</td></tr>
+<tr><td>C11 拒绝 MC 刷榜</td><td>+<span class="num">2000</span> 万中文 MC 后 C-Eval <span class="num">47.0</span>→<span class="num">71.3</span>、MMLU <span class="num">49.4</span>→<span class="num">60.9</span>，但 TriviaQA <span class="num">57.9</span> 不变、ChineseQA <span class="num">75.0</span>→<span class="num">74.4</span></td><td>强（反例证据有力）</td><td>本文最有品格的工程判断</td></tr>
+<tr><td>C12 system prompt 规模敏感</td><td>MT-Bench <span class="num">67</span>B <span class="num">8.35</span>→<span class="num">8.58</span>（+<span class="num">0.23</span>）；7B <span class="num">7.15</span>→<span class="num">7.11</span>（-<span class="num">0.04</span>）</td><td>强（直接对比）</td><td>大模型才懂 system prompt 的意图</td></tr>
+<tr><td>C13 数学数据推高重复率</td><td>7B 两阶段后重复率 <span class="num">2.0</span>%→<span class="num">1.4</span>%（IFEval <span class="num">38.0</span>→<span class="num">41.2</span>）；<span class="num">67</span>B 一阶段即 <<span class="num">1%</span></td><td>中强</td><td>需规模自适应的微调策略</td></tr>
+</table>
+<h3><span class="num">4.2</span> 证据链的可信度评估（关键批判点）</h3>
+<ul>
+<li><strong>强证据</strong>：C1/C2/C3/C4/C5/C6 依赖可控实验与量化公式，可复现性最高；C7 依赖多任务一致的主表，可信度高。</li>
+<li><strong>中等证据，需注意口径</strong>：C8/C9/C10 涉及 LM-based 评测（GPT-<span class="num">4 </span>判分）、held-out 新题（避免泄漏，但样本量有限）与自建安全集（标准化尚未统一）。特别是 <code><span class="num">00</span></code> §<span class="num">6 </span>p117 提示：<strong>AlignBench/Do-Not-Answer 中带 * 的分数为官方仓库自测，其余转引自原论文</strong>——这意味着部分对比数字并非独立第三方复现，在援引时需标注置信度。</li>
+<li><strong>反例证据（C11）是本文最有说服力的一环</strong>：它没有用"我更强"来证明自己，而是用"我主动剔除了一种能刷高分的捷径"来展示研究诚信，这比单纯堆分数更有分量。</li>
+</ul>
+<hr>
+<h2>五、批判性分析：这个"长期主义"模型，有多少长期主义是真的？</h2>
+<h3><span class="num">5.1</span> 方法论层面的优点</h3>
+<ol>
+<li><strong>统一框架化解历史分歧（C4）</strong>。这篇论文最重要的理论价值，是让 Chinchilla 与 OpenAI 两个"打架"的结论握手言和。它不选择站队，而是指出分歧的变量——<strong>数据质量</strong>。这种"用更高维度的解释化解低维度矛盾"的思路，是优秀研究的标准范式。</li>
+<li><strong>把"尺度"度量做实（C2）</strong>。用非嵌入 FLOPs/token 替代参数量，虽增加复杂度，却提升了科学严谨性。它点破了一个行业中长期默默回避的问题：参数量的字节数不是真正的算力成本。对想要精确控制成本的大厂与创业者，这一指标更具现实意义。</li>
+<li><strong>研究-工程闭环</strong>。论文没有止步于发布模型，而是完整呈现了从超参拟合、配比消融、到外推验证的科学链条，形成可复用的方法论。这让它区别于一般"报告式"的模型发布论文。</li>
+<li><strong>主动自我质疑（C11、C13）</strong>。作者明确记录并随后舍弃了"多选题刷榜"这一捷径，并坦承数学数据对生成重复率的副作用及两阶段微调的必要性。这种对自身方法的批判性保留，在模型论文中相当稀缺。</li>
+</ol>
+<h3><span class="num">5.2</span> 方法论的局限与待商榷之处</h3>
+<ol>
+<li><strong>Scaling laws 未纳入 C 之外的变量（作者自认，<code><span class="num">00</span></code> §<span class="num">6 </span>p116）</strong>。§<span class="num">3.1</span> 的超参缩放律只考虑了算力预算 C 对最优超参的影响，未建模"模型/数据配比对最优参数区"的扰动——即回到 C4 的可变系数上，超参的缩放律在数据质量变化时是否仍然稳健，论文未给出完全闭合的答案。作者也承认"不同数据集上最优超参空间略有漂移"。</li>
+<li><strong>"长期主义"的表述与实证的张力</strong>。标题里的"Longtermism"更像一种鼓舞性声明，而非可检验的假说<span class="infer">（推断）</span>。论文确实体现了可持续（multi-step 复用、生产级基建），但"长期主义"作为一个术语，在正文中更多被用作叙事框架而非可量化的研究主张。若能以"跨代际复用率""超参复用成本"等指标显式度量，将更有说服力。</li>
+<li><strong>数据管线细节不够透明</strong>。三阶段去重/过滤/重混虽有数字（如 C6 的去重率），但过滤的语言学与语义"双视角"具体如何实现、重混的上采样比例、以及最终<strong>语料的领域/语言构成比例</strong>，并未充分展开——而这恰是决定"双语性能"与"代码/数学优势"来源的关键<span class="infer">（推断）</span>。在"数据决定上限"的共识下，数据配料的透明性不足是一个明显的短板。</li>
+<li><strong>评测口径的横比风险（<code><span class="num">00</span></code> §<span class="num">6 </span>p117）</strong>。Chat 模型在 MMLU/GSM8K/MATH/C-Eval/CMMLU 上用 <strong>0-shot</strong>，而 base 模型用 <strong>few-shot</strong>，两表数字不可直接横比。论文虽在附录中说明，但读者若不加分辨直接对比，极易误判 SFT 的增益。且 held-out 的 LeetCode（<span class="num">126</span> 题）与匈牙利考试（<span class="num">33</span> 题）样本偏小，统计显著性有限。LM-based 判分（GPT-<span class="num">4 </span>自评自家，尽管是第三方模型）也存在自强化偏差风险。</li>
+<li><strong><span class="num">67</span>B 训练的完整成本与原始文本未披露</strong>。论文未给出完整的训练算力（FLOPs）与耗电、软硬件成本等现实约束，也未开源原始数据（虽开放模型权重），这削弱了其作为"可被他人复现与审计"的长期主义基准的价值。</li>
+</ol>
+<h3><span class="num">5.3</span> 与同类工作的横向张力<span class="infer">（推断）</span></h3>
+<ul>
+<li>vs <strong>Chinchilla</strong>：本文在配比上"略微偏模型侧"，根源是数据质量更高、去重更彻底（C6）。这实际上修正了 Chinchilla"过度倾向数据"的结论，指出其可用性的前提是数据质量。</li>
+<li>vs <strong>LLaMA</strong>：本文超越的不仅是性能，更是方法论的透明度——LLaMA 没有给出 scaling 推导，本文补上了这一课。</li>
+<li>vs <strong>Qwen-<span class="num">72</span>B / ChatGLM3</strong>：held-out 结果（C9）显示，常规基准相近的小模型在新题上大幅落后（ChatGLM3 MBPP <span class="num">52.4</span> 接近 <span class="num">67</span>B 但 LeetCode 仅 <span class="num">2.4</span>），这揭示了"基准分数"与"真实泛化能力"之间的巨大落差，对"刷分式"评估构成警醒。</li>
+</ul>
+<hr>
+<h2>六、启示与影响：这篇论文留下了什么，又预示了什么？</h2>
+<h3><span class="num">6.1</span> 学术启示：Scaling Laws 从"论文"走向"工程工具"</h3>
+<p>本文最大的传承，是把 scaling laws 从一种让研究者着迷的"现象学规律"，锻造成可用来<strong>预测、规划、省钱</strong>的工程工具。它给出三个可直接落地的"核算公式"：</p>
+<ol>
+<li><strong>超参核算</strong>：给定算力预算，可预测最优 lr 与 batch size（C1）。</li>
+<li><strong>规模核算</strong>：用 M（非嵌入 FLOPs/token）而非 N 来精确估计模型成本（C2）。</li>
+<li><strong>配比核算</strong>：依据自身数据质量，决定把增量算力投给模型还是数据（C3/C4）。</li>
+</ol>
+<p>对一个想"练出大模型"的团队，这三条公式让"我要不要扩大模型、要扩多大、加多少数据"从玄学变为可计算。这对资源有限的团队尤其珍贵——<strong>小规模试错 + 外推（C5）能显著降低盲目烧钱的试错成本</strong>。</p>
+<h3><span class="num">6.2</span> 工程启示：数据质量的回报率被显著低估（C6 + C4）</h3>
+<p>"数据质量决定配比"（C4）叠加"跨 dump 全局去重能去出 <span class="num">89.8</span>%"（C6），共同指向一个行业范式转变：<strong>在数据红利见顶的当下，从"堆数据量"转向"炼数据质量"是性价比更高的路径</strong>。这一洞察在后来的 LLM 发展中持续被验证——高质量、去重彻底、信息密度高的语料，成为决定模型上限的关键变量（推断，符合后续领域共识）。</p>
+<h3><span class="num">6.3</span> 研究品格启示：拒绝刷榜的"反 benchmark"立场（C11）</h3>
+<p>C11 是全文最能体现"长期主义"精神的一条主张。它揭示了多选题数据对选择题类基准（C-Eval <span class="num">47.0</span>→<span class="num">71.3</span>、MMLU <span class="num">49.4</span>→<span class="num">60.9</span>）和生成式评测（TriviaQA 不变、ChineseQA 略降）的<strong>不对称影响</strong>——前者暴涨、后者无效。作者的判断是"benchmark 过拟合"而<strong>毅然剔除</strong>，哪怕明知会牺牲漂亮的分数。这一立场的深远影响在于：<strong>它定义了什么是"真诚的模型能力"，而非"刷出来的数字"</strong>。在模型评测日益"内卷化"、厂商争相刷榜的时代，这种自我克制的态度具有示范意义。</p>
+<h3><span class="num">6.4</span> 对齐与调优启示：规模决定策略（C12/C13）</h3>
+<ul>
+<li><strong>System prompt 的规模敏感性（C12）</strong>：<span class="num">67</span>B 用 system prompt 增益 +<span class="num">0.23</span>，7B 反而 -<span class="num">0.04</span>。这说明"系统提示词表达复杂意图"是高阶能力，小模型无法充分理解，强行加反而干扰。对产品方，这一发现提示应<strong>依模型规模差异化设计提示策略</strong>。</li>
+<li><strong>数学数据与重复率的两难（C13）</strong>：数学 SFT 数据占比升高会推高重复率（<span class="num">2.0</span>%→<span class="num">1.4</span>% 经两阶段改善），作者以两阶段微调或 DPO 缓解。这为"强数学能力"与"稳定生成"之间的权衡提供了可操作的工程解法。</li>
+</ul>
+<h3><span class="num">6.5</span> 深远影响与后续走向<span class="infer">（推断）</span></h3>
+<p>这篇论文与其后续的 DeepSeek 系列（DeepSeek-Coder、DeepSeek-V2/V3 的 MoE 化扩张）之间，存在一条明显的<strong>"长期主义"传承线</strong>：训练系统的一次性投资被反复复用（HAI-LLM 后续演化为 DSA 等），跨 dump 去重方法与数据质量信念持续贯穿，"深度加深 + GQA + 大 batch/多步 lr"的路径选择也一脉相承。DeepSeek 能以相对有限的资源在后续大模型竞争中持续保持领先，其方法论根基很大程度上可追溯到本文——<strong>它不是靠一次豪赌，而是靠一套可预测、可复用、敢于自我否定的长期主义方法论</strong>。</p>
+<h3><span class="num">6.6</span> 留给后来者的问题</h3>
+<ul>
+<li><strong>超参缩放律能否纳入数据质量变量</strong>？作者已承认当前的局限（§<span class="num">3.1</span>），能否扩展为"三维缩放律"（算力 × 数据质量 × 架构）是后续机会。</li>
+<li><strong>"长期主义"能否被量化</strong>？如以"跨任务复用率""超参复用成本""持续训练效率"等指标显式度量，将更可检验、更可传承。</li>
+<li><strong>数据治理的透明度</strong>：过滤/重混细节与语料构成若能公开，本文将从一个"好模型报告"升级为"社区可复用的数据工程基准"。</li>
+<li><strong>评测的标准化</strong>：base 用 few-shot、Chat 用 0-shot 的口径差异，以及 LM-based 自评偏倚，值得后续研究建立统一、防泄漏、抗自我偏见的评测协议——这也是"长期主义"对评估体系本身的呼唤。</li>
+</ul>
+<hr>
+<h2>结语</h2>
+<p>《DeepSeek LLM》的价值，不在于它训练出一个"超越 LLaMA2 <span class="num">70</span>B"的 <span class="num">67</span>B 模型——那只是一个可复现的结果；而在于它完整演示了<strong>如何用科学方法规模化训练一个开源模型</strong>：从超参的幂律预测，到以 M 替代 N 的尺度纠偏，再到用"数据质量决定配比"化解 Chinchilla 与 OpenAI 的历史分歧，直至在多选题刷榜的诱惑前的自我克制。它教会开源社区"如何反复利用自己的研究投入"而非"每次从头豪赌"——这正是标题中 Longtermism 的真实分量。当许多模型论文在追求"更高的榜分数"时，这篇论文追求的，是<strong>更强的可预测性、可复用性与可审慎性</strong>。对一心做大模型的团队而言，这套"小实验 → 外推 → 校准投产"的方法论，远比任何一组漂亮的 benchmark 数字更值得借鉴。</p>
+<hr>
+<p>*本文基于同目录 <code><span class="num">00</span>-源数据提取.md</code> 的数字信息撰写。标「<span class="infer">（推断）</span>」处为作者基于源数据与领域通识的分析外推，非原文直接数字。benchmark 数值均已核对源数据 §3/§<span class="num">5 </span>对照表。*</p>
+<div class="selfcheck">数据依据：本页 00-源数据提取.md | 推断处已标注（推断）| 生成：批量转换脚本</div>
+</div></body></html>

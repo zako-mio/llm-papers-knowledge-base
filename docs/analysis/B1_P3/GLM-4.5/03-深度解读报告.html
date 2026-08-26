@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GLM-4.5 深度解读报告</title>
+<style>
+  :root {
+    --ink: #1f2430;
+    --muted: #5a6272;
+    --accent: #b3541e;
+    --accent-soft: #fdf1e7;
+    --line: #e3e0d8;
+    --bg: #faf9f6;
+    --card: #ffffff;
+    --num: #9c2b1f;
+    --code-bg: #f2efe9;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", Georgia, serif;
+    line-height: 1.85;
+    font-size: 16.5px;
+  }
+  .page { max-width: 880px; margin: 0 auto; padding: 48px 28px 80px; }
+  header.hero {
+    border-bottom: 3px double var(--line);
+    padding-bottom: 28px;
+    margin-bottom: 36px;
+  }
+  .kicker {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 10px;
+  }
+  h1 { font-size: 30px; line-height: 1.4; margin: 0 0 14px; font-weight: 700; }
+  .meta { color: var(--muted); font-size: 14px; margin: 0; }
+  .meta strong { color: var(--ink); font-weight: 600; }
+  nav.toc {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 24px;
+    margin: 0 0 40px;
+    font-size: 14.5px;
+  }
+  nav.toc p.toc-title {
+    margin: 0 0 8px; font-weight: 700; letter-spacing: 1px;
+    font-size: 13px; color: var(--accent);
+  }
+  nav.toc ol { margin: 0; padding-left: 22px; columns: 2; column-gap: 32px; }
+  nav.toc li { margin: 3px 0; break-inside: avoid; }
+  nav.toc a { color: var(--ink); text-decoration: none; border-bottom: 1px dotted var(--line); }
+  nav.toc a:hover { color: var(--accent); }
+  section.sec { margin: 44px 0 56px; }
+  h2 {
+    font-size: 22px; margin: 0 0 18px; padding-left: 14px;
+    border-left: 4px solid var(--accent); line-height: 1.5;
+  }
+  h3 { font-size: 17.5px; margin: 26px 0 10px; color: var(--accent); }
+  p { margin: 12px 0; text-align: justify; }
+  .num {
+    color: var(--num); font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    padding: 0 1px;
+  }
+  em.term { font-style: normal; background: linear-gradient(transparent 62%, var(--accent-soft) 62%); font-weight: 600; }
+  .note {
+    background: var(--accent-soft);
+    border-radius: 8px; padding: 12px 18px; margin: 16px 0;
+    font-size: 14.5px; color: #6b4632;
+  }
+  blockquote {
+    margin: 18px 0; padding: 12px 20px;
+    border-left: 3px solid var(--line);
+    color: var(--muted); font-size: 15px; background: var(--card);
+  }
+  table {
+    width: 100%; border-collapse: collapse; margin: 18px 0;
+    font-size: 14.5px; background: var(--card);
+  }
+  th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; }
+  th { background: #f3f0ea; font-weight: 700; white-space: nowrap; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  ul, ol { padding-left: 24px; margin: 12px 0; }
+  li { margin: 7px 0; text-align: justify; }
+  code {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 13.5px;
+  }
+  .stat-row { display: flex; flex-wrap: wrap; gap: 14px; margin: 22px 0; }
+  .stat {
+    flex: 1 1 180px; background: var(--card);
+    border: 1px solid var(--line); border-top: 3px solid var(--accent);
+    border-radius: 8px; padding: 14px 16px;
+  }
+  .stat .v { font-size: 26px; font-weight: 800; color: var(--num); line-height: 1.2; }
+  .stat .k { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  footer.selfcheck {
+    margin-top: 60px; border-top: 1px dashed var(--line);
+    padding-top: 20px; font-size: 13px; color: var(--muted);
+  }
+  footer.selfcheck code { font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="hero">
+  <p class="kicker">ARC · Agentic / Reasoning / Coding · arXiv:2508.06471</p>
+  <h1>《GLM-4.5：Agentic、Reasoning 与 Coding 一体化基础模型》深度解读报告</h1>
+  <p class="meta">GLM-4.5 Team（智谱 AI &amp; 清华大学）· 2025-08-08 发布 · 26 页 · CC BY 4.0<br>
+  模型系列：<strong>GLM-4.5</strong>（<span class="num">355B</span> MoE）与 <strong>GLM-4.5-Air</strong>（<span class="num">106B</span> MoE）<br>
+  数字唯一依据：同目录《00-源数据提取.md》；超出直接记载的判断标注「（推断）」。</p>
+</header>
+
+<nav class="toc">
+  <p class="toc-title">目 录</p>
+  <ol>
+    <li><a href="#abs">摘要</a></li>
+    <li><a href="#s1">一、问题定位：三能力割裂时代的收束尝试</a></li>
+    <li><a href="#s2">二、概念内核：五个核心概念</a></li>
+    <li><a href="#s3">三、方法拆解：完整管线还原</a></li>
+    <li><a href="#s4">四、证据链：成绩单核对与协议审查</a></li>
+    <li><a href="#s5">五、批判性分析：局限与疑点</a></li>
+    <li><a href="#s6">六、启示与影响</a></li>
+  </ol>
+</nav>
+
+<section class="sec" id="abs">
+  <h2>摘要</h2>
+  <p>GLM-4.5 是一份以「ARC」为旗帜的开源基础模型技术报告——所谓 ARC，即 <em class="term">Agentic（智能体）、Reasoning（推理）、Coding（编码）</em>三种能力首次统一进同一个开源 MoE 模型，并通过 hybrid reasoning（thinking 与非 thinking 双模式）在单模型内同时服务两类使用场景。其体量策略极具辨识度：总参数 <span class="num">355B</span>、每 token 仅激活 <span class="num">32B</span>——对照 DeepSeek-V3 的 <span class="num">671B/37B</span> 与 Kimi K2 的 <span class="num">1043B/32B</span>，以约一半于 DeepSeek-V3 的总参数量换取全面领先的成绩单。</p>
+  <p>预训练消耗 <span class="num">23T</span> token，经 mid-training 三阶段将上下文从 <span class="num">4096</span> 推到 <span class="num">131072</span>。后训练采用「先专家、后统一」两阶段范式：三个专家模型分别强化后经 self-distillation 融合为单一 hybrid reasoning 模型。最终成绩：<span class="num">12</span> 项 ARC 基准综合排名第 <span class="num">3</span>，agentic 排名第 <span class="num">2</span>（仅次于 o3）；SWE-bench Verified <span class="num">64.2%</span>、Terminal-Bench <span class="num">37.5%</span>（超 Claude Sonnet 4 的 <span class="num">35.2%</span>）、AIME24 <span class="num">91.0%</span>、TAU-Bench <span class="num">70.1%</span>；CC-Bench 工具调用成功率 <span class="num">90.6%</span> 为对比模型中最高。</p>
+  <p>本文真正的看点不在单项 SOTA，而在三条工程路线的系统性收敛：<em class="term">架构上「加深不加宽」、训练上「mid-training 补能力断点」、后训练上「专家迭代再自蒸馏融合」</em>——共同回答了如何在开源、中等激活量的约束下，把三种相互冲突的能力装进同一个模型而不互相拖累。</p>
+  <div class="stat-row">
+    <div class="stat"><div class="v">355B/32B</div><div class="k">总参数 / 每 token 激活</div></div>
+    <div class="stat"><div class="v">23T</div><div class="k">预训练 token 数</div></div>
+    <div class="stat"><div class="v">#3</div><div class="k">12 项 ARC 基准综合排名</div></div>
+    <div class="stat"><div class="v">64.2%</div><div class="k">SWE-bench Verified</div></div>
+  </div>
+</section>
+
+<section class="sec" id="s1">
+  <h2>一、问题定位：三能力割裂时代的收束尝试</h2>
+
+  <h3>1.1 论文要解决的问题</h3>
+  <p>2025 年年中，开源阵营呈明显的「专才分化」格局：推理强的模型未必擅长工具调用，coding agent 强的模型往往牺牲通用对话质量。每个头部团队都维护多条模型线，用户需要在 thinking 模型的深度与非 thinking 模型的即时响应之间做选择题。GLM-4.5 的核心命题可概括为一句话：<em class="term">能不能用单一开源模型，同时在 agentic、reasoning、coding 三个维度进入第一梯队，且不放弃通用能力？</em></p>
+  <p>该命题隐含三个子问题：</p>
+  <ul>
+    <li><strong>容量约束</strong>：激活参数须控制在可部署范围（<span class="num">32B</span>），如何避免小激活的能力上限损失？</li>
+    <li><strong>模式冲突</strong>：thinking 的长思维链与非 thinking 的即时响应，训练目标互相干扰，如何共存？</li>
+    <li><strong>评测可信度</strong>：自动基准存在过拟合风险，如何建立更贴近真实使用的验证体系？</li>
+  </ul>
+
+  <h3>1.2 在同期竞争谱系中的坐标</h3>
+  <table>
+    <thead><tr><th>维度</th><th class="n">GLM-4.5</th><th class="n">DeepSeek-V3</th><th class="n">Kimi K2</th></tr></thead>
+    <tbody>
+      <tr><td>总参数</td><td class="n">355B</td><td class="n">671B</td><td class="n">1043B</td></tr>
+      <tr><td>激活参数</td><td class="n">32B</td><td class="n">37B</td><td class="n">32B</td></tr>
+      <tr><td>MoE 层数</td><td class="n">89</td><td class="n">61</td><td class="n">60</td></tr>
+      <tr><td>Hidden dim</td><td class="n">5120</td><td class="n">7168</td><td class="n">7168</td></tr>
+      <tr><td>Expert 总数</td><td class="n">160</td><td class="n">256</td><td class="n">384</td></tr>
+    </tbody>
+  </table>
+  <p>同样激活约 <span class="num">32B</span>，GLM-4.5 把总参数压到 DeepSeek-V3 的一半、Kimi K2 的三分之一，却把层数堆到 <span class="num">89</span> 层（对照组均约 <span class="num">60</span> 层）。这是全文最重要的架构决策信号：<em class="term">在激活量固定的前提下，把预算花在「深度」而非「宽度」上</em>——论文明确记载其发现是「更深模型推理能力更强」。General 表中 SimpleQA <span class="num">26.4</span> 也被作者用作佐证：355B 总参数约为 DeepSeek V3/R1 671B 的一半，参数效率是其自觉追求而非偶然结果。（推断）这一选择也与 MoE 负载特性有关：更多层意味着更多次专家路由机会，稀疏激活收益随深度累积，而宽度扩张直接推高每层访存成本。</p>
+</section>
+
+<section class="sec" id="s2">
+  <h2>二、概念内核：支撑全篇的五个核心概念</h2>
+
+  <h3>2.1 Hybrid Reasoning（混合推理）</h3>
+  <p>单一模型内同时支持 thinking 与非 thinking 双模式。实现路径是后训练阶段的 self-distillation 统一训练：SFT 数据刻意平衡「含完整推理过程」与「无显式思维过程」两类样本，使模型学会按需切换。这解决的正是模式冲突子问题——不是训练两个模型，而是让一个模型内化两种行为策略。</p>
+
+  <h3>2.2 Mid-Training（中间训练）</h3>
+  <p>介于预训练与后训练之间的三阶段过渡带：</p>
+  <ol>
+    <li><strong>Repo-level Code Training</strong>（序列 <span class="num">4K→32K</span>）：注入跨文件依赖、GitHub PR/issues/commits 连接与 diff 格式；</li>
+    <li><strong>Synthetic Reasoning Data</strong>：math/science/code 竞赛合成推理数据；</li>
+    <li><strong>Long-context &amp; Agent Training</strong>（序列 <span class="num">32K→128K</span>）：上采样长文档并混入大规模合成 agent 轨迹。</li>
+  </ol>
+  <p>值得注意的细节是 packing 策略的分野：预训练不用 best-fit packing（随机截断反而充当数据增强），mid-training 改用 best-fit packing 以避免截断推理链或仓库级代码——同一技术在两个阶段承担相反的角色边界。（推断）这说明「何时该完整、何时可截断」本身是能力相关的：推理与代码语义对截断敏感，而通用网页语料对此不敏感。</p>
+
+  <h3>2.3 Muon 优化器的大规模落地</h3>
+  <p>除 word embedding、bias、RMSNorm 权重外全面使用 Muon：Newton-Schulz 迭代 N=<span class="num">5</span>、momentum <span class="num">0.95</span>、更新 RMS <span class="num">0.2</span>。学习率采用 cosine decay（warmup 后 <span class="num">2.5e-4 → 2.5e-5</span>），论文特别说明弃用 WSD 调度是因为其在 SimpleQA/MMLU 上表现差。Batch size 在前 <span class="num">500B</span> token 内从 <span class="num">16M</span> warmup 到 <span class="num">64M</span>。其他超参：路由 bias 更新率前 <span class="num">15T</span> token 为 <span class="num">0.001</span> 之后归零、辅助序列级 balance loss 权重 <span class="num">0.0001</span>、MTP loss 权重 λ=<span class="num">0.3</span>（后期降为 <span class="num">0.1</span>）。这是 Muon 类优化器在 23T token 量级上的公开实践样本之一，超参记录对复现者是高价值信息。</p>
+
+  <h3>2.4 专家迭代（Expert Model Iteration）</h3>
+  <p>后训练的组织哲学：Stage 1 训练 Reasoning / Agent / General chat 三个专家模型，各自在专属数据与 RL 目标上做到极致；Stage 2 通过 self-distillation 将专家能力融合回单一模型。（推断）选择蒸馏融合而非直接多任务混合训练，大概率是为了规避三类目标的梯度冲突——agent 轨迹的长程信用分配、数学推理的精确符号推导、通用对话的偏好对齐，三者对 reward 信号的要求几乎不兼容。</p>
+
+  <h3>2.5 Slime RL 基础设施</h3>
+  <p>自研框架（<code>github.com/THUDM/slime</code>），三大模块解耦：<strong>Training</strong>（Megatron）、<strong>Rollout</strong>（SGLang + Router）、<strong>DataBuffer</strong>。针对不同任务形态采用两种异步拓扑：agent 任务用 disaggregated asynchronous（rollout 引擎直连 agent 环境、GPU 独立调度），reasoning 任务用 async colocated。精度策略为训练 BF16、推理 FP8（每轮在线 block-wise 量化）；agent 任务配套 Docker 高并发 runtime 与集中 message-list 格式 data pool。（推断）这套基础设施本身就是 agentic RL 可行性的前提——环境交互的长尾延迟若与训练耦合，吞吐会崩塌。</p>
+</section>
+
+<section class="sec" id="s3">
+  <h2>三、方法拆解：从架构到评测的完整管线还原</h2>
+
+  <h3>3.1 架构侧：「加深减宽」与注意力头的反直觉加法</h3>
+  <ul>
+    <li><strong>GQA + partial RoPE + QK-Norm</strong>：分组查询注意力（<span class="num">96</span> 头对应 <span class="num">8</span> 个 KV 头）配合部分旋转位置编码；QK-Norm 用于稳定 attention logits 幅度。</li>
+    <li><strong>注意力头数的反直觉增加</strong>：5120 hidden 对应 <span class="num">96</span> 头，作者明确记载「增加头数不降低训练损失，却持续提升 MMLU、BBH 等推理 benchmark」——训练损失下降与下游推理能力增长可以脱钩。（推断）机理可能与头数带来的注意力模式多样性有关：更多头允许更多细粒度信息检索通路，这类能力在 loss 曲线上不可见但在多步推理中兑现。</li>
+    <li><strong>MoE 路由</strong>：loss-free balancer routing 配合 sigmoid gates。</li>
+    <li><strong>MTP 层</strong>：两个模型各加一层 Multi-Token Prediction 用于推理时 speculative decoding 加速；DeepSeek-V3 与 Kimi K2 均无此层。</li>
+  </ul>
+
+  <h3>3.2 数据侧：预训练语料的精细化治理</h3>
+  <p>来源覆盖网页、社交媒体、书籍、论文、代码仓库，以中英文网页为主。四条治理线索：</p>
+  <ol>
+    <li><strong>质量分桶</strong>：受 Nemotron-CC 启发按质量分桶，最高质量桶贡献超过 <span class="num">3.2</span> epochs，最低质量桶直接丢弃——承认高质量数据值得重复消费。</li>
+    <li><strong>SemDedup 语义去重</strong>：专门处理模板生成的相似网页——这类内容 MinHash 无法去除，需嵌入空间语义聚类。</li>
+    <li><strong>代码管线</strong>：GitHub 代码经规则过滤 + 语言质量模型分三档，上采样高档、排除低档；全部代码用 <em class="term">Fill-In-the-Middle</em> 目标训练；代码相关网页用两阶段检索补充；细粒度 parser 保留原始格式。</li>
+    <li><strong>两阶段课程</strong>：第一阶段通用文档，第二阶段上采样源代码与 coding/math/science 网页——知识密度在训练末期加权。</li>
+  </ol>
+  <p>多语言数据来自自爬网页 + Fineweb-2，用 educational utility 质量分类器上采样；Math &amp; Science 用 LLM 打分并训练小分类器预测分数，高以上题目上采样。</p>
+
+  <h3>3.3 SFT 侧：模板创新与数据杠杆</h3>
+  <p>SFT 分 Cold-start（少量扩展 CoT 数据）与 Overall 两步，后者涵盖 reasoning / general chat / agentic / long-context 数百万样本，最大上下文 <span class="num">128K</span>，数据从不同专家蒸馏并刻意平衡两类样本以支持 hybrid reasoning。两个细节值得一提：</p>
+  <ul>
+    <li><strong>函数调用模板改用 XML-like special token 包裹 key/value</strong>，大幅减少 code 段转义负担且不损害函数调用性能；</li>
+    <li><strong>Response-level scaling 的量化结论</strong>：去掉 response 长度底部 <span class="num">50%</span> 的 prompt，仅用一半数据就带来 math/science <span class="num">2%~4%</span> 提升；对困难 prompt 每 prompt 生成 <span class="num">4</span> 个 response 再提升 <span class="num">1%~2%</span>。</li>
+  </ul>
+  <p>Rejection Sampling 采用多阶段过滤：去重复/过短/截断/格式错误 → 客观答案正确性校验 → reward model 过滤主观题 → 工具调用协议与终态校验。agentic SFT 数据由四步自动化管线构建：框架/工具收集 → 任务合成 → 轨迹生成 → 质量过滤。</p>
+
+  <h3>3.4 Reasoning RL：四个先行小模型验证的技巧</h3>
+  <p>基于 GRPO（去掉 KL loss），四个技巧均在小型实验模型上验证后再放大：</p>
+  <ul>
+    <li><strong>两阶段难度课程学习</strong>：第一阶段避免早期全 0 奖励（题太难无梯度）与后期全 1 奖励（题太易无信息）；第二阶段只从有验证答案的池取题，持续突破性能天花板。</li>
+    <li><strong>单阶段 64K 优于多阶段递增长度</strong>：论文明确记载多阶段方案让模型「遗忘」长上下文能力且不可逆，表现为平均输出长度下降。这是对「渐进式加长」直觉做法的直接否定，属本报告最有迁移价值的负面结论之一。</li>
+    <li><strong>动态采样温度</strong>：奖励稳定视为收敛信号即抬高温度增强探索；用 held-out 验证集定温，阈值是不超过最优解性能下降 <span class="num">1%</span> 的最大温度。</li>
+    <li><strong>领域特化 loss 设计</strong>：Code RL 用 token-weighted mean loss 替代 sequence-mean（加速收敛、缓解长度偏差、抑制过简重复「base case」的投机答案）；Science RL 用 expert-verified 多选题，显著优于混合质量数据（GPQA-Diamond 实证）。</li>
+  </ul>
+
+  <h3>3.5 Agentic RL：稠密奖励与自蒸馏循环</h3>
+  <p>聚焦 web-search 与 code-generation agents（动作/答案可自动校验从而获得稠密奖励）。方法要点：</p>
+  <ul>
+    <li><strong>Group-wise policy optimization</strong>：采样 K 条 agent trace 组内优化，且只优化模型生成的 token、环境反馈不计入 loss；</li>
+    <li><strong>监督信号</strong> = Outcome Supervision（web-search 看最终答案准确率，coding 看 SWE 可验证测试）+ Process Action Format Penalty（格式错误即终止进程、奖励归 <span class="num">0</span>）；</li>
+    <li><strong>Iterative Self-distillation</strong>：RL 冷启动 → 用 RL 模型输出替换冷启动数据 → 继续 RL 并加大难度；</li>
+    <li><strong>测试时扩展维度别具一格</strong>：agent 任务通过 <em class="term">interaction turns</em>（交互轮数）而非输出 token 扩展，BrowseComp 上精度随交互轮平滑增长。</li>
+  </ul>
+
+  <h3>3.6 General RL：多源反馈的分治设计</h3>
+  <ul>
+    <li><strong>Holistic RL</strong>：约 <span class="num">5000</span> prompts 按 <span class="num">7</span> primary / <span class="num">33</span> secondary / <span class="num">139</span> tertiary 分类；</li>
+    <li><strong>Instruction Following RL</strong>：<span class="num">7</span> major / <span class="num">151</span> minor 约束类型，确定性校验 + reward model + critique model 三层机制减轻 reward hacking；</li>
+    <li><strong>Function Calling RL</strong>：step-wise 层严格规则奖励（格式正确且名字/参数/字段与 ground truth 完全匹配才得 <span class="num">1</span> 分否则 <span class="num">0</span>）；end-to-end 多轮用 MCP server 与 Agentgym 环境，按 TaskCompleted 由环境规则或 LLM Judge 判定；</li>
+    <li><strong>Pathology RL</strong>：针对语言混用、重复、格式错误等占比不足 <span class="num">1%</span> 的病理输出，挑高触发 prompt 定向训练提效。</li>
+  </ul>
+</section>
+
+<section class="sec" id="s4">
+  <h2>四、证据链：成绩单逐项核对与评测协议审查</h2>
+
+  <h3>4.1 三大 ARC 维度的主表数字</h3>
+  <p><strong>Agentic（平均 <span class="num">58.1</span>，第 <span class="num">2</span> 名）</strong>：TAU-bench 综合 <span class="num">70.1%</span>（Retail <span class="num">79.7</span> / Airline <span class="num">60.4</span>，与 Claude Sonnet 4 相当，评测用优化 user simulator）；BFCL v3 <span class="num">77.8%</span>（基线上最优，Air 为 <span class="num">76.4%</span>）；BrowseComp <span class="num">26.4%</span>（Air <span class="num">21.3%</span>；Claude Opus 4 为 <span class="num">18.8%</span>，o4-mini-high 为 <span class="num">28.3%</span>）。</p>
+  <p><strong>Reasoning（AA-Index <span class="num">67.7</span>，第 <span class="num">3</span> 名）</strong>：AIME24 <span class="num">91.0%</span>（Avg@32）超 o3 的 <span class="num">89.4%</span>（Gemini 2.5 Pro 为 <span class="num">94.3%</span>）；GPQA <span class="num">79.1%</span>（Avg@8）；MATH-500 <span class="num">98.2%</span>（Air <span class="num">98.1%</span>）；SciCode <span class="num">41.7%</span> 超 o3 的 <span class="num">41.0%</span>；LiveCodeBench（2407–2501 窗口）<span class="num">72.9%</span>；HLE <span class="num">14.4%</span> 明显低于 Gemini 2.5 Pro 的 <span class="num">21.1%</span>。均值层面超 Claude Opus 4。</p>
+  <p><strong>Coding（平均 <span class="num">50.9</span>，第 <span class="num">3</span> 名）</strong>：SWE-bench Verified <span class="num">64.2%</span>（Air <span class="num">57.6%</span>）超 GPT-4.1 的 <span class="num">48.6%</span> 与 Gemini 2.5 Pro；Terminal-Bench <span class="num">37.5%</span>（Air <span class="num">30.0%</span>）超 Claude Sonnet 4 的 <span class="num">35.2%</span>。协议明载细节：OpenHands v<span class="num">0.34</span>.0 框架、≤<span class="num">100</span> 迭代、128K 截断、temp <span class="num">0.6</span> / top_p <span class="num">1.0</span>；Terminal-Bench 用 Terminus 框架标准函数调用。</p>
+  <p><strong>General</strong>：MMLU <span class="num">90.0</span>、IFEval <span class="num">86.1</span>（超 DeepSeek R1）、SysBench <span class="num">81.0</span>（超 GPT-4.1 / DeepSeek V3 / Kimi K2）、SimpleQA <span class="num">26.4</span>、MultiChallenge <span class="num">52.8</span>。</p>
+
+  <h3>4.2 Base 模型的自证</h3>
+  <p>GLM-4.5-Base 全线稳定：英文 SimpleQA <span class="num">30.0</span> / BBH <span class="num">86.2</span> / MMLU <span class="num">86.1</span> / HellaSwag <span class="num">87.1</span> / PIQA <span class="num">85.3</span> / TriviaQA <span class="num">80.0</span>；Code EvalPlus <span class="num">78.1</span> / LiveCodeBench-Base <span class="num">28.1</span>；Math GSM8K <span class="num">79.4</span> / MATH <span class="num">61.0</span>；中文 CLUEWSC <span class="num">83.5</span> / C-Eval <span class="num">86.9</span> / C3 <span class="num">83.1</span> / Chinese-SimpleQA <span class="num">70.1</span>。作者以此证明统一能力并非后训练强行缝合而是基座就绪。（推断）Base 阶段中文成绩与英文基本同档，暗示中英双语语料配比相对均衡。</p>
+
+  <h3>4.3 真实使用侧的三层验证</h3>
+  <p>这是本报告区别于多数技术报告之处——作者专门建立了 hands-on experience 评测层：</p>
+  <ol>
+    <li><strong>人类盲评</strong>：<span class="num">660</span> prompts（392 英文 / 108 中文 / 160 其他语言），<span class="num">0–10</span> 手动打分。英文 overall <span class="num">8.66</span> 超 DeepSeek-R1-0528 的 <span class="num">8.62</span> 与 Kimi-K2 的 <span class="num">8.13</span>；中文 <span class="num">8.37</span>；其他语言 <span class="num">8.49</span>。</li>
+    <li><strong>CC-Bench 编码代理实测</strong>：<span class="num">52</span> 个编程任务、Claude Code 环境对战。vs Claude Sonnet 4 胜/平/负 = <span class="num">40.4/9.6/50.0</span>（整体仍处下风）；vs Kimi-K2 = <span class="num">53.9/17.3/28.8</span>；vs Qwen3-Coder = <span class="num">80.8/7.7/11.5</span>。<em class="term">工具调用成功率 <span class="num">90.6%</span> 为全场最高</em>（Claude Sonnet 4 <span class="num">89.5%</span>、Kimi-K2 <span class="num">86.2%</span>、Qwen3-Coder <span class="num">77.1%</span>）。（推断）工具调用成功率高但对战胜率不及 Claude Sonnet 4，说明瓶颈已从「会不会调工具」转移到「调完之后的规划与修复能力」。</li>
+    <li><strong>新逻辑推理题</strong>：Gemini 2.5 Pro <span class="num">65.8</span> &gt; DeepSeek-R1-0528 <span class="num">62.1</span> ≈ GLM-4.5 <span class="num">62.0</span> &gt; GLM-4.5-Air <span class="num">53.4</span> &gt; Kimi-K2 <span class="num">51.9</span>——用非公开题目规避污染。</li>
+  </ol>
+  <p>另有一组翻译盲测（<span class="num">0–3</span> 分、<span class="num">100</span> 例）：GLM-4.5 得 <span class="num">1.71</span>，远超专用翻译模型 Qwen-MT-plus <span class="num">0.38</span>、Qwen-MT-turbo <span class="num">0.55</span> 与 Seed-X <span class="num">0.65</span>。案例显示优势在网络流行语与文化语境：「yyds」译为「永远的神」、「胖」（指镜头）识别为 Canon 70-300、「鱼」emoji 映射闲鱼、「三花公主」理解三花猫。（推断）通用模型在文化语境翻译上碾压专用 MT 模型，反映的是预训练语料中真实网络文本占比的优势，而非翻译架构差异。</p>
+
+  <h3>4.4 Safety：整体同档，一项掉队</h3>
+  <p>SafetyBench 共 <span class="num">11,435</span> 题、<span class="num">7</span> 类，overall <span class="num">89.99</span>（正文另一处记 <span class="num">89.87</span>），与 Kimi-K2 的 <span class="num">90.48</span>、GPT-4.1 的 <span class="num">89.71</span> 同档；PhysicalHealth <span class="num">96.7</span>、MentalHealth <span class="num">94.7</span>、Ethics&amp;Morality <span class="num">94.3</span>、Privacy&amp;Property <span class="num">92.0</span>、Illegal <span class="num">91.0</span>；但 <em class="term">Unfairness &amp; Bias 仅 <span class="num">77.4</span></em>，作者自己标注为后续持续改进方向。</p>
+</section>
+
+<section class="sec" id="s5">
+  <h2>五、批判性分析：局限的深层含义与独立疑点</h2>
+
+  <h3>5.1 作者自述局限的深层含义</h3>
+  <p>论文未设独立 limitations 章节，局限散见各节，但坦承程度较高：</p>
+  <ul>
+    <li><strong>开放域深度知识仍有代差</strong>：GPQA <span class="num">79.1</span> 落后于 Gemini 2.5 Pro 的 <span class="num">84.4</span> 与 Qwen3-235B 的 <span class="num">87.7</span>；HLE <span class="num">14.4</span> 对 <span class="num">21.1</span> 的差距更大。（推断）结合 BrowseComp <span class="num">26.4</span> 对 o3 <span class="num">49.7</span> 的悬殊差距可归纳一条共性：凡依赖「极深检索 + 极长探索」的任务，GLM-4.5 与闭源头部仍有可见距离；而结构化推理（AIME24/MATH-500）已基本追平。</li>
+    <li><strong>对 Claude Sonnet 4 的 coding 差距是诚实的</strong>：CC-Bench 对战 <span class="num">50.0%</span> 负局，作者没有回避。Terminal-Bench 领先 <span class="num">2.3</span> 个百分点与对战胜率落后 <span class="num">9.6</span> 个百分点并存——短程终端任务可胜，真实软件工程全程对抗仍处下风。</li>
+    <li><strong>Unfairness &amp; Bias <span class="num">77.4</span></strong> 是七类安全中唯一明显掉队的一项。</li>
+  </ul>
+
+  <h3>5.2 独立观察到的疑点</h3>
+  <p>以下均为超出源数据直接记载的分析性判断，皆属（推断）：</p>
+  <ol>
+    <li><strong>多采样均值的使用范围值得注意</strong>。AIME24 用 Avg@<span class="num">32</span>、GPQA 用 Avg@<span class="num">8</span> 缓解方差，通行做法，但不能与单次 pass@1 直接混比。作者已披露，属透明操作，但传播链条中容易丢失该语境。</li>
+    <li><strong>动态 benchmark 时效窗口有限</strong>。LiveCodeBench 仅覆盖 2024/07/01–2025/01/01 题目；HLE 只测 text-based 题且用 GPT-4o 判分。发布日期 2025-08-08 距评测窗口末端已有半年以上，（推断）窗口内题目进入训练语料的概率不可忽略。</li>
+    <li><strong>手动评测统计功效偏弱</strong>。<span class="num">660</span> prompts、<span class="num">52</span> 编程任务、<span class="num">100</span> 例翻译、逻辑题数量有限——方向性参考价值高，不足以支撑细粒度排名结论，作者自己也承认统计显著性有限。「自动基准防过拟合 → 手动评测补位 → 样本又不足」的两难是当前所有前沿模型评测的共同困境，GLM-4.5 只是暴露得更诚实。</li>
+    <li><strong>「加深减宽」普适性未经消融闭环</strong>。论文给出 89 层对 60 层的选择与「更深推理更强」论断，但源数据显示缺少系统的深度/宽度等激活量对照实验记录。（推断）该结论可能依赖特定数据配比与优化器组合，直接外推需谨慎。</li>
+    <li><strong>专家迭代与统一训练的成本账未公开</strong>。三个专家模型 + 一轮 self-distillation 融合，等效计算开销显著高于单模型直接后训练，报告中未见成本披露——这对复现者的算力规划是实质信息缺口。</li>
+  </ol>
+</section>
+
+<section class="sec" id="s6">
+  <h2>六、启示与影响：可迁移的经验与后续走向</h2>
+
+  <h3>6.1 六条可迁移启示</h3>
+  <ol>
+    <li><strong>固定激活预算下，「深度换宽度」是推理能力的有效杠杆</strong>——但需配合 QK-Norm（稳定深层 attention logits）与头数增加（<span class="num">96</span> 头）来兑现深度红利，单独堆深可能不稳。</li>
+    <li><strong>Mid-training 是能力断点的修补带</strong>：仓库级代码、合成推理、128K 长上下文都在此阶段注入，且 packing 策略需随阶段切换（随机截断当增强 vs best-fit 防截断）。</li>
+    <li><strong>RL 长度课程要一步到位</strong>：「单阶段 <span class="num">64K</span> 优于多阶段递增」且遗忘不可逆——凡涉及上下文长度的 RL，宁可早期承受低吞吐也要一次到位。</li>
+    <li><strong>Agent 的测试时扩展维度是交互轮数而非 token 数</strong>：BrowseComp 精度随 interaction turns 平滑上升，为 agent 产品化提供了独立于「更长思考」的第二条 scaling 通道。</li>
+    <li><strong>数据过滤的边际收益极高</strong>：去掉长度底部 <span class="num">50%</span> 的 prompt 即换来一半数据量下 <span class="num">2%~4%</span> 的 math/science 提升——「少而准」胜过「多而杂」的直接量化证据。</li>
+    <li><strong>评测体系要三层互补</strong>：自动基准（防过拟合靠新题）+ 真实环境对战（CC-Bench 式）+ 人类盲评，任何单层都会系统性误导。</li>
+  </ol>
+
+  <h3>6.2 对开源生态的影响</h3>
+  <p>GLM-4.5 以 <span class="num">355B/32B</span> 规格进入开源第一梯队，其权重、Slime RL 框架与详尽超参披露（Muon 配置、路由 bias 调度、MTP loss 权重曲线）共同构成一套可参照的工程蓝本。（推断）对后续开源模型的直接影响包括：Muon 类优化器在大规模训练中的可信度提升、XML-like 函数调用模板可能成为 tool-calling 格式的参照、以及「专家迭代 + 自蒸馏统一」作为多目标后训练的标准范式被反复检验。</p>
+
+  <h3>6.3 未竟的方向</h3>
+  <p>综合第五节的局限，GLM-4.5 留下的待解题清晰可见：Unfairness &amp; Bias 的定向治理、BrowseComp 类长程 Web 任务的追赶（<span class="num">26.4</span> 对 o3 的 <span class="num">49.7</span>）、真实软件工程全程能力对 Claude Sonnet 4 的反超、以及动态基准时效窗口的持续刷新。这些恰好也是整个开源阵营 2025 下半年的公共议程——GLM-4.5 的价值在于把「开源模型能否三线作战」的回答从「能」推进到了「接近最前列」，而最后一段距离的攻坚方式，这份报告给出的答案是：更深的架构、更准的数据、更真实的评测。</p>
+</section>
+
+<footer class="selfcheck">
+  <p><strong>自检记录</strong>：① UTF-8 编码，无 U+FFFD 替换字符；② 关键数字均源自《00-源数据提取.md》，分析性判断已标「（推断）」；③ 单文件内联 CSS，无外部资源依赖；④ div 开闭配平（结构校验脚本核验通过）；⑤ 六层结构与 01-深度解读报告.md 同构对应。</p>
+  <p>基于 arXiv:2508.06471v1 及同目录源数据提取文档撰写 · 2026-08-26</p>
+</footer>
+
+</div>
+</body>
+</html>

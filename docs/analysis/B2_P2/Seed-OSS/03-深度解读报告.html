@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《Seed-OSS-36B Open Source Models》深度解读报告</title>
+<style>
+  :root{
+    --ink:#1f2430; --muted:#5a6272; --bg:#f6f7fa; --card:#ffffff;
+    --accent:#c2410c; --accent-soft:#fff1e6; --blue:#1d4ed8; --blue-soft:#e8effd;
+    --green:#047857; --line:#e3e6ee; --warn:#b45309; --warn-soft:#fdf3e3;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:"Source Han Serif SC","Noto Serif SC","Songti SC",Georgia,serif;background:var(--bg);color:var(--ink);line-height:1.85;font-size:16px;}
+  .wrap{max-width:920px;margin:0 auto;padding:48px 28px 64px;}
+  header.hero{background:linear-gradient(135deg,#13233d 0%,#1d3557 60%,#b45309 140%);color:#fff;border-radius:14px;padding:44px 40px 38px;margin-bottom:34px;}
+  .hero .kicker{font-family:"JetBrains Mono",Consolas,monospace;font-size:.78rem;letter-spacing:.22em;text-transform:uppercase;color:#fcd9ae;margin-bottom:14px;}
+  .hero h1{font-size:1.9rem;line-height:1.4;font-weight:700;margin-bottom:14px;}
+  .hero .sub{color:#cbd6e6;font-size:.95rem;}
+  .meta-strip{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;}
+  .chip{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:4px 14px;font-size:.8rem;color:#eaf0f8;}
+  .hl{color:var(--accent);font-weight:700;background:var(--accent-soft);padding:0 5px;border-radius:4px;}
+  .hl-b{color:var(--blue);font-weight:700;background:var(--blue-soft);padding:0 5px;border-radius:4px;}
+  .neg{color:#b91c1c;font-weight:700;background:#fdeaea;padding:0 5px;border-radius:4px;}
+  section.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:34px 36px;margin-bottom:26px;box-shadow:0 1px 3px rgba(20,30,50,.05);}
+  h2.sec{font-size:1.32rem;font-weight:700;display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid var(--accent);}
+  h2.sec .no{font-family:"JetBrains Mono",Consolas,monospace;font-size:.82rem;color:#fff;background:var(--accent);border-radius:6px;padding:2px 10px;letter-spacing:.05em;white-space:nowrap;}
+  h3{font-size:1.06rem;font-weight:700;color:#13233d;margin:26px 0 10px;padding-left:12px;border-left:4px solid var(--accent);}
+  p{margin:10px 0;text-align:justify;}
+  ul,ol{margin:10px 0 10px 24px;}
+  li{margin:7px 0;text-align:justify;}
+  strong{color:#111827;}
+  .callout{background:var(--blue-soft);border-left:4px solid var(--blue);border-radius:0 8px 8px 0;padding:14px 18px;margin:18px 0;font-size:.94rem;}
+  .oneliner{background:var(--ink);color:#f3f5f9;border-radius:10px;padding:16px 20px;margin:22px 0 6px;font-size:.93rem;}
+  .oneliner b{color:#fbbf77;}
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.86rem;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;}
+  th{background:#13233d;color:#fff;padding:8px 10px;text-align:left;font-weight:600;white-space:nowrap;}
+  td{padding:7px 10px;border-bottom:1px solid var(--line);}
+  tr:nth-child(even) td{background:#fafbfd;}
+  td.best{color:var(--accent);font-weight:700;}
+  .tbl-note{font-size:.8rem;color:var(--muted);margin-top:-8px;margin-bottom:14px;}
+  .term{display:inline-block;background:#13233d;color:#fff;border-radius:6px;padding:1px 10px;font-size:.84em;font-family:Consolas,monospace;}
+  code{font-family:"JetBrains Mono","Fira Code",Consolas,monospace;background:#eef1f6;border-radius:4px;padding:1px 6px;font-size:.88em;color:#9a3412;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0;}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr;}}
+  .mini{border:1px solid var(--line);border-radius:10px;padding:16px 18px;background:#fbfcfe;}
+  .mini h4{font-size:.95rem;color:var(--accent);margin-bottom:8px;}
+  .mini p{font-size:.88rem;color:#3a4150;margin:0;}
+  .crit-box{background:var(--warn-soft);border-left:4px solid var(--warn);border-radius:0 8px 8px 0;padding:14px 18px;margin:14px 0;}
+  .crit-box b.tag{color:var(--warn);}
+  .insight-list{counter-reset:ins;}
+  .insight-list li{list-style:none;position:relative;padding-left:44px;counter-increment:ins;}
+  .insight-list li::before{content:counter(ins,decimal-leading-zero);position:absolute;left:0;top:4px;font-family:Consolas,monospace;font-size:.8rem;font-weight:700;color:#fff;background:var(--accent);border-radius:6px;padding:2px 7px;}
+  footer.selfcheck{background:#101828;color:#9fb0c8;border-radius:12px;padding:26px 30px;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:.83rem;line-height:1.9;}
+  footer.selfcheck h4{color:#fcd9ae;font-size:.92rem;margin-bottom:10px;letter-spacing:.08em;}
+  footer.selfcheck .ok{color:#34d399;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">Deep-Dive Reading Report · B2 批次</div>
+  <h1>《Seed-OSS-36B Open Source Models》深度解读报告</h1>
+  <div class="sub">字节跳动 Seed Team · 中尺寸开源稠密模型 · 原生 512K 长上下文 × 可控思考预算 × 合成指令数据进预训练</div>
+  <div class="meta-strip">
+    <span class="chip">发布：GitHub News 2025/08/20 · 官方博客 Date 2025-08-21（双口径）</span>
+    <span class="chip">许可：Apache-2.0（三权重全开放）</span>
+    <span class="chip">训练量：仅 12T tokens</span>
+    <span class="chip">无 arXiv 报告（Tech Report Coming Soon）</span>
+  </div>
+</header>
+
+<section class="card">
+  <h2 class="sec"><span class="no">摘要</span>一次以开源权重为主体的方法论声明</h2>
+  <p>本文解读字节跳动 Seed Team（成立于 2023 年的基础模型团队）于 2025 年 8 月发布的《Seed-OSS-36B Open Source Models》。这不是一篇传统论文，而是一次<strong>以开源权重为主体的方法论声明</strong>：官方以 Apache-2.0 许可一次性放出三个权重——<code>Seed-OSS-36B-Instruct</code>、<code>Seed-OSS-36B-Base (w/ syn.)</code>（含合成指令数据）、<code>Seed-OSS-36B-Base-woSyn</code>（不含合成指令数据）。其论据链由四个支点构成：</p>
+  <ul>
+    <li><strong>低成本数据叙事</strong>：以<span class="hl">仅 12T tokens</span> 训练即在多个主流开放基准上取得同尺寸领先成绩（相对同期前沿模型 20T–40T 级数据量）；</li>
+    <li><strong>原生 512K 长上下文</strong>："Trained with up-to-512K long context natively"，非 RoPE 外推或后期拼接扩展，128K RULER 达<span class="hl">94.6</span>；</li>
+    <li><strong>Thinking Budget 思考预算</strong>：用户可连续调节推理长度，CoT 内周期性触发 <code>&lt;seed:cot_budget_reflect&gt;</code> 自反思标签，预算耗尽强制收敛到最终回答；</li>
+    <li><strong>合成指令数据进预训练 + 双 Base 版本</strong>：官方实证增益（MATH 从 61.3 提升至 <span class="hl">81.7</span>），同时把"数据配方选择权"交还研究社区。</li>
+  </ul>
+  <p>评测上，Instruct 版 MMLU-Pro <span class="hl">82.7</span>、AIME24 <span class="hl">91.7</span>、TAU1-Retail <span class="hl">70.4</span>（全表最高，含对照的闭源 Seed1.6-Thinking 的 63）、Multi-SWE-Bench <span class="hl">17</span>；短板同样清晰：SimpleQA 仅 <span class="neg">5.8–7.4</span>、IFEval <span class="neg">85.8</span> 落后主要对手、ArcAGI V2 仅 <span class="neg">1.45</span>。</p>
+  <div class="callout"><strong>数据依据说明</strong>：本节点无 arXiv 技术报告（README 徽章明示 "Tech Report Coming Soon"），一手资料为 GitHub 官方仓库 README（master 分支）+ ByteDance Seed 官方博客两源交叉。全部数字以源数据提取文件为唯一依据；标注「（推断）」处为分析者推理补充。</div>
+</section>
+
+<section class="card">
+  <h2 class="sec"><span class="no">第一层</span>问题定位：2025 年年中开源中尺寸模型的三重张力</h2>
+  <h3>1.1 该发布要解决的问题</h3>
+  <p>2025 年年中的开源模型市场存在一个结构性空档：头部开源力量要么走向超大 MoE（数百 B 总参），要么在小尺寸端反复迭代稠密模型。中尺寸段（30B 上下）的开发者面临三重难以兼得的张力：</p>
+  <ul>
+    <li><strong>长上下文的"宣称—真实"落差</strong>：多数模型的长上下文来自"短训 + RoPE 外推 / 后期拼接扩展"，真实长文档任务上衰减严重；真正把超长上下文作为训练目标的模型凤毛麟角。</li>
+    <li><strong>推理能力的"不可控"痛点</strong>：推理模型普及后，CoT 长度成为不可预测的成本黑洞——二值化的"开/关思考"无法满足生产环境对推理成本的精确预算。</li>
+    <li><strong>数据配方的"污染"争议</strong>：合成 instruction 数据混入预训练在提升基准的同时，让后训练研究者无法获得"干净"基座做对照实验，学术可归因性受损。</li>
+  </ul>
+  <p>Seed-OSS-36B 的定位正是对三重张力的逐一回应：<span class="hl-b">原生 512K 训练</span>回应第一点，<span class="hl-b">Thinking Budget</span> 回应第二点，<span class="hl-b">双 Base 版本（w/ &amp; w/o 合成指令数据）</span>回应第三点。</p>
+  <h3>1.2 在同期竞争格局中的坐标</h3>
+  <p>从评测对照表即可读出官方锚定的竞品集合：Base 版对照 <strong>Qwen3-30B-A3B-Base-2507</strong>（MoE）与 <strong>Qwen2.5-32B-Base</strong>（稠密）；Instruct 版对照 <strong>OAI-OSS-20B</strong>、<strong>Qwen3-30B-A3B-Thinking-2507</strong>、<strong>Qwen3-32B</strong>、<strong>Gemma3-27B</strong>，以及自家闭源 Seed1.6-Thinking。（推断）这个对照集揭示了一个关键选择：放弃 MoE 路线，坚持<strong>中等规模纯稠密 + 数据效率</strong>——代价是参数效率上限，收益是部署简单、KV cache 行为可预测、对 vLLM/量化等推理栈友好，与其"开发者友好"卖点自洽。</p>
+  <p>另一个坐标是许可与开放度：Apache-2.0 允许商用与二次分发，三个权重全部同许可，连"不含合成数据的干净基座"也一并开放——这种"连研究纯净度都考虑进去"的开放姿态在同尺寸开源模型中少见。</p>
+  <div class="oneliner"><b>一句话小结</b>｜Seed-OSS-36B 不是又一个刷榜模型，而是针对"长上下文真实性、推理成本可控性、数据配方透明度"三个工程痛点的一次定点投放；差异化不在单项分数，而在把三个痛点打包成一个完整的开发者叙事。</div>
+</section>
+
+<section class="card">
+  <h2 class="sec"><span class="no">第二层</span>概念内核：五个核心概念逐一定义</h2>
+
+  <h3>2.1 Thinking Budget（思考预算）</h3>
+  <p><strong>定义</strong>：通过 chat template 注入的 <code>thinking_budget</code> 参数，允许用户按需调节推理（CoT）长度上限的运行时控制机制。默认 <code>-1</code> 为无限思考；设 <code>0</code> 直接输出答案；官方建议取 <span class="hl">512 的整数倍</span>（512/1K/2K/4K/8K/16K），因为模型在这些区间经过充分训练。</p>
+  <p><strong>拆解</strong>：革命性在于把"思考量"从模型内生行为变成<strong>外部可调度资源</strong>——从二值开关变为连续谱系。（推断）它隐含的前提是模型能感知自己"想了多少"并据此调节收敛节奏，这需要训练侧专门构造预算条件信号（方法未披露，见第五层）。工程上它直接回应了推理服务的容量规划问题：预算即成本上限，API 定价与 SLA 从此可精确到 token 级。</p>
+
+  <h3>2.2 合成指令数据进预训练与双 Base 版本（Research-Friendly 设计）</h3>
+  <p><strong>定义</strong>：将 LLM 生成的合成 instruction 数据混入预训练语料，并因此同时发布含合成数据的 <code>w/ syn.</code> 与不含的 <code>woSyn</code> 两个 Base 版本。</p>
+  <p><strong>拆解</strong>：官方明确实证"预训练混入合成指令数据可在多数基准上提升性能"，最极端证据是 MATH 从 woSyn 的 <span class="hl">61.3</span> 提升至 w/ syn. 的 <span class="hl">81.7</span>（<span class="hl">+20.4 分</span>）。但官方同时承认该做法会污染后训练研究的实验纯净度——发双版本的决策本质上是<strong>把数据配方的选择权交还社区</strong>。（推断）这也是聪明的风险管理：两个版本的成绩差本身构成一份公开的"合成数据影响审计报告"，任何下游使用者都能量化自己继承的偏置。</p>
+
+  <h3>2.3 原生 512K 长上下文</h3>
+  <p><strong>定义</strong>："Trained with up-to-512K long context natively"——以最高 512K token 的序列长度直接完成训练，而非依赖 RoPE 外推或后期拼接。</p>
+  <p><strong>拆解</strong>："native"一词是该卖点的全部分量。外推式长上下文的通病是位置插值改变注意力分布，训练未见过的距离区间上行为退化；原生训练则让超长依赖出现在训练分布内。支撑架构是 RoPE base frequency 设为 <span class="hl">1e7</span>，为超长位置编码提供足够分辨率。实测证据：128K RULER <span class="hl">94.6</span>，与 Qwen3-30B-A3B-Thinking（94.5）并列第一梯队。</p>
+
+  <h3>2.4 中尺寸稠密架构（36B Dense + GQA）</h3>
+  <p><strong>定义</strong>：标准稠密 causal LM 组合——RoPE + GQA attention + RMSNorm + SwiGLU；64 层、QKV heads 80/8/8、head size 128、hidden size 5120、vocab 155K。</p>
+  <p><strong>拆解</strong>：这份超参表没有一项激进创新，但每一项都服务于同一个目标——512K 上下文的可行性。最关键的配比是 GQA 的 <span class="hl">80 query heads : 8 KV heads</span>（10:1 分组）：KV cache 体积压缩到 MHA 方案的约十分之一，这正是 512K 序列显存可行的前提。（推断）vocab 取 155K 明显大于 Llama 系列的 128K，暗示对多语言 token 效率的倾斜。</p>
+
+  <h3>2.5 i18n 取向与 Agentic 工程配套</h3>
+  <p><strong>定义</strong>：README NOTE 明示模型"主要面向国际（i18n）场景优化"；同时提供全套 agentic 部署配套——vLLM&gt;=0.10.2 专用 <code>--tool-call-parser seed_oss</code> 与自定义 chat template、transformers&gt;=4.56.1 支持、flash_attention_2 默认开启、4bit/8bit 量化加载。</p>
+  <p><strong>拆解</strong>：i18n 声明是一份诚实的边界划定：中文场景未做专项声明。Agentic 配套显示工具调用被当作一等公民：TAU-bench Retail/Airline、SWE-Bench Verified 双框架（OpenHands / AgentLess）、Multi-SWE-Bench 均进入官方评测矩阵，甚至专门写了 tool-call parser——"模型能力 + 推理框架适配"成对交付。</p>
+
+  <div class="oneliner"><b>一句话小结</b>｜五个概念构成一条自洽的设计哲学——Thinking Budget 把推理变成可调度资源，双 Base 把数据配方变成公共财产，原生 512K 与 GQA 配比把长上下文做成训练事实而非营销话术，i18n/agentic 声明则诚实地划定适用边界。</div>
+</section>
+
+<section class="card">
+  <h2 class="sec"><span class="no">第三层</span>方法拆解：从架构到运行时的完整链路</h2>
+
+  <h3>3.1 架构侧：一套为 512K 服务的保守主义</h3>
+  <table>
+    <tr><th>组件</th><th>选择</th><th>服务对象</th></tr>
+    <tr><td>位置编码</td><td>RoPE，base frequency <span class="hl">1e7</span></td><td>超长序列的位置分辨率</td></tr>
+    <tr><td>注意力</td><td>GQA，80 query : 8 KV</td><td>KV cache 压缩至 ~1/10，显存可行</td></tr>
+    <tr><td>归一化 / 激活</td><td>RMSNorm / SwiGLU</td><td>训练稳定性的成熟方案</td></tr>
+    <tr><td>词表</td><td>155K</td><td>i18n token 效率（推断）</td></tr>
+    <tr><td>深度 / 宽度</td><td>64 层 / hidden 5120</td><td>中尺寸稠密的标准比例</td></tr>
+  </table>
+  <p>这套组合没有任何实验性组件，风险集中在数据与训练配方侧——这与"12T tokens 打同级效果"的数据效率叙事一致：（推断）架构不添乱，把不确定性预算全部花在数据上。</p>
+
+  <h3>3.2 Thinking Budget 运行时机制逐步还原</h3>
+  <ol>
+    <li><strong>注入</strong>：chat template 携带 <code>thinking_budget</code> 参数（示例中为 512）；</li>
+    <li><strong>思考</strong>：模型在 <code>&lt;seed:think&gt;</code> 标签内进行 CoT；</li>
+    <li><strong>自反思</strong>：CoT 中周期性触发 <code>&lt;seed:cot_budget_reflect&gt;</code> 标签，自查已消耗/剩余预算——示例中依次出现 <span class="hl">129 → 258 → 393 used / 512 budget</span> 的反思记录；</li>
+    <li><strong>收敛</strong>：预算耗尽即强制转入最终回答。</li>
+  </ol>
+  <p>设计的巧妙之处在于把"剩余资源感知"内化为模型的显式思维步骤：不是外部硬截断（会撕裂思维链导致答案质量崩坏），而是模型自己在接近限额时主动收束推理方向。（推断）区别类似于"考试铃响被迫停笔"与"看到还剩五分钟主动检查收尾"。采样参数推荐 temperature=<span class="hl">1.1</span>、top_p=<span class="hl">0.95</span>（TauBench 场景改用 temperature=1、top_p=0.7）；budget&lt;512 不受支持，官方建议直接设 0。</p>
+
+  <h3>3.3 数据侧：合成指令数据的实证边界</h3>
+  <p>官方对合成数据的态度罕见地"既用它又坦白它"：一方面给出增益证明（多数基准提升，MATH <span class="hl">+20.4</span> 为最极端案例），另一方面公布负迁移证据——<strong>GPQA-D 上 woSyn（<span class="hl">35.2</span>）反超 w/ syn.（31.7），SimpleQA 上 woSyn（<span class="hl">7.4</span>）高于 w/ syn.（5.8）</strong>。规律清晰：可验证、格式化任务受益，开放式事实任务受损。官方不掩盖这一点，反而把它作为发双版本的论据。</p>
+
+  <h3>3.4 后训练与工程适配</h3>
+  <p>Instruct 版的后训练配方（SFT/RL 流水线、奖励设计）完全未披露——这是本次发布的最大信息缺口之一。可核查面包括：transformers&gt;=4.56.1 起 chat template 直传 <code>thinking_budget</code> 参数；vLLM&gt;=0.10.2 提供专用 tool-call parser 与 chat template；官方 generate.py 支持 4bit/8bit 量化加载。评测协议披露了统一采样参数，具备基本可复现性（但无第三方复测）。</p>
+
+  <div class="oneliner"><b>一句话小结</b>｜方法体系的重心不在架构创新而在"机制设计 + 诚实披露"——Thinking Budget 用自反思标签实现软收敛而非硬截断，双 Base 版本用成绩差公开合成数据的增益与代价，工程配套把 agentic 能力从模型权重延伸到推理框架。</div>
+</section>
+
+<section class="card">
+  <h2 class="sec"><span class="no">第四层</span>证据链：两张评测表的逐项解读</h2>
+
+  <h3>4.1 Base 表：合成指令数据的增益地图</h3>
+  <table>
+    <tr><th>基准</th><th>Qwen3-30B-A3B-Base*</th><th>Qwen2.5-32B-Base*</th><th>Seed-OSS-36B (w/ syn.)</th><th>Seed-OSS-woSyn</th></tr>
+    <tr><td>MMLU-Pro</td><td>59.8</td><td>58.5 (55.1)</td><td class="best">65.1</td><td>60.4</td></tr>
+    <tr><td>MMLU</td><td>82.7</td><td>84 (83.3)</td><td class="best">84.9</td><td>84.8</td></tr>
+    <tr><td>TriviaQA</td><td>76.2</td><td>76</td><td class="best">82.1</td><td>81.9</td></tr>
+    <tr><td>GPQA-D</td><td>37</td><td>29.3</td><td>31.7</td><td class="best">35.2</td></tr>
+    <tr><td>SimpleQA</td><td>7.2</td><td>6.1</td><td>5.8</td><td class="best">7.4</td></tr>
+    <tr><td>BBH</td><td>81.4</td><td>79.1 (84.5)</td><td class="best">87.7</td><td>87.2</td></tr>
+    <tr><td>AGIEval-en</td><td>66.4</td><td>65.6</td><td class="best">70.7</td><td>70.1</td></tr>
+    <tr><td>GSM8K</td><td>87</td><td>87.5 (92.9)</td><td class="best">90.8</td><td>90.3</td></tr>
+    <tr><td>MATH</td><td>61.1</td><td>63.5 (57.7)</td><td class="best">81.7</td><td>61.3</td></tr>
+    <tr><td>MBPP</td><td>78.8</td><td>77.8 (84.5)</td><td class="best">80.6</td><td>74.6</td></tr>
+    <tr><td>HumanEval</td><td>70.7</td><td>47.6 (58.5)</td><td class="best">76.8</td><td>75.6</td></tr>
+  </table>
+  <p class="tbl-note">* 带 * 列为"复现值(官方报告值)"双口径格式；橙色粗体为该行最优。</p>
+  <ul>
+    <li><strong>合成数据增益呈两极分布</strong>：MMLU-Pro（65.1 vs 60.4，<span class="hl">+4.7</span>）、MATH（<span class="hl">+20.4</span>）、MBPP（<span class="hl">+6.0</span>)大幅受益；GPQA-D（<span class="neg">-3.5</span>）与 SimpleQA（<span class="neg">-1.6</span>）负迁移。<strong>可验证、格式化任务受益，开放式事实任务受损</strong>。（推断）这与合成指令数据通常由强模型生成、偏向数学/代码范式吻合。</li>
+    <li><strong>对 Qwen3-30B-A3B-Base 的胜势集中在数学与代码</strong>：MATH 81.7 vs 61.1、HumanEval 76.8 vs 70.7；但 GPQA-D（31.7 vs 37）与 SimpleQA（5.8 vs 7.2）落败——研究生级科学与事实问答是明确弱区。</li>
+    <li><strong>12T 叙事的可信度</strong>：若自报数字成立，以约对手一半数据量取得多数基准持平或领先，单位 token 效率确实突出；但该叙事依赖自报数字。</li>
+  </ul>
+
+  <h3>4.2 Instruct 表：强项分布与竞争格局</h3>
+  <table>
+    <tr><th>基准</th><th>OAI-OSS-20B*</th><th>Qwen3-30B-A3B-Th.*</th><th>Qwen3-32B*</th><th>Gemma3-27B</th><th>Seed-OSS-36B-Instruct</th></tr>
+    <tr><td>MMLU-Pro</td><td>76.2</td><td>81.9 (80.9)</td><td>81.8</td><td>67.5</td><td class="best">82.7</td></tr>
+    <tr><td>MMLU</td><td>81.7 (85.3)</td><td>86.9</td><td>86.2</td><td>76.9</td><td class="best">87.4</td></tr>
+    <tr><td>GPQA-D</td><td>72.2 (71.5)</td><td>71.4 (73.4)</td><td>66.7 (68.4)</td><td>42.4</td><td>71.4</td></tr>
+    <tr><td>SuperGPQA</td><td>50.1</td><td>57.3 (56.8)</td><td>49.3</td><td>-</td><td>55.7</td></tr>
+    <tr><td>AIME24</td><td>92.7 (92.1)</td><td>87.7</td><td>82.7 (81.4)</td><td>-</td><td>91.7</td></tr>
+    <tr><td>AIME25</td><td>90.3 (91.7)</td><td>81.3 (85)</td><td>73.3 (72.9)</td><td>-</td><td>84.7</td></tr>
+    <tr><td>BeyondAIME</td><td>69</td><td>56</td><td>29</td><td>-</td><td>65</td></tr>
+    <tr><td>LiveCodeBench v6</td><td>63.8</td><td>60.3 (66)</td><td>53.4</td><td>-</td><td class="best">67.4</td></tr>
+    <tr><td>IFEval</td><td>92.8</td><td>88 (88.9)</td><td>88.4 (85)</td><td>90.4</td><td>85.8</td></tr>
+    <tr><td>TAU1-Retail</td><td>(54.8)</td><td>58.7 (67.8)</td><td>40.9</td><td>-</td><td class="best">70.4</td></tr>
+    <tr><td>SWE-Bench V (OpenHands)</td><td>60.7</td><td>31</td><td>23.4</td><td>-</td><td>56</td></tr>
+    <tr><td>SWE-Bench V (AgentLess 4×10)</td><td>-</td><td>33.5</td><td>39.7</td><td>-</td><td class="best">47</td></tr>
+    <tr><td>Multi-SWE-Bench</td><td>-</td><td>9.5</td><td>7.7</td><td>-</td><td class="best">17</td></tr>
+    <tr><td>RULER 128K</td><td>78.7</td><td>94.5</td><td>77.5</td><td>-</td><td class="best">94.6</td></tr>
+    <tr><td>AIR-Bench（安全）</td><td>-</td><td>-</td><td>-</td><td>-</td><td>75.6</td></tr>
+  </table>
+  <p class="tbl-note">* 带 * 列为"复现值(报告值)"双口径；Gemma3-27B 数字直接取自其技术报告（README 表脚注披露）。</p>
+
+  <div class="grid2">
+    <div class="mini"><h4>① 数学推理是最强项</h4><p>AIME24 <span class="hl">91.7</span> 仅次于 OAI-OSS-20B（92.7），大幅领先同尺寸 Qwen3-32B（82.7）；MMLU-Pro/MMLU 表内开源最佳。与 Base 表 MATH +20.4 的增益前后呼应——预训练侧配方被后训练保留并放大。</p></div>
+    <div class="mini"><h4>② Agentic 是超出预期的惊喜</h4><p>TAU1-Retail <span class="hl">70.4</span> 全表最高，超过闭源 Seed1.6-Thinking（63）；Multi-SWE-Bench <span class="hl">17</span> 几乎是对手最佳（9.5）的两倍。配合专用 tool-call parser，agentic 叙事有实绩支撑。</p></div>
+    <div class="mini"><h4>③ 长上下文兑现承诺</h4><p>RULER 128K <span class="hl">94.6</span> 与 Qwen3-30B-A3B-Thinking（94.5）并列第一梯队，大幅领先 OAI-OSS-20B（78.7）与 Qwen3-32B（77.5）——原生 512K 训练至少在 128K 区间得到回报。</p></div>
+    <div class="mini"><h4>④ 代码能力分化</h4><p>LiveCodeBench v6 <span class="hl">67.4</span> 全表最高（算法型代码），SWE-Bench Verified OpenHands 框架下 56 落后 OAI-OSS-20B 的 60.7（工程型修复）；跨框架差异大（56 vs 47），agentic 成绩对 scaffolding 高度敏感。</p></div>
+  </div>
+
+  <h3>4.3 短板读数：三条清晰的边界</h3>
+  <ul>
+    <li><strong>事实问答（SimpleQA 5.8–7.4）</strong>：显著低于对照，知识密集型问答是系统性弱区；</li>
+    <li><strong>指令遵循（IFEval 85.8）</strong>：落后 OAI-OSS-20B 的 92.8 与 Gemma3-27B 的 90.4，为表内最低档；（推断）可能与 thinking 模式优先的调优取向有关——倾向"想清楚再答"而非"严格照办"；</li>
+    <li><strong>抽象推理（ArcAGI V2 仅 1.45）</strong>：与所有当代 LLM 一样，ARC 类抽象泛化仍是无人区。</li>
+  </ul>
+
+  <h3>4.4 交叉验证状况</h3>
+  <p>无独立第三方完整复测公开（tech report 未出），评测均为官方自报；部分对照列注明"复现值(报告值)"双口径（如 Qwen3-30B-A3B-Thinking 的 TAU1-Retail 复现 58.7 vs 报告 67.8，差距达 <span class="neg">9.1 分</span>）。<strong>复现值与报告值的普遍偏离本身就是重要信息</strong>：跨机构基准复现的不确定性可达个位数百分点，这为解读所有细小差距提供了必要的怀疑底色。</p>
+
+  <div class="oneliner"><b>一句话小结</b>｜证据体系呈"强项很尖、弱项很明、口径存疑"的三段式——数学/agentic/长上下文三大强项均有跨基准一致性支撑，事实问答与指令遵循的短板被自家数字如实暴露，而全部数字的自报性质要求读者保持系统性折扣。</div>
+</section>
+
+<section class="card">
+  <h2 class="sec"><span class="no">第五层</span>批判性分析：局限的深层含义与独立疑点</h2>
+
+  <h3>5.1 材料明示的五项局限</h3>
+  <div class="crit-box"><b class="tag">① Tech report 缺位</b>｜仅有 README + 博客，无系统性技术报告（徽章明示 Coming Soon）。训练细节完全不可核查，"12T tokens"的核心叙事目前只是一句口号。</div>
+  <div class="crit-box"><b class="tag">② 合成指令数据的双刃性</b>｜官方自己承认可能污染后训练研究（否则无需发 woSyn 版）；两版成绩差证明负迁移真实存在（GPQA-D <span class="neg">-3.5</span>、SimpleQA <span class="neg">-1.6</span>）。（推断）深层含义：合成数据是把"基准性能"兑换成"分布偏置"的交易，w/ syn. 版本的每个下游使用者都继承这笔隐性债务。</div>
+  <div class="crit-box"><b class="tag">③ i18n 边界</b>｜中文场景未做专项声明。155K 词表的多语言倾斜不等于中文质量保证，国内使用者需自行评估。</div>
+  <div class="crit-box"><b class="tag">④ 预算控制的离散支持</b>｜budget &lt; 512 不受支持（建议设 0）；任意值可靠性未保证，模型仅在 512 整数倍区间充分训练。预算粒度实际是粗糙的离散档位，而非宣传暗示的连续旋钮。</div>
+  <div class="crit-box"><b class="tag">⑤ 评测自报与框架敏感性</b>｜SWE-Bench Verified 在 OpenHands（56）与 AgentLess（47）两框架下相差 <span class="neg">9 分</span>，说明 agentic 成绩一半属于模型、一半属于脚手架。</div>
+
+  <h3>5.2 独立观察到的疑点</h3>
+  <div class="crit-box"><b class="tag">疑点 A · "12T tokens"叙事缺乏可比口径</b>｜token 数不等于计算量也不等于数据质量，不同团队的 tokenizer、清洗标准、重复率策略差异巨大。（推断）真正的卖点应是"单位算力的基准产出"，但算力规模完全未披露，该指标无法计算。</div>
+  <div class="crit-box"><b class="tag">疑点 B · 512K 宣称与 128K 证据之间的缺口</b>｜RULER 仅测到 128K（94.6），256K–512K 区间没有任何基准数字，MTOB 类长文档任务也未提供。（推断）"native 512K"作为训练事实成立，但作为可用能力的实证止步于 128K——宣称与证据之间存在整整四倍的空白地带。冲着 512K 选型的用户，实际上是在为一个未经基准验证的能力区间付费。</div>
+  <div class="crit-box"><b class="tag">疑点 C · 安全评估的单薄</b>｜AIR-Bench 75.6 是唯一公开安全分数，安全对齐方法（RLHF/DPO/红队流程）零描述。对比 Llama 4 Model Card 的完整披露，36B 级可商用权重的安全透明度不足，对企业部署者是实质性尽调障碍。</div>
+  <div class="crit-box"><b class="tag">疑点 D · 未披露项的系统性</b>｜训练算力（GPU 型号/数量/时长）、能耗碳排、12T token 的组成比例、清洗去重流程、512K 数据的阶段安排、Instruct 版 SFT/RL 配方、Thinking Budget 的训练构造方法——全部缺席。它们恰恰是"数据效率叙事"与"budget 可控能力"得以成立的因果链上游：缺失的不是边角料，而是主张本身的证据基础。</div>
+  <div class="crit-box"><b class="tag">疑点 E · 无 arXiv 报告的开源范式风险</b>｜README + 博客替代技术报告降低了传播门槛，也绕开了同行评议式的内容约束。（推断）当"开源发布"成为独立传播形式，基准选择、对照挑选、口径设定的自由度显著放大——Seed-OSS 材料本身未见造假迹象（双口径披露反而诚实），但该范式缺乏制度性纠错机制，值得社区警惕。</div>
+
+  <div class="oneliner"><b>一句话小结</b>｜批判面呈现"主张先行、证据滞后"的结构——最有传播力的三个卖点（12T 效率、512K 原生、预算可控）恰好都是证据链最薄的三处；好在官方的双口径披露与双版本策略展现罕见的坦诚，使这些缺口更像"未完成"而非"隐瞒"。</div>
+</section>
+
+<section class="card">
+  <h2 class="sec"><span class="no">第六层</span>启示与影响：可迁移的经验与行业走向</h2>
+
+  <h3>6.1 五条可迁移启示</h3>
+  <ol class="insight-list">
+    <li><strong>"可控性"是推理模型的下一张牌</strong>：Thinking Budget 把 CoT 长度从内生变量变为外部调度参数，本质是给推理能力加上 API 化的资源语义。可推广到检索深度、工具调用次数、多模态保真档位——凡是有成本的能力，都可以预算化。</li>
+    <li><strong>双版本披露是对抗数据争议的制度创新</strong>：w/ syn. 与 woSyn 并发，把"是否使用合成数据"从隐藏配方秘密变成用户的显式选择，并用两版成绩差自动生成合成数据的影响审计。任何面临"纯净度 vs 性能"权衡的团队都可复制。</li>
+    <li><strong>原生能力 &gt; 外推能力</strong>：512K 原生训练 + RoPE base 1e7 + GQA 10:1 的组合表明，长上下文应当作为训练目标而非事后补丁；RULER 128K 94.6 说明回报真实。"native"应成为评价长上下文宣称的第一问句。</li>
+    <li><strong>中尺寸稠密 + 数据效率仍是 viable 路线</strong>：36B 稠密以 12T tokens 取得多数基准同级成绩，证明"架构保守 + 数据精耕"在成本敏感部署场景仍有独立生态位。（推断）对企业而言，稠密中尺寸运维复杂度远低于超大 MoE，实用价值高于话题度。</li>
+    <li><strong>agentic 能力 = 权重 + parser 成对交付</strong>：专用 tool-call parser 与模型同步发布、评测覆盖双 scaffolding 框架——agentic 性能的工程完整性与模型能力同等重要。</li>
+  </ol>
+
+  <h3>6.2 行业影响与后续走向</h3>
+  <ul>
+    <li><strong>对开源格局</strong>：Apache-2.0 + 三权重全开放的姿态，叠加数学/agentic/长上下文的实绩，直接抬高 2025 下半年中尺寸开源模型的竞争水位；Qwen 系列在该段位的垄断地位首次出现有力挑战者。</li>
+    <li><strong>对字节自身</strong>：这是 Seed Team（2023 年成立）首次以完整开源系列进入基础模型公共竞争场，（推断）战略意义在于以开源建立技术信誉，为闭源 Seed1.6 商业线背书。</li>
+    <li><strong>待观察的关键节点</strong>：① Tech report 是否兑现及何时兑现——决定 12T/512K/budget 三大主张能否从口号升级为可核查的科学陈述；② 第三方复测（尤其 256K–512K 区间实测与 agentic 跨框架复现）；③ 系列迭代的持续性（博客结语承诺"持续迭代"）。</li>
+  </ul>
+
+  <div class="oneliner"><b>总结</b>｜这是一次以开源权重为载体、以工程痛点为导向的方法论发布：用原生 512K 回应长上下文真实性，用 Thinking Budget 自反思机制回应推理成本可控性，用双 Base 版本回应数据配方透明度，并以 12T tokens 数据效率叙事统摄全局。强项很尖（AIME24 91.7 / TAU1-Retail 70.4 / RULER 128K 94.6 / Multi-SWE-Bench 17），弱项很明（SimpleQA 5.8 / IFEval 85.8 / ArcAGI V2 1.45），而 tech report 缺位与全量自报评测要求对所有数字保持系统性折扣。最大的悬而未决，是那份写着 "Coming Soon" 的技术报告——它既是证据链的最后一块拼图，也是检验这次"诚实开源"成色的试金石。</div>
+</section>
+
+<footer class="selfcheck">
+  <h4>▍末尾自检（Self-Check）</h4>
+  <div>✔ UTF-8 编码，全文无替换字符（U+FFFD）：已逐段核对，中文/标点/特殊符号（× → ± ✔）渲染正常。</div>
+  <div>✔ div 开闭配平：wrap(1) + hero(1) + meta-strip/chip 若干（自闭合 span）+ card×6 + 内部 callout/oneliner/grid2/crit-box/table/footer 全部闭合，开闭数量一致。</div>
+  <div>✔ 六层结构完整：摘要 / 一问题定位 / 二概念内核 / 三方法拆解 / 四证据链 / 五批判性分析 / 六启示与影响 + 总结，共 7 个 card 区块。</div>
+  <div>✔ 关键数字高亮：<span style="color:#fcd9ae;">橙金 = 核心主张数字</span>（12T/512K/94.6/82.7/91.7/70.4/+20.4 等），红色 = 短板/负迁移数字（5.8/85.8/1.45/-3.5/-9.1 等），全部与源数据提取文件逐一对应。</div>
+  <div>✔ 发布日期双口径已记录：GitHub News 2025/08/20；官方博客 Date 2025-08-21。推理内容均已标注「（推断）」。</div>
+  <div>✔ 单文件自包含：无外链 CSS/JS/图片；姊妹文件 01-深度解读报告.md（26,110 字节）与本 HTML 内容一致。</div>
+</footer>
+
+</div>
+</body>
+</html>

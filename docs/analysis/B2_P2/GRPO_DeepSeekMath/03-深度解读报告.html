@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《DeepSeekMath》深度解读报告</title>
+<style>
+:root{
+  --ink:#1a2332; --sub:#5a6b82; --bg:#f7f9fc; --card:#ffffff;
+  --accent:#2563eb; --accent-soft:#eff4ff; --gold:#b45309; --gold-bg:#fef7e8;
+  --line:#e3e9f2; --green:#0f766e; --red:#b91c1c;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.85;font-size:16px;}
+.wrap{max-width:960px;margin:0 auto;padding:32px 24px 64px;}
+.hero{background:linear-gradient(135deg,#0f2557 0%,#1d4ed8 70%,#3b82f6 100%);border-radius:16px;color:#fff;padding:44px 40px;margin-bottom:28px;}
+.hero h1{font-size:30px;line-height:1.4;font-weight:700;margin-bottom:14px;}
+.hero .meta{font-size:13.5px;opacity:.92;display:flex;flex-wrap:wrap;gap:8px 20px;}
+.hero .tagline{margin-top:16px;font-size:15px;opacity:.95;border-left:3px solid rgba(255,255,255,.55);padding-left:14px;}
+.src-note{background:var(--accent-soft);border:1px solid var(--line);border-radius:10px;padding:12px 18px;font-size:13.5px;color:var(--sub);margin-bottom:26px;}
+.toc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 26px;margin-bottom:30px;}
+.toc h2{font-size:15px;color:var(--sub);letter-spacing:2px;margin-bottom:10px;}
+.toc ol{padding-left:22px;font-size:14.5px;columns:2;column-gap:36px;}
+.toc li{margin:4px 0;}
+.toc a{color:var(--accent);text-decoration:none;}
+.toc a:hover{text-decoration:underline;}
+section.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:34px 38px;margin-bottom:26px;}
+h2.sec{font-size:22px;color:#0f2557;border-bottom:2.5px solid var(--accent);padding-bottom:10px;margin-bottom:20px;}
+h2.sec .no{display:inline-block;background:var(--accent);color:#fff;font-size:14px;border-radius:6px;padding:1px 10px;vertical-align:3px;margin-right:10px;letter-spacing:1px;}
+h3{font-size:17.5px;color:#12305f;margin:26px 0 10px;padding-left:11px;border-left:4px solid var(--accent);}
+p{margin:10px 0;text-align:justify;}
+.num{color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums;}
+.gold{color:var(--gold);background:var(--gold-bg);font-weight:700;padding:0 4px;border-radius:4px;font-variant-numeric:tabular-nums;}
+strong{color:#0f172a;}
+.inf{color:var(--red);font-weight:600;}
+blockquote{background:var(--accent-soft);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;padding:12px 18px;margin:16px 0;color:#27364e;font-size:15px;}
+.oneline{background:linear-gradient(90deg,#fffbeb,#fef7e8);border-left:4px solid var(--gold);padding:12px 18px;border-radius:0 10px 10px 0;margin:20px 0 6px;font-size:15px;color:#6d4c07;}
+.oneline b{color:var(--gold);}
+table{width:100%;border-collapse:collapse;margin:14px 0 20px;font-size:14px;}
+th{background:#0f2557;color:#fff;padding:9px 12px;text-align:left;font-weight:600;}
+td{padding:8px 12px;border-bottom:1px solid var(--line);}
+tr:nth-child(even) td{background:#fafcff;}
+tr.hl td{background:var(--gold-bg);font-weight:600;}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;}
+ul,ol{padding-left:24px;margin:10px 0;}
+li{margin:7px 0;text-align:justify;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0;}
+.mini{background:#fafcff;border:1px solid var(--line);border-radius:10px;padding:16px 18px;}
+.mini h4{font-size:15px;color:var(--accent);margin-bottom:8px;}
+.vs{display:flex;gap:0;margin:18px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+.vs>div{flex:1;padding:16px 20px;font-size:14px;}
+.vs .ppo{background:#f8fafc;border-right:1px solid var(--line);}
+.vs .grpo{background:var(--accent-soft);}
+.vs h4{font-size:15px;margin-bottom:8px;}
+.vs .ppo h4{color:var(--sub);} .vs .grpo h4{color:var(--accent);}
+.vs li{margin:4px 0;}
+.footer{color:var(--sub);font-size:13px;text-align:center;margin-top:34px;}
+@media (max-width:720px){.grid2,.toc ol{grid-template-columns:1fr;columns:1;}section.card{padding:24px 20px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <h1>《DeepSeekMath》深度解读报告<br><span style="font-size:17px;font-weight:400;opacity:.9;">Pushing the Limits of Mathematical Reasoning in Open Language Models</span></h1>
+  <div class="meta"><span>DeepSeek-AI × 清华大学 × 北京大学</span><span>arXiv:2402.03300v3（2024-04-27）</span><span>30 页 · 模型 + RL 算法论文</span></div>
+  <div class="tagline">GRPO 算法的起源之作 —— 砍掉 critic 的组相对策略优化，日后成为 DeepSeek-R1 强化学习的基石。</div>
+</div>
+
+<div class="src-note">数据依据：pdf-worker 源数据提取文件（00-源数据提取.md），全部数字与原文一致；文中标注<span class="inf">「（推断）」</span>处为分析者推理补充。</div>
+
+<nav class="toc">
+<h2>目录 · CONTENTS</h2>
+<ol>
+<li><a href="#s0">摘要</a></li>
+<li><a href="#s1">一、问题定位</a></li>
+<li><a href="#s2">二、概念内核</a></li>
+<li><a href="#s3">三、方法还原</a></li>
+<li><a href="#s4">四、证据链</a></li>
+<li><a href="#s5">五、批判审视</a></li>
+<li><a href="#s6">六、启示与影响</a></li>
+<li><a href="#s7">总结</a></li>
+</ol>
+</nav>
+
+<section class="card" id="s0">
+<h2 class="sec"><span class="no">摘要</span>双重供给不足的破局之作</h2>
+<p>本文解读 DeepSeek-AI 联合清华大学、北京大学提出的《DeepSeekMath》。论文的核心论断是：开源小模型在数学推理上的落后并非能力天花板问题，而是<strong>数据与训练算法的双重供给不足</strong>——一方面公开数学语料稀缺且质量参差（Minerva 用了自家私有数据，社区只有 <span class="num">13.6B</span> token 的 OpenWebMath 可用），另一方面主流强化学习算法 PPO 需要 policy/old policy/value/reward 四个模型同时在线，内存开销令 7B 级实验室望而却步。</p>
+<p>作者的解法同样双管齐下：<strong>数据侧</strong>构建了一条从 OpenWebMath 种子出发、以 fastText 分类器驱动的迭代式召回管线，四轮迭代从 Common Crawl 的 <span class="num">40B</span> HTML 页中提炼出 <span class="gold">35.5M 数学网页、120B token</span> 的 DeepSeekMath Corpus（约为 Minerva 数学网页数据的 <span class="num">7 倍</span>、OpenWebMath 的 <span class="num">9 倍</span>）；<strong>算法侧</strong>提出 GRPO（Group Relative Policy Optimization），砍掉 PPO 中的 critic 模型，改用"每个问题采样一组输出、以组平均奖励为 baseline"的相对优势估计，大幅降低训练资源。</p>
+<p>最终 DeepSeekMath 7B 在竞赛级 MATH 上以无工具 CoT 达到 <span class="gold">51.7%</span>（自洽 64 采样 <span class="gold">60.9%</span>），逼近 Gemini Ultra 与 GPT-4，成为开源社区首个在竞赛级 MATH 上突破 50% 的模型。更重要的是，GRPO 作为一种极简 RL 范式，日后成为 DeepSeek-R1 强化学习的基石算法——本文因此被视为 LLM 推理强化学习路线图上承前启后的关键节点。本报告按"问题—概念—方法—证据—批判—启示"六层结构逐层拆解。</p>
+</section>
+
+<section class="card" id="s1">
+<h2 class="sec"><span class="no">一</span>问题定位：数学推理的"数据贫困"与"算法昂贵"</h2>
+
+<h3>1.1 论文要解决的问题</h3>
+<p>论文针对的现象十分明确：数学推理是大语言模型能力的试金石，但截至 2024 年初，顶尖成绩被闭源巨头垄断——Minerva 540B 达 MATH <span class="num">33.6%</span>、GPT-4 与 Gemini Ultra 在 50% 以上量级，而开源阵营最好的专用模型（如 Llemma 34B）在 MATH 上仅 <span class="num">25.3%</span>。7B 规模的开源模型更是全面落后。作者将差距归因于两条结构性短板：</p>
+<ul>
+<li><strong>数据短板</strong>：高质量数学 web 语料极度稀缺。彼时社区可用的最佳选项 OpenWebMath 仅 <span class="num">13.6B</span> token，而闭源模型依赖未公开的私有语料。没有大规模干净语料，预训练无从谈起。</li>
+<li><strong>算法短板</strong>：强化学习已被证明能提升代码与数学任务的正确性，但 PPO 这一事实标准需要在显存中同时维持四个模型（policy、old policy、value/critic、reward），其中 critic 通常与 policy 同尺寸，内存占用近乎翻倍。<span class="inf">（推断）</span>对于算力预算有限的学术与中小机构，这几乎是一道准入门槛。</li>
+</ul>
+<p>论文的目标由此设定为：证明一个 7B 开源模型，仅靠精心工程化的<strong>公开</strong> web 数据与新 RL 算法，就能逼近闭源前沿——即标题 "Pushing the Limits … in Open Language Models" 的直接含义。</p>
+
+<h3>1.2 双重短板谱系中的定位</h3>
+<ul>
+<li><strong>数据轴</strong>：MathPile（<span class="num">8.9B</span>）、OpenWebMath（<span class="num">13.6B</span>）、Proof-Pile-2（<span class="num">51.9B</span>）等公开语料相继发布，但规模与质量的权衡始终存在。本文的贡献不是再造一个静态语料集，而是提出一套<strong>可迭代的分类器驱动召回管线</strong>——种子语料训分类器、分类器捞回更多网页、人工校验 domain 后再训分类器，形成数据飞轮，直至边际收益收敛（第 4 轮迭代时 <span class="num">98%</span> 数据已在第 3 轮出现）。</li>
+<li><strong>算法轴</strong>：RFT（拒绝采样微调）、DPO、PPO 构成了当时后训练的主要工具箱，但它们要么数据效率低，要么工程开销大。本文将 RFT/DPO/PPO/GRPO 统一进"直接或简化 RL 技术"的概念框架，并给出新的平衡点——<strong>保留 PPO 的在线采样与裁剪目标，但用组内相对比较替代价值网络</strong>。</li>
+</ul>
+<blockquote><b>一句话小结</b>：本文的核心贡献不是单点刷榜，而是同时打通"公开数据能做到什么"与"廉价 RL 能做到什么"两条边界——前者产出 <span class="num">120B</span> token 语料，后者产出 GRPO 算法，二者合力把 7B 开源模型推到竞赛级数学的前沿。</blockquote>
+</section>
+
+<section class="card" id="s2">
+<h2 class="sec"><span class="no">二</span>概念内核：五个核心概念逐一定义</h2>
+
+<h3>2.1 DeepSeekMath Corpus 与迭代式数据飞轮</h3>
+<p><strong>术语表定义</strong>：从 Common Crawl 中经 fastText 分类器多轮迭代召回的数学 web 语料，共 <span class="num">35.5M</span> 页面、<span class="gold">120B token</span>，规模约为 Minerva 数学网页数据的 7 倍、OpenWebMath 的 9 倍。</p>
+<p><strong>拆解</strong>：理解这个语料库的关键不在"大"，而在<strong>飞轮机制</strong>。第一轮以 OpenWebMath 为正例种子、混合多样负例训出初始分类器；此后每轮将新召回数据划分 domain（同一 baseURL 归为一个 domain），若某 domain 有超过 <span class="num">10%</span> 内容被收录则判为 math-related 整域纳入，辅以人工标注 URL path 补充正例，再用扩大后的正负例重训分类器。终止条件是经验性的：第 4 轮迭代时 <span class="num">98%</span> 数据已在第 3 轮出现，边际收益归零，遂停。<span class="inf">（推断）</span>这种"domain 级判定 + 边际收益监控"的设计，本质上是把"什么是数学网页"的定义权交给分类器与人工抽检的共同演化，避免了手工规则覆盖不全的问题。</p>
+
+<h3>2.2 GRPO（Group Relative Policy Optimization）</h3>
+<p><strong>定义</strong>：PPO 的轻量化变体——对每个问题采样一组（group）输出，以该组的平均奖励作为 baseline，用组内相对优势替代价值网络估计的优势函数，从而完全省去 critic 模型。</p>
+<p><strong>拆解</strong>：这是本文影响最深远的贡献。传统 PPO 的优势估计 A = R − V(s) 依赖一个与 policy 同尺寸的价值网络来回归状态价值，训练时四个模型共存导致显存压力巨大。GRPO 的洞察是：<span class="inf">（推断）</span>在"答案可自动验证"的数学任务上，同一问题的多个采样的平均奖励本身就是对"这个问题有多难 / 这个策略有多好"的天然基线——不需要学习一个 V(s) 来近似它。组内每个输出的优势 = 其奖励相对组均值的偏差，策略梯度照常更新。代价是需要对每个问题多次采样（推理开销换训练内存），但在 batch 训练场景下这笔交换非常划算。这一设计后来被 DeepSeek-V2/V3 沿用，并在 R1 中成为推理能力涌现的核心引擎。</p>
+
+<h3>2.3 统一范式：RFT、DPO、PPO、GRPO 的谱系归位</h3>
+<p><strong>定义</strong>：论文提出的概念框架，将当时的主流后训练技术统一为"直接或简化的 RL 技术"，并按"是否在线、是否需要 critic、监督粒度（outcome vs process）、是否迭代"等维度展开分析。</p>
+<p><strong>拆解</strong>：这个框架的价值在于把散乱的技术选型变成了一个可比较的设计空间：RFT 是离线的拒绝采样 + SFT（只用好样本），DPO 是离线且免 critic 的偏好优化，PPO 是在线且带 critic 的完整 RL，GRPO 则是在线且免 critic 的折中。论文在此框架下系统实验了交互式/迭代 RL、在线 vs 离线、outcome vs process 监督等变量<span class="inf">（推断）</span>，使 GRPO 的提出不是孤立灵感，而是设计空间扫描后的最优点。</p>
+
+<h3>2.4 Code-First 初始化</h3>
+<p><strong>定义</strong>：DeepSeekMath-Base 不从通用 LLM 出发，而是从 DeepSeek-Coder-Base-v1.5 7B 初始化，再混入 <span class="num">56%</span> 数学语料 + <span class="num">20%</span> GitHub code + <span class="num">10%</span> arXiv + <span class="num">10%</span> 中英自然语言继续训练 <span class="num">500B</span> token。</p>
+<p><strong>拆解</strong>：这一选择的依据来自论文的中间实验：代码训练对数学推理有显著正迁移，而 arXiv 论文数据的加入反而<strong>无实质提升</strong>（贡献作者承认此点）。<span class="inf">（推断）</span>直觉解释是：代码蕴含精确的符号操作与步骤化表达，与数学解题的思维形式同构；而 arXiv 文本虽是数学文献，但其行文面向人类自然语言论证，充斥符号省略与排版噪声，对 CoT 解题助益有限。这一发现对后来者的数据配方选择影响很大——"数学文献 ≠ 数学好数据"。</p>
+
+<h3>2.5 工具集成推理（Tool-Integrated Reasoning）</h3>
+<p><strong>定义</strong>：SFT 数据的三种形态之一，让模型在思维链中交错生成自然语言推理与 Python 代码块（PoT/tool-integrated），由解释器执行后继续推理。</p>
+<p><strong>拆解</strong：<span class="num">776K</span> 条 SFT 样本同时覆盖 CoT（纯文本链）、PoT（程序辅助）与工具集成三种模式，使单一模型可在无工具环境下走 CoT、在有解释器环境下调 Python。证据显示工具路径对 MATH 提升显著（Instruct 无工具 <span class="num">46.8%</span> → 工具 <span class="num">57.4%</span>），但论文同时强调 CoT 无工具成绩才是"模型自身推理能力"的度量——<span class="gold">51.7%</span> 的 headline 数字正是后者。</p>
+<blockquote><b>一句话小结</b>：五个概念构成一条完整链条——迭代飞轮解决"数据从哪来"、Code-First 解决"从哪起步"、统一范式框定"算法怎么选"、GRPO 回答"如何便宜地做 RL"、工具集成界定"什么才算真本事"。</blockquote>
+</section>
+
+<section class="card" id="s3">
+<h2 class="sec"><span class="no">三</span>方法还原：一条完整的"数据—预训练—SFT—RL"流水线</h2>
+
+<h3>3.1 数据侧：fastText 召回漏斗与去污染</h3>
+<div class="mini" style="margin-bottom:14px;">
+<h4>迭代召回管线</h4>
+<ul>
+<li><strong>种子</strong>：OpenWebMath（<span class="num">13.6B</span> token）作为首批正例，混合多样负例训练 fastText 分类器；</li>
+<li><strong>分类器规格</strong>：<span class="num">500,000</span> 正例 + <span class="num">1,500,000</span> 负例；维度 <span class="num">256</span>、学习率 <span class="num">0.1</span>、n-gram <span class="num">3</span>、最小出现次数 <span class="num">3</span>、训练 <span class="num">3</span> epochs；</li>
+<li><strong>抓取规模</strong>：对 Common Crawl 做 URL 去重 + 近似去重后得到约 <span class="num">40B</span> 个 HTML 页面，按 fastText 分数排序保留 top；</li>
+<li><strong>容量评估</strong>：保留多少由实验决定——分别用 <span class="num">40B/80B/120B/160B</span> 规模做预训练对比，120B 后收益不再显著增长；</li>
+<li><strong>迭代细化</strong>：domain 级判定（同 baseURL，&gt;10% 收录即整域纳入）+ 人工标注 URL path 补充正例 → 重训分类器；</li>
+<li><strong>停止条件</strong>：第 4 轮迭代时 <span class="num">98%</span> 数据已在第 3 轮出现。</li>
+</ul>
+</div>
+<div class="mini">
+<h4>去污染（Decontamination）</h4>
+<p>为防止基准测试题泄漏进训练集，管线过滤含 GSM8K/MATH（英文）与 CMATH/AGIEval（中文）题目或答案的网页：采用 <span class="num">10-gram</span> 精确匹配过滤；长度不足 10 gram 但 ≥<span class="num">3</span> gram 的片段用精确匹配兜底。<span class="inf">（推断）</span>这一策略能拦截原文复制型泄漏，但对改写/转述型泄漏的防御力有限——详见第五章批判。</p>
+</div>
+
+<h3>3.2 预训练：Base 7B 配方</h3>
+<table>
+<tr><th>配置项</th><th>值</th></tr>
+<tr><td>初始化</td><td>DeepSeek-Coder-Base-v1.5 7B</td></tr>
+<tr><td>总训练量</td><td><span class="num">500B tokens</span></td></tr>
+<tr><td>数据分布</td><td><span class="num">56%</span> MathCorpus + <span class="num">4%</span> AlgebraicStack + <span class="num">10%</span> arXiv + <span class="num">20%</span> GitHub code + <span class="num">10%</span> 中英自然语言</td></tr>
+<tr><td>学习率 / Batch</td><td><span class="num">4.2e-4</span> / <span class="num">10M</span> tokens</td></tr>
+</table>
+<p>语料质量本身通过对照实验验证：以 DeepSeek-LLM 1.3B 为试验台，各训 <span class="num">150B</span> token，对比 MathPile（8.9B）/OpenWebMath（13.6B）/Proof-Pile-2（51.9B）/DeepSeekMath Corpus（120.2B）四种语料，后者在 <span class="num">8 个基准全面领先</span>（1.3B 规模下 GSM8K <span class="num">23.8%</span>、MATH <span class="num">4.8%</span>、CMATH <span class="num">41.5%</span>）。</p>
+
+<h3>3.3 SFT：DeepSeekMath-Instruct</h3>
+<table>
+<tr><th>配置项</th><th>值</th></tr>
+<tr><td>样本量</td><td><span class="num">776K</span> 例</td></tr>
+<tr><td>任务形态</td><td>CoT / PoT / tool-integrated 三态并存</td></tr>
+<tr><td>语言构成</td><td>英文（GSM8K/MATH 注释版、MathInstruct 子集、Lila-OOD 训练集）+ 中文（K-12 教育 <span class="num">76</span> 个子专题）</td></tr>
+<tr><td>序列上限</td><td><span class="num">4K</span></td></tr>
+<tr><td>步数 / Batch / LR</td><td><span class="num">500</span> steps / <span class="num">256</span> / <span class="num">5e-5</span> 恒定</td></tr>
+</table>
+
+<h3>3.4 RL：GRPO 算法细节</h3>
+<div class="vs">
+<div class="ppo">
+<h4>PPO — 四模型阵容</h4>
+<ul>
+<li>在线模型数：<strong>4</strong>（policy / old policy / value / reward）</li>
+<li>critic/value 网络：必需，通常与 policy 同尺寸</li>
+<li>baseline：学习到的价值函数 V(s)</li>
+<li>优势估计：R − V(s) 经 GAE</li>
+<li>内存开销：高（近似双倍 policy）</li>
+</ul>
+</div>
+<div class="grpo">
+<h4>GRPO — 三模型阵容 ★</h4>
+<ul>
+<li>在线模型数：<strong>3</strong>（policy / old policy / reward）</li>
+<li>critic/value 网络：<strong>完全省去</strong></li>
+<li>baseline：同一问题一组采样的平均奖励</li>
+<li>优势估计：组内奖励的相对偏差</li>
+<li>内存开销：低</li>
+</ul>
+</div>
+</div>
+<p>RL 阶段的数据刻意克制：仅使用 GSM8K + MATH 的英文 CoT 指令数据子集，不引入新任务域。论文还在统一范式框架下实验了多种变体（在线 vs 离线、outcome vs process 监督、单轮 vs 迭代 RL）<span class="inf">（推断）</span>，最终配置以 outcome 监督的在线 RL 为主干。</p>
+<blockquote><b>一句话小结</b>：方法体系是"三段递进、一段点睛"——数据飞轮造出 120B 干净语料，Code-First + 500B token 打下 Base 底座，776K 三态样本完成 Instruct 对齐，最后 GRPO 以三分之一的模型阵容完成 RL 点睛，全程每一环都有消融或对照实验背书。</blockquote>
+</section>
+
+<section class="card" id="s4">
+<h2 class="sec"><span class="no">四</span>证据链：从 1.3B 试验台到 Table 5 主战场</h2>
+
+<h3>4.1 第一环：语料有效性（1.3B 对照实验）</h3>
+<p>四种公开数学语料的同预算对决中，DeepSeekMath Corpus 在 <span class="num">8 个基准全面领先</span>。这一环回答的是"<span class="num">120B</span> 语料是不是真的好"，排除了"只是因为模型大"的质疑——试验台仅 <span class="num">1.3B</span>。</p>
+
+<h3>4.2 第二环：Base 7B 的越级表现</h3>
+<table>
+<tr><th>基准</th><th class="r">DeepSeekMath-Base 7B</th><th>关键对手</th><th class="r">对手值</th></tr>
+<tr class="hl"><td>MATH (CoT, 无工具)</td><td class="r"><span class="gold">36.2%</span></td><td>Minerva 540B</td><td class="r">33.6%</td></tr>
+<tr><td>MATH (CoT)</td><td class="r">36.2%</td><td>Llemma 34B</td><td class="r">25.3%</td></tr>
+<tr><td>GSM8K (CoT)</td><td class="r">64.2%</td><td>Llemma 34B</td><td class="r">71.9%</td></tr>
+<tr><td>MATH (PoT, 工具)</td><td class="r">31.4%</td><td>Llemma 34B</td><td class="r">26.3%</td></tr>
+<tr><td>GSM8K+Python</td><td class="r">66.9%</td><td>Llemma 34B</td><td class="r">64.6%</td></tr>
+<tr><td>miniF2F valid/test (Isabelle)</td><td class="r">25.8% / 24.6%</td><td>Llemma 34B</td><td class="r">21.0% / 21.3%</td></tr>
+</table>
+<p>7B 模型的 CoT 成绩超过 <span class="num">540B</span> 的 Minerva（<span class="gold">36.2% vs 33.6%</span>），是数据管线威力最直观的证据。GSM8K 上不敌 Llemma 34B（64.2% vs 71.9%）是少数失守项，<span class="inf">（推断）</span>原因可能是 GSM8K 属小学应用题，Llemma 的 Proof-Pile-2 语料（含大量简单算术文本）对该题型更有针对性。此外，数学预训练还带来了通用能力的意外增益：MMLU 从前驱 DeepSeek-Coder-v1.5 的 <span class="num">42.9%</span> 升至 <span class="gold">54.9%</span>，BBH 从 <span class="num">54.9%</span> 升至 <span class="num">59.5%</span>，同时编码能力基本保留（HumanEval <span class="num">40.9%</span>、MBPP <span class="num">52.6%</span>）。</p>
+
+<h3>4.3 第三环：Table 5 主战场（Instruct vs RL vs 全世界）</h3>
+<table>
+<tr><th>模型</th><th class="r">Size</th><th class="r">GSM8K</th><th class="r">MATH</th><th class="r">MGSM-zh</th><th class="r">CMATH</th></tr>
+<tr><td>Gemini-Ultra（闭源）</td><td class="r">–</td><td class="r">94.4</td><td class="r">53.2</td><td class="r">–</td><td class="r">–</td></tr>
+<tr><td>GPT-4（闭源）</td><td class="r">–</td><td class="r">92.0</td><td class="r">52.9</td><td class="r">–</td><td class="r">86.0</td></tr>
+<tr><td>GPT-3.5（闭源）</td><td class="r">–</td><td class="r">80.8</td><td class="r">34.1</td><td class="r">–</td><td class="r">73.8</td></tr>
+<tr><td>WizardMath-v1.1</td><td class="r">7</td><td class="r">83.2</td><td class="r">33.0</td><td class="r">–</td><td class="r">–</td></tr>
+<tr><td>Qwen72B</td><td class="r">72</td><td class="r">78.9</td><td class="r">35.2</td><td class="r">–</td><td class="r">–</td></tr>
+<tr><td>DeepSeek-LLM-Chat67B</td><td class="r">67</td><td class="r">84.1</td><td class="r">32.6</td><td class="r">74.0</td><td class="r">80.3</td></tr>
+<tr><td>MetaMath70B</td><td class="r">70</td><td class="r">82.3</td><td class="r">26.6</td><td class="r">66.4</td><td class="r">70.9</td></tr>
+<tr class="hl"><td>DeepSeekMath-Instruct 7B</td><td class="r">7</td><td class="r">82.9</td><td class="r">46.8</td><td class="r">73.2</td><td class="r">84.6</td></tr>
+<tr class="hl"><td>DeepSeekMath-RL 7B</td><td class="r">7</td><td class="r"><span class="gold">88.2</span></td><td class="r"><span class="gold">51.7</span></td><td class="r"><span class="gold">79.6</span></td><td class="r"><span class="gold">88.8</span></td></tr>
+</table>
+<p>三个层次的读法：</p>
+<ol>
+<li><strong>SFT 层</strong>：<span class="num">46.8%</span> 已超所有开源对手（最大 72B）与 GPT-3.5，仅次于 GPT-4/Gemini-Ultra——此时 GRPO 还没上场；</li>
+<li><strong>RL 层</strong>：GRPO 仅用 GSM8K+MATH 的 CoT 数据就带来全线提升——MATH <span class="num">46.8→51.7</span>、GSM8K <span class="num">82.9→88.2</span>、CMATH <span class="num">84.6→88.8</span>、MGSM-zh <span class="num">73.2→79.6</span>。值得注意的是<strong>域外增益</strong>：CMATH 与 MGSM-zh 是中文基准，RL 只用了英文题，提升依然显著，<span class="inf">（推断）</span>说明 RL 学到的是更普遍的推理行为修正而非题型记忆；</li>
+<li><strong>自洽层</strong>：64 采样投票将 MATH 推至 <span class="gold">60.9%</span>，首次让开源模型在该基准越过 60% 线。</li>
+</ol>
+
+<h3>4.4 第四环：工具集成赛道</h3>
+<table>
+<tr><th>模型</th><th class="r">Size</th><th class="r">GSM8K</th><th class="r">MATH</th></tr>
+<tr><td>GPT-4 Code Interpreter</td><td class="r">–</td><td class="r">97.0</td><td class="r">69.7</td></tr>
+<tr><td>InternLM2-Math</td><td class="r">20</td><td class="r">80.7</td><td class="r">54.3</td></tr>
+<tr><td>ToRA</td><td class="r">34</td><td class="r">80.7</td><td class="r">50.8</td></tr>
+<tr class="hl"><td>DeepSeekMath-Instruct 7B</td><td class="r">7</td><td class="r">83.7</td><td class="r">57.4</td></tr>
+<tr class="hl"><td>DeepSeekMath-RL 7B</td><td class="r">7</td><td class="r">86.7</td><td class="r"><span class="gold">58.8</span></td></tr>
+</table>
+<p>工具模式下 7B 模型 MATH <span class="num">58.8%</span>，超过 InternLM2-Math 20B 与 ToRA 34B，距 GPT-4 Code Interpreter 的 <span class="num">69.7%</span> 尚有明显差距——工具赛道的头部仍被闭源巨头的解释器生态把持。</p>
+<blockquote><b>一句话小结</b>：证据体系呈四级火箭形态——1.3B 试验台证语料、Base 证数据威力（胜 540B Minerva）、Table 5 证 GRPO 增益（含跨语言域外提升）、工具赛道证工程完整性；唯一明显失守的是 GSM8K CoT 对 Llemma 34B 一役与工具赛道的 GPT-4 差距。</blockquote>
+</section>
+
+<section class="card" id="s5">
+<h2 class="sec"><span class="no">五</span>批判审视：局限的深层含义与独立疑点</h2>
+
+<h3>5.1 作者自述/源数据归纳的六项局限的深层含义</h3>
+<ol>
+<li><strong>仅 7B 规模验证</strong>：GRPO 与数据管线都只在 7B 上做了完整闭环，≥70B 的 scale 效应未知。深层含义是：组平均 baseline 在更大模型、更强初始策略下是否仍然有效尚属开放问题。</li>
+<li><strong>去污染依赖 n-gram 精确匹配</strong>：10-gram/3-gram 匹配无法拦截语义改写型泄漏，<span class="inf">（推断）</span>竞赛题在论坛讨论中被换表述复现的场景并不少见，基准分数可能存在系统性高估的水分，尽管方向难以量化。</li>
+<li><strong>训练数据分布不透明</strong>：Common Crawl 原始页的去留细节、web 源与许可证未充分披露，第三方完整复现存在信息缺口；arXiv 无实质提升的结论也与许多从业者的默认假设相悖，值得独立复核。</li>
+<li><strong>GRPO 理论分析较浅</strong>：统一范式是概念框架而非理论工作，缺少收敛性与偏差界证明；组平均 baseline 在 token 级信用分配上的稳健性未被严格论证——这正是后续 DeepSeekV2/GSPO 系列工作持续修补的方向<span class="inf">（推断）</span>。</li>
+<li><strong>形式化证明非端到端</strong>：miniF2F 成绩依赖 Isabelle/Sledgehammer 外部证明器补全 sketch，不是纯神经网络的自我完备证明能力。</li>
+<li><strong>评测协议不完全统一</strong>：表 5 部分格子为 Top1、灰色格为 32 候选多数投票，跨行比较需时刻核对协议，否则容易误读。</li>
+</ol>
+
+<h3>5.2 独立观察到的四个疑点</h3>
+<p><strong>① RL 增益与 SFT 基线之间的归因缝隙</strong>：RL 阶段只用 GSM8K+MATH 英文 CoT 数据，却在 MGSM-zh（多语言翻译版小学题）上涨 <span class="num">6.4</span> 点。若将其解读为"推理行为的普遍修正"，那么一个自然的对照应是"同等数据量的继续 SFT"能否带来相同增益——论文未给出该对照。<span class="inf">（推断）</span>考虑到 GRPO 与 RFT/DPO 的统一框架，部分增益可能来自拒绝采样效应（模型本来就会做对的题被强化），而非真正的探索性学习。</p>
+<p><strong>② 组内全对/全错时的信号真空</strong>：GRPO 用组内相对优势，当某个问题的所有采样全对或全错时，组内方差为零、优势信号消失。对难度两极分布的数据集，这意味着大量样本实际上不产生梯度。<span class="inf">（推断）</span>这与后来 DAPO 等工作提出的动态采样思路呼应，也提示论文报告的 GRPO 增益可能低估了其在难例课程下的潜力上限。</p>
+<p><strong>③ "逼近 Gemini-Ultra"表述的口径差</strong>：<span class="num">51.7% vs 53.2%</span> 相差 <span class="num">1.5</span> 点，且两者评测协议未必一致（后者为闭源 API 报告值）。headline 的"逼近"是营销友好的措辞，<span class="inf">（推断）</span>严谨读法应是"进入同一量级区间"，与 GPT-4 的 52.9% 同理。</p>
+<p><strong>④ 数据飞轮的自我强化循环风险</strong>：分类器迭代以自身召回的数据再训练自己，若早期分类器存在系统性盲区（如偏好英文数学、忽略某类符号体系），迭代会放大而非修正该盲区。<span class="num">98%</span> 重合率的停止条件只能证明召回饱和，不能证明召回无偏。<span class="inf">（推断）</span>中文 K-12 数据在 SFT 阶段的补充或许部分缓解了这一问题，但预训练语料的语言/题材偏斜度无从检验。</p>
+<blockquote><b>一句话小结</b>：这篇论文的证据主体扎实（四级对照链完整），但 GRPO 的理论根基、去污染的实际效力、以及 RL 增益的归因纯度三点，都为后续研究留下了真实的裂缝——而这些裂缝恰恰成为了 2024–2025 年 RLVR 浪潮的研究议程。</blockquote>
+</section>
+
+<section class="card" id="s6">
+<h2 class="sec"><span class="no">六</span>启示提炼：可迁移的经验与历史影响</h2>
+
+<h3>6.1 六条可迁移启示</h3>
+<ol>
+<li><strong>数据飞轮优于一次性语料集</strong>：以种子语料训分类器、召回扩容、domain 校验、再训分类器的闭环，让公开 web 数据达到了此前只有私有数据才能达到的规模与质量。这套"分类器驱动的领域语料工程"可直接迁移到法律、医疗、金融等任何垂直领域的语料建设中。</li>
+<li><strong>Code-First 是数学乃至推理任务的优质起点</strong>："代码训练正迁移、arXiv 无实质提升"的组合发现提醒我们：数据的形式（可执行、步骤化）比题材标签（数学文献）更能预测其训练价值。</li>
+<li><strong>约束条件下做减法是算法创新的富矿</strong>：GRPO 没有发明任何新理论，它只是精准地删掉了 PPO 里最昂贵的组件（critic），并用任务结构（可验证奖励 + 组采样）补上了缺口。当算力受限时，"哪些组件可以被数据结构替代"是最值得追问的问题。</li>
+<li><strong>RL 的收益可以溢出到域外语言与任务</strong>：仅用英文 CoT 数据的 RL 在中文基准上获得 <span class="num">4.6–6.4</span> 点提升，提示 RL 优化的是推理行为的形状而非具体知识——这对多语言/跨域部署的成本规划很有参考价值。</li>
+<li><strong>小模型的极限取决于供给侧而非需求侧</strong>：7B 击败 540B 的案例再次证明，在数据与算法同时到位时，模型规模的差距可以被大幅追平——"先问供给侧还有什么没给够"应成为性能诊断的第一反应。</li>
+<li><strong>统一范式框架是技术选型的地图</strong>：把 RFT/DPO/PPO/GRPO 放进同一坐标系（在线性、critic 需求、监督粒度、迭代性）后再做选择，比追逐单个 SOTA 名称更可靠。</li>
+</ol>
+
+<h3>6.2 历史影响：通往 R1 的基石</h3>
+<p>从后续演进看，这篇论文的最大遗产不是 <span class="num">51.7%</span> 这个数字，而是 GRPO 本身：</p>
+<ul>
+<li><strong>DeepSeek-V2（2024）</strong>将 GRPO 工程化为标准后训练组件，并针对其偏差问题持续改良<span class="inf">（推断）</span>；</li>
+<li><strong>DeepSeek-R1（2025）</strong>以 GRPO 为核心引擎，在纯可验证奖励（RLVR）下激发出长思维链与反思行为，震动整个行业——而这一切的原点正是本文"砍掉 critic、组内相对比较"的那个设计决定；</li>
+<li><strong>开源社区</strong>：GRPO 因实现简单、显存友好，迅速成为 trl、verl、OpenRLHF 等主流 RL 框架的默认选项之一，客观上把 RLVR 研究的门槛拉低了一个数量级。</li>
+</ul>
+<p><span class="inf">（推断）</span>可以说，DeepSeekMath 之于推理 RL，如同 Attention Is All You Need 之于架构研究——它不是终点，而是让整条路线变得可行的基础设施。</p>
+
+<h3>6.3 未竟之路</h3>
+<ul>
+<li><strong>过程监督（PRM）与结果监督（ORM）的结合</strong>：论文在统一范式中分析了 process 监督的位置，但主结果仍是 outcome 监督；细粒度信用分配仍是开放课题；</li>
+<li><strong>GRPO 的方差退化</strong>：组内全对/全错的信号真空问题催生了后续一系列改进（动态采样、clip-higher 等，均为后继工作方向，推断）；</li>
+<li><strong>规模化验证</strong>：数据管线与 GRPO 在百亿至千亿参数上的复现直到 R1 时代才被部分补全。</li>
+</ul>
+</section>
+
+<section class="card" id="s7">
+<h2 class="sec"><span class="no">总结</span></h2>
+<p>《DeepSeekMath》是一次教科书级的"供给侧创新"：面对开源模型在数学推理上的全面落后，作者没有诉诸更大的模型，而是同时改造了数据的供给方式（fastText 迭代飞轮，<span class="gold">120B token</span> 公开语料，7 倍于 Minerva）与算法的供给成本（GRPO，砍掉 critic，四模型变三模型）。其证据链呈四级火箭形态——1.3B 试验台证语料、Base 7B 越 540B 级击穿 Minerva（<span class="gold">36.2% vs 33.6%</span>）、Table 5 中 RL 全线增益含跨语言外溢、自洽 64 采样达 <span class="gold">60.9%</span>。批判视角下，GRPO 的理论浅描、n-gram 去污染的天花板、以及 RL 增益归因的对照缺失构成三处真实裂缝，但也恰恰划定了 2024–2025 年 RLVR 研究的议程。作为 DeepSeek-R1 强化学习的直接基石，这篇论文证明了：在正确的数据结构与算法减法之下，7B 开源模型可以站上曾经只有闭源巨头才能立足的高地——而这正是 "Pushing the Limits of Mathematical Reasoning in Open Language Models" 的完整含义。</p>
+</section>
+
+<div class="footer">《DeepSeekMath》深度解读 · B2 批次 · 数字唯一依据 00-源数据提取.md（arXiv:2402.03300v3）· 标注「（推断）」处为分析者推理</div>
+
+</div>
+
+<!-- 自检：UTF-8 编码声明 ✓ | 内联 CSS ✓ | 关键数字 span.num/span.gold 高亮 ✓ | div 开闭配平（.wrap/.hero/.src-note/.toc/8×section.card/.grid 未使用嵌套均闭合）✓ -->
+</body>
+</html>

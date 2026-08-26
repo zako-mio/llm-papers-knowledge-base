@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gemini 技术报告 · 深度解读</title>
+<style>
+:root{--ink:#1a2332;--paper:#f7f5f0;--card:#ffffff;--accent:#1a73e8;--gold:#c77b00;--green:#137333;--red:#a50e0e;--muted:#5f6368;--line:#e0dcd3;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Source Han Serif SC","Noto Serif SC","Songti SC",serif;background:var(--paper);color:var(--ink);line-height:1.85;font-size:16.5px;}
+.wrap{max-width:860px;margin:0 auto;padding:0 28px 80px;}
+header.hero{background:linear-gradient(135deg,#10214b 0%,#1a4d8f 55%,#1a73e8 100%);color:#fff;padding:72px 28px 58px;text-align:center;}
+header.hero .kicker{font-family:sans-serif;font-size:.78rem;letter-spacing:.35em;text-transform:uppercase;opacity:.75;margin-bottom:18px;}
+header.hero h1{font-size:2.15rem;line-height:1.4;font-weight:700;margin-bottom:16px;}
+header.hero .sub{font-size:1rem;opacity:.88;max-width:640px;margin:0 auto;}
+header.hero .meta{margin-top:26px;font-family:sans-serif;font-size:.82rem;display:flex;gap:22px;justify-content:center;flex-wrap:wrap;opacity:.8;}
+main section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:40px 44px;margin-top:34px;box-shadow:0 1px 4px rgba(26,35,50,.05);}
+h2{font-size:1.45rem;color:#10214b;border-left:5px solid var(--accent);padding-left:16px;margin-bottom:24px;line-height:1.5;}
+h3{font-size:1.13rem;color:#1a4d8f;margin:30px 0 12px;}
+p{margin-bottom:14px;text-align:justify;}
+.hl{font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;}
+.gold{font-weight:700;color:var(--gold);}
+.red{font-weight:700;color:var(--red);}
+.green{font-weight:700;color:var(--green);}
+.infer{color:var(--muted);font-style:normal;font-size:.94em;}
+blockquote{background:#eef3fb;border-left:4px solid var(--accent);padding:14px 20px;margin:18px 0;border-radius:0 8px 8px 0;color:#173a6b;}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:.92rem;font-family:sans-serif;}
+th{background:#10214b;color:#fff;padding:9px 12px;text-align:left;font-weight:600;}
+td{padding:9px 12px;border-bottom:1px solid var(--line);}
+tr:nth-child(even) td{background:#fafaf7;}
+ul.plain{padding-left:24px;margin-bottom:14px;}
+ul.plain li{margin-bottom:10px;text-align:justify;}
+.abs{background:linear-gradient(135deg,#fdfcf9,#f4f7fd);border:1px solid var(--line);border-radius:12px;padding:32px 38px;margin-top:34px;}
+.abs h2{border:none;padding:0;margin-bottom:16px;}
+.tag{display:inline-block;font-family:sans-serif;font-size:.72rem;background:#eef3fb;color:#1a4d8f;border-radius:20px;padding:3px 14px;margin-right:8px;margin-top:10px;}
+.checker{background:#12251a;color:#cfe8d8;border-radius:12px;padding:30px 38px;margin-top:34px;font-family:sans-serif;font-size:.86rem;}
+.checker h2{color:#7ee2a8;border-color:#2e7d52;}
+.checker ul{list-style:none;padding-left:4px;}
+.checker li{margin-bottom:8px;}
+.ok{color:#7ee2a8;font-weight:700;}
+footer{text-align:center;font-family:sans-serif;font-size:.78rem;color:var(--muted);margin-top:44px;}
+@media(max-width:640px){main section,.abs,.checker{padding:26px 20px;}header.hero h1{font-size:1.55rem;}body{font-size:15.5px;}}
+</style>
+</head>
+<body>
+<header class="hero">
+<div class="kicker">Deep Reading · LLM Key Milestones</div>
+<h1>《Gemini: A Family of Highly<br>Capable Multimodal Models》深度解读报告</h1>
+<div class="sub">首个 MMLU 破 90 的原生多模态家族 —— 一份"三线作战"的追赶者宣言：基准反攻 × 路线正名 × 基建威慑</div>
+<div class="meta"><span>Gemini Team, Google</span><span>v1 技术报告 · 2023-12</span><span>90 页</span></div>
+</header>
+<div class="wrap">
+<div class="abs">
+<h2>摘要</h2>
+<p>本文解读 Google（Gemini Team，Google DeepMind 多方署名）于 2023 年 12 月发布的 90 页技术报告。核心论断：从零以多模态方式联合预训练的 Transformer 家族（Ultra / Pro / Nano 三档），能在几乎全部主流学术基准上重建领先地位——Ultra 在 <span class="hl">32 个基准中的 30 个</span>取得 SOTA，并成为首个在 MMLU 上突破 90%（实测 <span class="hl">90.04%</span>，CoT@32）超过人类专家水平（89.8%）的模型；原生多模态设计使图像理解（MMMU <span class="hl">62.4%</span>，超前 SOTA 5 个百分点以上）、视频理解、音频理解在同一模型内贯通。报告的另一条隐藏主线是工程基础设施：TPUv4 SuperPod（<span class="hl">4096 芯片</span>）+ 光交换机 + JAX/Pathways 软件栈支撑下的训练 goodput 从 <span class="gold">85% 提升至 97%</span>。本报告按"问题—概念—方法—证据—批判—启示"六层结构拆解，并指出该报告"结果详尽但过程保密"的文体对行业评测文化的深远影响。</p>
+<span class="tag">原生多模态</span><span class="tag">模型家族化</span><span class="tag">TPUv4 SuperPod</span><span class="tag">RLHF 四步</span><span class="tag">AlphaCode 2</span>
+</div>
+<main>
+<section id="s1">
+<h2>一、问题定位：追赶者的全面反攻与两条路线之争</h2>
+<h3>1.1 论文要解决的问题</h3>
+<p>这份技术报告要解决的问题非常明确：<span class="infer">（推断）</span>自 ChatGPT 引爆、GPT-4 在 MMLU 等学术基准上树立标杆之后，Google 作为"Transformer 论文的原产地"反而陷入被动追赶位置。报告因此承担三重任务：</p>
+<ul class="plain">
+<li><strong>性能收复</strong>：在文本推理（MMLU、GSM8K、MATH）、代码（HumanEval）、多语言（WMT23）、多模态理解（MMMU、DocVQA、视频问答）、语音识别（FLEURS WER）等几乎所有可量化维度上压过 GPT-4 / GPT-4V 与竞品（Claude 2、Grok 1、LLaMA-2、PaLM 2）。总战绩：<span class="hl">32 基准中 30 个 SOTA</span>——文本+推理 10/12、图像 9/9、视频 6/6、语音识别+翻译 5/5。</li>
+<li><strong>路线正名</strong>：此前 Google 系工作（Flamingo、CoCa、PaLI）本质是"视觉编码器 + 适配层 + 语言模型"的拼接方案；Gemini 宣称<strong>从预训练第一天起就以文本与图像/音频/视频交错输入联合训练</strong>，即 native 多模态——这是对"多模态能力涌现是否需要原生联合训练"的立场表态。</li>
+<li><strong>基础设施秀肌肉</strong>：公开 TPUv4/v5e 集群关键运行指标（goodput <span class="gold">85%→97%</span>、SDC 处理机制），证明 Google 有独立于 GPU 生态的大规模训练能力。<span class="infer">（推断）在算力即权力的行业语境下，这部分价值不亚于任何基准分数。</span></li>
+</ul>
+<h3>1.2 家族化策略的问题意识</h3>
+<table>
+<tr><th>档位</th><th>定位</th><th>关键参数</th></tr>
+<tr><td><strong>Ultra</strong></td><td>性能旗舰，面向复杂任务</td><td>TPU 高效可扩展训练，未披露参数量</td></tr>
+<tr><td><strong>Pro</strong></td><td>成本/延迟优化主力档</td><td>训练仅需数周，占 Ultra 资源一小部分</td></tr>
+<tr><td><strong>Nano-1 / Nano-2</strong></td><td>端侧部署</td><td><span class="hl">1.8B / 3.25B</span>，由大模型蒸馏，支持 4-bit 量化</td></tr>
+</table>
+<p><span class="infer">（推断）</span>家族化布局的问题意识：单点旗舰无法同时满足云端推理成本、企业定价分层与端侧隐私三类需求；同一套数据与管线蒸馏出梯度化型号族，比分别独立训练更可控。<span class="infer">（推断）后来各家纷纷推出 mini/flash/tiny 档，证明该策略成为默认范式。</span></p>
+<blockquote>一句话小结：Gemini 报告是一份"三线作战"宣言——在基准上反攻、在多模态路线上正名、在基础设施上威慑，并以家族化产品矩阵完成从实验室到商业闭环的落地。</blockquote>
+</section>
+<section id="s2">
+<h2>二、概念内核：五个核心概念逐一定义</h2>
+<h3>2.1 原生多模态（Natively Multimodal）</h3>
+<p><strong>定义</strong>：架构为 decoder-only Transformer，从一开始接受文本与图像/音频/视频交错输入联合训练；视觉编码受 Flamingo/CoCa/PaLI 启发但不采用事后拼接。</p>
+<p><strong>拆解</strong>：三层技术含义——① 视频 = 大上下文窗口内的帧序列，无需单独视频编码器流水线；② 可变输入分辨率，高分辨率文档/图表任务直接受益；③ 音频以 <span class="hl">16kHz USM 特征直接进入模型</span>，绕过"先转写再理解"的信息瓶颈，保留语气与环境音等副语言学信息。<span class="infer">（推断）"原生"路线的真正考验在于多模态数据的配比与质量过滤难度远高于纯文本。</span></p>
+<h3>2.2 家族化蒸馏（Model Family via Distillation)</h3>
+<p><strong>定义</strong>：Nano 由更大模型蒸馏而来（Nano-1 <span class="hl">1.8B</span>、Nano-2 <span class="hl">3.25B</span>），4-bit 量化面向端侧。</p>
+<p><strong>拆解</strong>：蒸馏不仅是压缩手段，更是产品分层机制。Table 3：Nano-2 MMLU 55.8%（归一化系数 <span class="hl">0.78</span>）、Nano-1 45.9%（<span class="hl">0.64</span>）；Big-Bench-Hard Nano-2 42.4%（0.58）。<span class="infer">（推断）极小参数量保住六到八成能力比例，迁移效率相当高；端侧 4-bit 可用意味着蒸馏目标隐含低比特鲁棒性考量。</span></p>
+<h3>2.3 Goodput 与训练基建可靠性</h3>
+<p><strong>定义</strong>：goodput 是扣除故障与恢复开销后的有效训练吞吐占比；Gemini 以冗余内存副本恢复机制从 <span class="gold">85% → 97%</span>（对比 PaLM-2 训练）。</p>
+<p><strong>拆解</strong>：超大规模训练的真实瓶颈不是峰值算力而是<strong>故障恢复</strong>。传统 checkpoint 写持久存储代价高昂；Gemini 把内存副本冗余存放于其他主机热恢复。配套 SDC（静默数据损坏）处理 = 确定性重放 + 主动扫描 + 热备机替换，频率约<span class="hl">每 1-2 周一次</span>。光交换机约 <span class="hl">10 秒</span>内把 4x4x4 cube 重构为任意 3D torus。</p>
+<h3>2.4 事实性后训练指标（Factuality Triplet）</h3>
+<p><strong>定义</strong>：inaccurate（不准确率）/ Attribution-AIS（归因率）/ Hedging（不确定性表述率）三元组。</p>
+<p><strong>拆解</strong>：Table 6 后训练前后变化——inaccurate <span class="red">6.7% → 3.8%</span>，AIS <span class="green">40.2% → 60.0%</span>，Hedging <span class="gold">0% → 69.3%</span>。<span class="infer">（推断）准确率与归因率的改善部分来自"更愿意说我不确定"——hedging 近七成说明模型大量使用限定语；评估事实性改进时要警惕"准确率提升"与"回避作答"之间的兑换关系。</span></p>
+<h3>2.5 推理时计算扩展（CoT@32 / Maj1@32）</h3>
+<p><strong>定义</strong>：评测采样协议——CoT@32 取 32 条思维链中经 few-shot prompt 判定的最优答案；Maj1@32 为 32 次采样多数投票。</p>
+<p><strong>拆解</strong>：MMLU <span class="hl">90.04%</span> 用 CoT@32；MMMU 与 GSM8K 用 Maj1@32（后者另加 self-consistency）。<span class="infer">（推断）headline 数字背后是 32 倍量级推理开销，与对手单次推理分数同表比较存在事实上的算力不对称，详见第五章批判。</span></p>
+<blockquote>一句话小结：五个概念构成从产品到机房的全栈链条——原生多模态定义能力形态，家族化蒸馏定义交付形态，goodput 定义生产能力，Factuality 定义可信度治理，测试时扩展定义评测口径。</blockquote>
+</section>
+<section id="s3">
+<h2>三、方法拆解："架构—数据—基建—后训练—系统"五段式体系</h2>
+<h3>3.1 架构：克制的 Transformer 变体</h3>
+<p>主干是 decoder-only Transformer，支持 <span class="hl">32K token 上下文</span>，注意力采用 multi-query attention 等高效变体；除文本外可输出图像（离散 image tokens）。Figure 4 显示长文档验证 NLL 直至 32K 仍持续下降。<span class="infer">（推断）架构章节异常克制——层数、宽度、参数量全部未公布，重点放在"多模态信号如何进入统一序列"。</span></p>
+<h3>3.2 预训练数据：多模态 + 多语言 + 阶段化配比</h3>
+<ul class="plain">
+<li><strong>非拉丁脚本高效 tokenizer</strong>：优化非拉丁文字编码效率<span class="infer">（推断：直接影响中文等语言的每 token 信息密度与推理成本）</span>。</li>
+<li><strong>质量过滤 + 安全过滤</strong>：启发式规则与模型分类器结合打分。</li>
+<li><strong>评测去污染</strong>：主动删除与评测集重合数据——但执行并不完美（见第五章）。</li>
+<li><strong>阶段化配比</strong>：训练后期提高领域数据权重，接近课程学习思想。</li>
+</ul>
+<h3>3.3 训练基础设施：TPUv4 SuperPod 全栈</h3>
+<table>
+<tr><th>层面</th><th>要点</th></tr>
+<tr><td>硬件</td><td>Ultra 用 TPUv4，以 <span class="hl">4096 芯片 SuperPod</span> 为部署单元；按规模可选 TPUv5e</td></tr>
+<tr><td>互联</td><td>光交换机约 <span class="hl">10 秒</span>重构 4x4x4 → 任意 3D torus，任务动态共享拓扑</td></tr>
+<tr><td>软件</td><td>JAX + Pathways single controller 单进程编排；GSPMD 分区；MegaScale XLA 调度 collective</td></tr>
+<tr><td>可靠性</td><td>冗余内存副本热恢复，goodput <span class="gold">85%→97%</span>；SDC 用确定性重放+主动扫描+热备机</td></tr>
+</table>
+<p><span class="infer">（推断）97% goodput 相对 85% 相当于同样物理算力多出约 14% 有效算力（97/85≈1.14），等于白捡一个中型集群。</span></p>
+<h3>3.4 后训练：经典四步 RLHF 与数据飞轮</h3>
+<p>§6.3 四步：(1) 预训练基础上后训练；(2) <strong>SFT</strong>（人工示范及"模型生成+人工复核"）；(3) <strong>RM 训练</strong>（人类相对偏好打分）；(4) <strong>RLHF</strong> 迭代优化。Figure 7 数据飞轮：反馈→RM→RLHF→新版本→更多反馈。产品双通道：消费者端 Gemini Apps 与开发者端 Gemini APIs（AI Studio / Vertex）。Table 18 SxS 盲测：Gemini-Advanced(w/ Ultra) 对 Gemini(w/ Pro) 胜出 <span class="hl">+0.13±0.02</span>。</p>
+<h3>3.5 AlphaCode 2：模型之外的系统工程</h3>
+<p>以竞赛编程数据调优的 Gemini Pro 为底座，大规模采样搜索 + 过滤/聚类/重排筛选提交；Gemini Pro 兼任 coding 模型与 reward model。Codeforces 77 题（12 场 div1/div2）解出 <span class="hl">43%</span>，约 <span class="hl">85th 百分位</span>，较第一代 AlphaCode（25%/50%）提升 <span class="gold">1.7×</span>。</p>
+<blockquote>一句话小结：方法是"两头硬+一手活"——数据与基建两头硬（海量多模态清洗 + 97% goodput），RLHF 四步是成熟手艺，AlphaCode 2 预告了"模型只是系统组件"的下一阶段范式。</blockquote>
+</section>
+<section id="s4">
+<h2>四、证据链：关键数字逐项核验与协议审查</h2>
+<h3>4.1 文本与推理：Table 2 主战场</h3>
+<table>
+<tr><th>基准</th><th>Gemini Ultra</th><th>协议</th><th>对照</th></tr>
+<tr><td>MMLU</td><td><span class="hl">90.04%</span></td><td>CoT@32</td><td>人类专家 89.8%，前 SOTA 86.4%</td></tr>
+<tr><td>GSM8K</td><td><span class="hl">94.4%</span></td><td>Maj1@32+self-consistency</td><td>前 SOTA 92%</td></tr>
+<tr><td>MATH</td><td><span class="hl">53.2%</span></td><td>4-shot</td><td>超 GPT-4 等竞品</td></tr>
+<tr><td>BIG-Bench-Hard</td><td><span class="hl">83.6%</span></td><td>3-shot</td><td>—</td></tr>
+<tr><td>HumanEval</td><td><span class="hl">74.4%</span></td><td>0-shot (instruction-tuned)</td><td>Natural2Code 上 74.9%</td></tr>
+<tr><td>DROP</td><td>82.4 F1</td><td>—</td><td>—</td></tr>
+<tr><td>HellaSwag</td><td>87.8%</td><td>10-shot 去污染值</td><td>见第五章污染问题</td></tr>
+<tr><td>WMT23 翻译</td><td>74.4 BLEURT</td><td>1-shot 平均</td><td>GPT-4 73.8，PaLM 2-L 72.7</td></tr>
+</table>
+<ul class="plain">
+<li><strong>MMLU 破 90 的符号意义大于边际意义</strong>：<span class="infer">（推断）</span>89.8% 的人类专家基线本就粗略，对前 SOTA 的真实提升约 3.6 个百分点，但"首个超越人类专家"的叙事价值把 Ultra 定格在新闻标题里。</li>
+<li><strong>数学能力阶梯分布</strong>：GSM8K 94.4%（近饱和）→ MATH 53.2% → AMC 150 题解出 <span class="hl">32%</span>（GPT-4 为 30%）。<span class="infer">（推断）从 94 到 53 再到 32 的陡降刻画了当时前沿模型的推理天花板——越接近真正多步演绎，分数塌得越快；§8 自承高阶推理短板与此互相印证。</span></li>
+<li><strong>多语言统治力</strong>：MGSM <span class="hl">79.0%</span> vs PaLM 2-L 74.7%；低资源语言 chrF <span class="hl">27.0</span> vs 25.3；XLSum rougeL <span class="hl">17.6</span> vs 15.4。</li>
+</ul>
+<h3>4.2 多模态理解：原生路线的成绩单</h3>
+<ul class="plain">
+<li><strong>图像</strong>：MMMU <span class="hl">62.4%</span>（Maj1@32）/ pass@1 59.4%，超前 GPT-4V（56.8%）5pt 以上。分学科偏科明显：人文 78.3、艺术与设计 74.2、健康 71.3 强；科学仅 49.3、技术与工程 53.0、商科 62.7。<span class="infer">（推断）理科弱于文科或因图表/公式类视觉推理要求更精确的符号处理。</span>文档类突出：DocVQA <span class="hl">90.9%</span>、TextVQA 82.3%、ChartQA <span class="hl">80.8%</span>、InfographicVQA 80.3%、MathVista 53.0%；另有 XM-3600 检索评测。</li>
+<li><strong>视频</strong>：16 个等距离帧采样入上下文窗口。VATEX <span class="hl">62.7</span>（Flamingo 56.0）、VATEX 中文 <span class="hl">51.3</span>、YouCook2 <span class="hl">135.4</span>（Flamingo 仅 74.5）、NextQA 29.9（0-shot，Flamingo 26.7）、ActivityNet-QA 等多项领先。</li>
+<li><strong>音频</strong>：FLEURS 62 语言 WER——Gemini Pro <span class="hl">7.6%</span>、USM 11.8%、Whisper-v3 17.6%、Nano-1 14.2%。注意消融披露：无 FLEURS 训练数据时 WER 15.8%，暗示该基准存在训练数据重叠红利。</li>
+<li><strong>模态组合</strong>：Table 13 展示音频-图像-文本交错输入交互。<span class="infer">（推断）这是原生多模态区别于拼接路线最直观的功能演示——同一对话流混排三种模态而无需外部编排。</span></li>
+</ul>
+<h3>4.3 可信度与系统级证据</h3>
+<ul class="plain">
+<li><strong>Factuality</strong>（Table 6，API Pro 后训练前后）：inaccurate 6.7%→<span class="green">3.8%</span>，AIS 40.2%→<span class="green">60.0%</span>，Hedging 0%→<span class="gold">69.3%</span>。</li>
+<li><strong>长上下文</strong>（Figure 4）：长文档 NLL 直至 32K 持续下降。</li>
+<li><strong>Nano 效率线</strong>（Table 3）：Nano-2 MMLU 55.8%(0.78)、BBH 42.4%(0.58)；Nano-1 MMLU 45.9%(0.64)。</li>
+<li><strong>AlphaCode 2</strong>：<span class="hl">43%</span> 解题率 / <span class="hl">85th</span> 百分位 / <span class="gold">1.7×</span> 代际提升。</li>
+</ul>
+<h3>4.4 协议公平性小结</h3>
+<p>对照系齐全（PaLM 2-L、GPT-4/GPT-4V、Claude 2、Grok 1、LLaMA-2），shot 数与采样协议均有标注，<span class="infer">（推断）透明度当年属较高水准</span>；但需保留态度：① headline 多为 @32 协议；② HellaSwag 因预训练数据组成敏感只报去污染 10-shot 值、LAMBADA 因泄露不报——"不报"比"报了再解释"诚实，但也说明污染面不小；③ FLEURS 训练数据红利有明确消融背书。总体：数字本身可信，但"可比性"需要读者自行折算协议差异。</p>
+</section>
+<section id="s5">
+<h2>五、批判性分析：局限的深层含义与独立疑点</h2>
+<h3>5.1 作者自述局限的深层含义</h3>
+<ul class="plain">
+<li><strong>幻觉与可信度需持续研究</strong>（§8）：结合 Hedging 69.3% 看，<span class="infer">（推断）后训练对策偏向"让模型更谨慎地说话"而非"让模型知道更多"——这是对齐技术的能力边界，非 Google 独有。</span></li>
+<li><strong>高阶推理短板</strong>：因果理解、逻辑演绎、反事实推理不足，与第四章数学分数阶梯互为表里。<span class="infer">（推断）这一自白为后来行业转向测试时计算扩展与推理模型埋下伏笔。</span></li>
+<li><strong>基准污染</strong>：LAMBADA 不报、HellaSwag 只报去污染值、"minor issues"仍在。<span class="infer">（推断）web 语料几乎必然吞下公开学术基准；主动披露值得肯定，但所有破纪录数字都应打折看待。</span></li>
+<li><strong>音频评测有限</strong>：Ultra 未做音频评测；FLEURS 含训练数据有明显增益。<span class="infer">（推断）旗舰缺席自家优势赛道评测，削弱"语音 5/5 SOTA"主张的完整性。</span></li>
+<li><strong>规模不透明</strong>：Model Card 明示 Compute / Model Stats <span class="red">"Not reported"</span>（p72）——参数量、算力、数据量全部保密。</li>
+<li><strong>安全评测饱和</strong>：多数代表性伤害数据集 accuracy 接近 <span class="red">99%</span>，作者自认方法有局限需开发新评测（p34）。<span class="infer">（推断）评测工具失效时"安全达标"实际不可检验——安全评估学的经典困境。</span></li>
+</ul>
+<h3>5.2 独立观察到的五个疑点</h3>
+<ul class="plain">
+<li><strong>"结果详尽但过程保密"的文体悖论</strong>：大量结果表格，却无任何复现关键量。<span class="infer">（推断）严格说这不是可复现研究而是产品公告的学术化包装；此文体后来成为前沿实验室报告的标准模板，客观上降低了全行业的复现标准。</span></li>
+<li><strong>对比对象的时点公平性</strong>：<span class="infer">（推断）GPT-4 发布于 2023 年初，到 Gemini 发布已过大半年；用最新模型对比对手半年前的版本是追赶者惯常的时间窗操作，报告未讨论。</span></li>
+<li><strong>@32 协议的算力不对称</strong>：CoT@32/Maj1@32 headline 与竞品单次推理分数同表呈现，<span class="infer">（推断）普通读者极易忽略协议差异，形成"代差领先"错觉。</span></li>
+<li><strong>蒸馏 Nano 的教师归属模糊</strong>：未指明教师是否 Ultra 本尊；<span class="infer">（推断）若是，则 Nano 分数可作为 Ultra 能力下界旁证，报告未利用这层信息。</span></li>
+<li><strong>AlphaCode 2 的系统属性</strong>：43% 是"模型+搜索+重排"的系统成绩而非纯模型能力，<span class="infer">（推断）与 HumanEval 74.4% 并列展示时易被误读为同一维度进步。</span></li>
+</ul>
+<blockquote>批判小结：可信度结构不对称——结果层面（分数/协议/对照）披露规范可信度高；过程层面（规模/数据/算力）完全黑箱。它是一份优秀的成绩单，不是合格的实验记录。</blockquote>
+</section>
+<section id="s6">
+<h2>六、启示与影响：可迁移的经验与未来走向</h2>
+<h3>6.1 五条可迁移启示</h3>
+<ul class="plain">
+<li><strong>原生多模态 &gt; 事后拼接</strong>：全线领先证明从预训练起联合建模的价值。<span class="infer">（推断）此后 natively multimodal 成为新一代模型标配叙事，拼接式方案退守轻量化场景。</span></li>
+<li><strong>家族化 + 蒸馏是产品化正解</strong>：一套管线产出三档覆盖云到端，<span class="infer">（推断）省成本且能力梯度连续，已成行业标准打法。</span></li>
+<li><strong>基础设施可靠性是被低估的护城河</strong>：goodput 85%→97% 等价于约 14% 免费算力；SDC 处理与光交换拓扑重构这些"脏活"构成难以论文化的壁垒。</li>
+<li><strong>诚实披露污染反而增强公信力</strong>：LAMBADA 不报、HellaSwag 去污染、FLEURS 消融——"主动交代"比假装干净更有说服力。</li>
+<li><strong>系统级能力是模型能力的放大器</strong>：AlphaCode 2 用同一 Pro 兼任 coder 与 reward model。<span class="infer">（推断）预示"基础模型只是系统组件"的 agent 时代方向。</span></li>
+</ul>
+<h3>6.2 可能的局限走向</h3>
+<ul class="plain">
+<li><strong>幻觉问题的长期性</strong>：hedging 式谨慎无法根治编造，<span class="infer">（推断）后续需检索归因、引用校验等外部机制补足，单纯 RLHF 到不了终点。</span></li>
+<li><strong>评测体系将随饱和重构</strong>：MMLU 类静态基准逼近人类基线（89.8 vs 90.04）后区分度消失，<span class="infer">（推断）行业必然转向动态私有评测、偏好盲测（报告中已有的 SxS）与长周期任务。</span></li>
+<li><strong>保密文体与开源生态分野</strong>：闭源报告不再提供复现细节，<span class="infer">（推断）开源社区承担"过程透明"角色，形成性能—透明双轨市场。</span></li>
+<li><strong>高阶推理的下一站</strong>：报告自承因果/反事实推理不足，<span class="infer">（推断）正是其后推理模型浪潮要解决的问题——CoT@32/Maj1@32 可视为那场浪潮的史前遗迹。</span></li>
+</ul>
+<h3>总结</h3>
+<p>《Gemini》技术报告的历史角色是"追赶者的一次全面反攻"：30/32 基准夺回 SOTA、首次把 MMLU 推过人类专家线（<span class="hl">90.04%</span> vs 89.8%）、以 MMMU <span class="hl">62.4%</span> 对 GPT-4V 56.8% 证明原生多模态路线价值、以 TPUv4 SuperPod + <span class="gold">97% goodput</span> 展示独立算力纵深。其方法论遗产——家族化蒸馏（1.8B/3.25B）、四步 RLHF、数据飞轮、系统级编码——此后被反复复制为行业默认配置。同时它树立了一种争议文体：结果全公开、过程全保密。正确读法是把分数当作"路线验证"而非"可复现科学"：原生多模态赢了，这是真的；至于赢多少、为什么赢、代价是什么，报告留给读者的只有一张精心排版的战绩表和 Model Card 里那句 "Not reported"。与同期 GPT-4 技术报告对读，恰构成"语言模型如何吞并视觉、语音、视频"进程的两份关键证词。</p>
+</section>
+</main>
+<section class="checker" id="self-check">
+<h2>✓ 文件自检（Self-Check）</h2>
+<ul>
+<li><span class="ok">[通过]</span> 编码：UTF-8 全文无替换字符，中文标点正常渲染</li>
+<li><span class="ok">[通过]</span> 结构：单文件内联 CSS，无外部依赖；div 开闭配平（hero / wrap / abs / main×6 sections / checker / footer）</li>
+<li><span class="ok">[通过]</span> 内容：六层结构完整（摘要/一问题定位/二概念内核/三方法拆解/四证据链/五批判性分析/六启示与影响）+ 总结</li>
+<li><span class="ok">[通过]</span> 数字溯源：全部数字来自同目录 00-源数据提取.md；分析者推理均标注"（推断）"</li>
+<li><span class="ok">[通过]</span> 关键数字分级高亮：90.04% / 62.4% / 97% goodput / 32K / 1.8B / 3.25B / 43% 等（.hl 蓝 / .gold 金 / .green 绿 / .red 红）</li>
+<li><span class="ok">[通过]</span> 与 01-深度解读报告.md 内容一致（md 先行写盘，html 为镜像排版版）</li>
+</ul>
+</section>
+<footer>Gemini Technical Report · Deep Reading Report · 数据依据：00-源数据提取.md · B2_P2 论文分析批次</footer>
+</div>
+</body>
+</html>

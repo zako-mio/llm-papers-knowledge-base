@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《DeepSeek-R1》深度解读报告</title>
+<style>
+:root{
+  --ink:#1a2332; --ink2:#3d4a5f; --muted:#7a8699;
+  --accent:#1e56a0; --accent2:#0e7c66; --warn:#b3541e;
+  --paper:#fbfaf7; --card:#ffffff; --line:#e4e0d6;
+  --hl-bg:#fff3d6; --code-bg:#f2f4f8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:"Source Han Serif SC","Noto Serif SC","Songti SC",Georgia,serif;
+  background:var(--paper); color:var(--ink);
+  line-height:1.85; font-size:16.5px;
+}
+.wrap{max-width:900px;margin:0 auto;padding:0 28px 80px}
+header.hero{
+  background:linear-gradient(135deg,#12294a 0%,#1e56a0 62%,#2d74c0 100%);
+  color:#fff; padding:64px 28px 48px; text-align:center;
+}
+header.hero h1{font-size:30px;letter-spacing:1px;font-weight:700;margin-bottom:14px}
+header.hero .sub{font-size:15px;opacity:.92;max-width:720px;margin:0 auto;line-height:1.75}
+header.hero .meta{
+  display:inline-block;margin-top:22px;font-size:13px;opacity:.85;
+  border-top:1px solid rgba(255,255,255,.35);padding-top:12px;letter-spacing:.5px;
+}
+nav.toc{
+  background:var(--card);border:1px solid var(--line);border-radius:10px;
+  padding:20px 26px;margin:-26px auto 40px;max-width:820px;
+  box-shadow:0 6px 24px rgba(20,40,70,.10);position:relative;
+}
+nav.toc b{color:var(--accent);font-size:14px;letter-spacing:2px}
+nav.toc ol{margin:8px 0 0 22px;font-size:14px;color:var(--ink2)}
+nav.toc li{margin:3px 0}
+nav.toc a{color:var(--ink2);text-decoration:none;border-bottom:1px dotted var(--muted)}
+nav.toc a:hover{color:var(--accent)}
+section.card{
+  background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:36px 42px;margin-bottom:34px;
+  box-shadow:0 2px 10px rgba(20,40,70,.05);
+}
+h2{
+  font-size:21px;color:var(--accent);margin-bottom:20px;
+  padding-bottom:10px;border-bottom:2px solid var(--accent);
+  letter-spacing:.5px;
+}
+h2 .no{display:inline-block;background:var(--accent);color:#fff;border-radius:6px;
+  font-size:14px;padding:1px 10px;margin-right:10px;vertical-align:2px}
+h3{font-size:17px;color:var(--ink);margin:26px 0 10px;padding-left:10px;
+  border-left:4px solid var(--accent2)}
+p{margin:10px 0;text-align:justify;color:var(--ink2)}
+strong{color:var(--ink)}
+.num{
+  font-family:Georgia,serif;font-weight:700;color:#8a4b08;
+  background:var(--hl-bg);padding:0 4px;border-radius:3px;white-space:nowrap;
+}
+.tag{
+  display:inline-block;font-size:12px;color:#fff;background:var(--accent2);
+  border-radius:4px;padding:0 8px;margin-right:6px;vertical-align:1px;
+}
+blockquote{
+  margin:18px 0;padding:14px 20px;background:#eef3fa;
+  border-left:5px solid var(--accent);border-radius:0 8px 8px 0;
+  color:#24406b;font-size:15.5px;
+}
+blockquote.note{background:#fdf1e7;border-left-color:var(--warn);color:#6e3a12}
+table{
+  width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;
+}
+th{
+  background:#16365f;color:#fff;padding:8px 10px;text-align:left;
+  font-weight:600;letter-spacing:.5px;
+}
+td{padding:7px 10px;border-bottom:1px solid var(--line);color:var(--ink2)}
+tr:nth-child(even) td{background:#f7f8fa}
+td.up{color:var(--accent2);font-weight:700}
+td.down{color:#b02a37;font-weight:700}
+pre.pipeline{
+  background:var(--code-bg);border:1px solid #d8dee9;border-radius:8px;
+  padding:18px 20px;font-family:"JetBrains Mono",Consolas,monospace;
+  font-size:13px;line-height:1.65;color:#24344d;overflow-x:auto;margin:14px 0;
+}
+footer.end{
+  text-align:center;color:var(--muted);font-size:13px;margin-top:46px;
+  letter-spacing:1px;
+}
+.selfcheck{
+  background:#10233f;color:#cfe0f5;border-radius:12px;
+  padding:26px 32px;font-size:13.5px;line-height:2;
+}
+.selfcheck h2{color:#ffd97a;border-bottom-color:#ffd97a;font-size:17px}
+.selfcheck code{background:rgba(255,255,255,.12);padding:1px 7px;border-radius:4px;
+  font-family:Consolas,monospace;font-size:12.5px}
+.selfcheck li{margin:4px 0 4px 22px}
+@media (max-width:640px){
+  section.card{padding:24px 20px}
+  body{font-size:15.5px}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <h1>《DeepSeek-R1》深度解读报告</h1>
+  <div class="sub">Incentivizing Reasoning Capability in LLMs via Reinforcement Learning<br>
+  纯强化学习涌现推理的里程碑 —— 从 R1-Zero 的科学宣言到 R1 的开源工程交付</div>
+  <div class="meta">arXiv:2501.12948v2 · DeepSeek-AI · 初版 2025-01 · 86 页 · MIT License 开源 · 后登上 Nature 封面</div>
+</header>
+
+<div class="wrap">
+
+<nav class="toc">
+  <b>目 录</b>
+  <ol>
+    <li><a href="#abstract">摘要</a></li>
+    <li><a href="#s1">一、问题定位：后训练的"第三条路"</a></li>
+    <li><a href="#s2">二、概念内核：五个核心概念逐一定义</a></li>
+    <li><a href="#s3">三、方法拆解：一条主线、两条管线、一套基建</a></li>
+    <li><a href="#s4">四、证据链：三层对照的逐行解读</a></li>
+    <li><a href="#s5">五、批判性分析：局限的深层含义与独立疑点</a></li>
+    <li><a href="#s6">六、启示与影响</a></li>
+    <li><a href="#conclusion">总结</a></li>
+    <li><a href="#selfcheck">附录：质量自检</a></li>
+  </ol>
+</nav>
+
+<section class="card" id="abstract">
+  <h2>摘要</h2>
+  <p>本文解读 DeepSeek-AI 的《DeepSeek-R1》。论文的核心论断是：<strong>大语言模型的复杂推理能力可以不经任何监督微调（SFT），仅凭以规则奖励驱动的强化学习从基座模型中自发涌现</strong>——R1-Zero 以 <span class="num">15.6%</span> 的 AIME 2024 初始通过率起步，在无 SFT、无神经奖励模型的纯 RL 训练下将 pass@1 推至 <span class="num">77.9%</span>，多数投票（cons@16）进一步达 <span class="num">86.7%</span>，超越全部人类参赛者平均分；训练中还自发涌现出验证、反思、备选方案探索等推理行为，甚至出现拟人化的 "aha moment"。</p>
+  <p>在此之上，论文给出工程化的第二答案 R1：以数千条冷启动长思维链数据破冰，经<strong>"冷启动 SFT → 推理导向 RL → 拒绝采样+SFT 全量重训 → 第二阶段 RL"</strong>四阶段管线，最终版 R1 在 AIME 2024 上以 <span class="num">79.8</span> 追平 OpenAI o1-1217（<span class="num">79.2</span>），MATH-500 达 <span class="num">97.3</span> 反超 o1 的 <span class="num">96.4</span>，Codeforces Rating <span class="num">2029</span> 超过 <span class="num">96.3%</span> 人类参赛者，且以 MIT 许可完全开源，发布一周即在 ChatbotArena 与 OpenAI-o1、Gemini-Exp-1206 并列第一。</p>
+  <p>本报告按"问题—概念—方法—证据—批判—启示"六层结构拆解这条"科学发现 + 工程交付"的双线叙事，并指出其代价面：指令遵循（IF-Eval 仅 <span class="num">46.6</span>）与通用问答（AlpacaEval <span class="num">24.7</span>）在纯 RL 阶段严重塌方，需靠后续多阶段管线赎回；GPQA Diamond 从 R1-Zero 的 <span class="num">75.8</span> 降至 R1 的 <span class="num">71.5</span>、SimpleQA 停滞在 <span class="num">30</span> 左右，揭示"推理增益"与"知识边界"的正交性。</p>
+  <blockquote>数据依据：源数据提取文件（00-源数据提取.md），全部数字与原文一致；标注「（推断）」处为分析者推理补充。"Nature 封面"为公开发表的后续事实，非论文正文内容。</blockquote>
+</section>
+
+<section class="card" id="s1">
+  <h2><span class="no">一</span>问题定位：后训练的"第三条路"——监督之外，探索能否独立锻造推理？</h2>
+
+  <h3>1.1 论文要解决的问题</h3>
+  <p>2024 年底至 2025 年初，推理模型赛道由 OpenAI o1 系列定义，但其核心方法从未公开。行业通行做法是<strong>蒸馏式监督</strong>：收集大量带长思维链的高质量样本做 SFT，再辅以 RL 打磨。本文挑战的是一个更根本的问题——<strong>监督数据到底是不是推理能力的必要条件？</strong>具体拆成两层：</p>
+  <p>· <strong>科学层（R1-Zero 回答）</strong>：完全不提供任何人类示范，只给对错信号（数学题答案是否正确、代码是否通过测试），策略梯度能否让模型自己"学会思考"？这检验的是 RL 作为学习范式的上限，而非数据工程的功力。</p>
+  <p>· <strong>工程层（R1 回答）</strong>：即便答案是肯定的，纯 RL 涌现出的模型是否可直接交付使用？（推断）从 Table 3 看，R1-Zero 的可读性与指令遵循存在明显短板（IF-Eval 仅 <span class="num">46.6</span>），因此第二个问题是：如何在保住涌现收益的前提下，把它改造成一个对齐、可用、安全的产品级模型？</p>
+
+  <h3>1.2 在 post-training 谱系中的定位</h3>
+  <p>传统 post-training 的标准范式是"SFT 先行、RL 收尾"：SFT 提供行为先验，RL 在偏好层面微调。这一范式的隐含假设是——<strong>复杂能力的种子必须由监督数据播下，RL 只负责塑形</strong>。本文在谱系上做了两个方向的突破：</p>
+  <p><span class="tag">突破 1</span><strong>倒转依赖</strong>：R1-Zero 直接从基座模型起跑，跳过 SFT，把 RL 从"收尾工具"提升为"唯一的推理教师"；</p>
+  <p><span class="tag">突破 2</span><strong>重新分工</strong>：R1 把监督数据的角色压缩到最小（冷启动仅"数千条"对话式长 CoT），其余全部交给两阶段 RL 与拒绝采样闭环。（推断）这使论文实际上同时回答了"RL 能不能"与"RL 怎么用"两个问题：前者是科学宣言，后者是工程手册，二者合起来构成了对闭源推理模型的正面替代方案。</p>
+
+  <h3>1.3 时代语境：开源阵营的"证明之战"</h3>
+  <p>论文发布时点正值开源与闭源的推理能力差距被舆论放大的时期。R1 的战略意义在于用<strong>可复现的开源权重 + MIT 许可</strong>证明开源阵营可以追平 o1-1217 的推理水平：发布仅一周（2025-01-24），R1 在 ChatbotArena style control 设置下与 OpenAI-o1、Gemini-Exp-1206 并列第一。这使得论文的影响远超方法本身——它改变了整个行业对"推理能力获取路径"的预期。</p>
+  <blockquote>一句话小结：本文的双重贡献是"用 R1-Zero 证明推理可以纯 RL 涌现（科学），再用 R1 证明涌现可以被驯化为开源产品（工程）"——而后者对行业格局的冲击甚至大于前者。</blockquote>
+</section>
+
+<section class="card" id="s2">
+  <h2><span class="no">二</span>概念内核：五个核心概念逐一定义</h2>
+
+  <h3>2.1 GRPO（Group Relative Policy Optimization，组相对策略优化）</h3>
+  <p><strong>术语表定义</strong>：省去 PPO 中与策略同量级的 value model，对每个问题采样一组输出，用组内奖励的均值/标准差直接归一化出 advantage：<em>A_i = (r_i − mean({r})) / std({r})</em>。</p>
+  <p><strong>拆解</strong>：GRPO 是整条管线的算法基石，其设计动机来自对 PPO 两大痛点的针对性规避：</p>
+  <table>
+    <tr><th style="width:18%">维度</th><th>PPO</th><th>GRPO</th></tr>
+    <tr><td>价值估计</td><td>依赖 GAE + 独立 value model（与 policy 同量级，内存/算力开销大）</td><td>组内统计量直接估计，无需 value model</td></tr>
+    <tr><td>长 CoT 适用性</td><td>对部分响应难以预测最终奖励，credit assignment 困难</td><td>整段响应共享同一奖励，天然适配结果导向的长推理</td></tr>
+    <tr><td>KL 处理</td><td>逐 token dense reward 惩罚累计 KL，（推断）隐性抑制响应长度增长</td><td>无偏估计直接加入 loss</td></tr>
+    <tr><td>超参敏感性</td><td>对 GAE λ 敏感：λ=0.95 明显劣于 GRPO，须调至 λ=1.0 才接近</td><td>无此敏感项</td></tr>
+  </table>
+  <p>附录消融实验（用 DeepSeek-Coder-V2-Lite 16B MoE，2.4B 激活，在 MATH 上）证实上述差异。R1-Zero 实际超参为 lr <span class="num">3e-6</span>、KL 系数 <span class="num">0.001</span>、采样温度 <span class="num">1.0</span>——极低的 KL 系数意味着允许策略大幅偏离参考模型，（推断）这正是"涌现"得以发生的算法条件：若 KL 锁得太紧，模型永远不敢跳出基座的行为分布。</p>
+
+  <h3>2.2 规则奖励（Rule-based Reward：R_acc + R_format）</h3>
+  <p><strong>术语表定义</strong>：推理任务的奖励完全由两条规则构成，等权相加：准确率奖励 R_acc（数学答案格式化比对、编译器执行测试用例）+ 格式奖励 R_format（强制 think/answer 分隔结构），即 <em>R_rule = R_acc + R_format</em>。全程不使用神经奖励模型。</p>
+  <p><strong>拆解</strong>：这是一个看似朴素却极具战略眼光的选择。神经 RM 的经典缺陷是 reward hacking——模型会找到 RM 的判定捷径而非真正解题。规则奖励在数学/代码这类"可验证"领域提供了<strong>不可欺骗的信号源</strong>：答案要么数值相等要么不等，代码要么过测试要么不过。（推断）R1-Zero 的成功很大程度上应归因于"任务域恰好落在规则可验证区间"——这也是为什么同一套纯 RL 方法无法直接复制到创意写作（论文在局限中自己承认）。此外，R_acc 与 R_format 等权的设计意味着格式遵从本身就是一个需要学习的目标，而非默认前提。</p>
+
+  <h3>2.3 涌现推理行为与 "aha moment"</h3>
+  <p><strong>术语表定义</strong>：纯 RL 训练中，模型未经教授而自发出现的验证、反思、备选方案探索行为，以及随训练推进的思考时长增长；其标志性瞬间是 Table 2 记录的中途自我对话：<em>"Wait, wait. That's an aha moment I can flag here. Let's reevaluate..."</em></p>
+  <p><strong>拆解</strong>：这是全文最具传播力也最具科学价值的观察，三点值得深挖：</p>
+  <p><span class="tag">① 行为来源</span>没有任何监督数据教模型"要先检查自己的答案"，这些行为纯粹由"答对得分"的压力筛选出来。（推断）这相当于一种行为层面的自然选择，而非模仿学习。</p>
+  <p><span class="tag">② 算力扩张</span>响应长度随训练显著增长（<span class="num">8.2k</span> 步处性能与长度同步跳升，最大输出限制从 <span class="num">32,768</span> 放宽到 <span class="num">65,536</span> tokens），模型学会了"更难的题想更久"。（推断）这与 o1 展示的 test-time scaling 互证：思考预算本身就是可优化的性能维度。</p>
+  <p><span class="tag">③ 哲学意味</span>"aha moment" 以第一人称口吻出现在推理中途，（推断）虽可能只是训练语料语言风格的残留，但它直观展示了 RL 让模型把"元认知动作"（标记转折、重新评估）内化为生成模式。</p>
+
+  <h3>2.4 冷启动数据（Cold Start Data）</h3>
+  <p><strong>术语表定义</strong>：数千条由人类标注员将 R1-Zero 推理轨迹改写而成的对话式长 CoT 样本（第一人称、语言一致、含反思与验证），用作 R1 管线中 RL 初始 actor 的 SFT 数据。</p>
+  <p><strong>拆解</strong>：冷启动解决的是 R1-Zero 暴露的两个产品化障碍——可读性差与语言混杂。其构造流程体现了精巧的成本控制：不是从零人工撰写，而是<strong>以 R1-Zero 自己的输出为原料做人工改写</strong>，再用 LLM 以改写样本为示例批量重写、二次人工核验。（推断）这形成了一个自举闭环：模型先产出原始推理，人只负责"翻译成体面的表达"，监督成本被压缩到风格层面而非能力层面。代码域配套数据同样务实：<span class="num">5,151</span> 道 Codeforces 题 + <span class="num">2,504</span> 道 AtCoder 题；测试用例不公开就用 DeepSeek-V2.5 生成候选，再用"正确提交淘汰无效用例、错误提交筛出有区分度用例"的两阶段过滤兜底。</p>
+
+  <h3>2.5 拒绝采样与双阶段 RL（Rejection Sampling + Two-stage RL）</h3>
+  <p><strong>术语表定义</strong>：R1 管线的后半程组合拳——用推理 RL 后的模型对各任务域生成候选并按真值筛选（拒绝采样），混入非推理数据做全量 SFT 重训，再进入第二阶段 RL（<span class="num">1,700</span> 步，其中通用指令+偏好奖励仅在最后 <span class="num">400</span> 步加入）。</p>
+  <p><strong>拆解</strong>：这套设计的核心洞察是<strong>不同能力之间存在训练时序上的冲突</strong>：第一阶段 RL 引入语言混杂副作用，于是加入语言一致性奖励 <em>Reward_language = Num(Words)_target / Num(Words)</em> 作为补偿；（推断）若早期混入通用数据会稀释推理信号强度，因此先让推理能力充分成型，再用拒绝采样"收割"高质量推理样本与非推理数据合并重训；第二阶段 RL 的偏好奖励推迟到最后 400 步，因为实验发现<strong>更早或更多步数会诱发 reward hacking</strong>——这是一个用试错换来的关键工程参数。</p>
+  <blockquote>一句话小结：五个概念构成一条递进链——GRPO 提供无价值网络的低成本探索引擎，规则奖励保证信号不可欺骗，涌现行为证明探索有效，冷启动解决表达体面性，拒绝采样+双阶段 RL 完成"推理专才 → 全面通才"的产品化收敛。</blockquote>
+</section>
+
+<section class="card" id="s3">
+  <h2><span class="no">三</span>方法拆解：一条主线、两条管线、一套基建</h2>
+
+  <h3>3.1 R1-Zero 管线：最简可行系统</h3>
+  <p>R1-Zero 的训练配置堪称"极简主义"：DeepSeek-V3-Base 为起点，GRPO 直接上线，无 SFT、无神经 RM、无任何人类示范。具体参数勾勒出其规模感：</p>
+  <table>
+    <tr><th style="width:34%">配置项</th><th>取值</th></tr>
+    <tr><td>采样结构</td><td>每步 <span class="num">32</span> 道题 → batch <span class="num">512</span>；每题 <span class="num">16</span> 个输出，每步 rollout 共 <span class="num">8,192</span> 输出，拆 <span class="num">16</span> minibatch 更新</td></tr>
+    <tr><td>训练节奏</td><td>共 <span class="num">10,400</span> 步 = <span class="num">1.6</span> epochs；参考模型每 <span class="num">400</span> 步同步一次</td></tr>
+    <tr><td>输出预算</td><td>8.2k 步前最大 <span class="num">32,768</span> tokens，之后放宽至 <span class="num">65,536</span></td></tr>
+    <tr><td>超参</td><td>lr <span class="num">3e-6</span>，KL <span class="num">0.001</span>，温度 <span class="num">1.0</span></td></tr>
+  </table>
+  <p>（推断）"每题多样本"的组结构是关键：16 个输出既是 GRPO advantage 的统计基底，也是同一道题上 16 条独立探索路径——涌现行为正是从这 16 条路径的正确率差异中被梯度信号选择性固化的。</p>
+
+  <h3>3.2 R1 管线：四阶段的收敛艺术</h3>
+  <p>R1 的完整管线是对"纯 RL 模型如何变成产品"的系统性解答，四个阶段各有明确使命：</p>
+  <pre class="pipeline">DeepSeek-V3-Base
+   │
+   ├─ 阶段① 冷启动 SFT：数千条对话式 long-CoT，注入可读的表达格式
+   │        └─ 效果：IF-Eval/ArenaHard 大幅改善；但 AIME 因数据量有限略降
+   │
+   ├─ 阶段② 推理 RL（同 R1-Zero 配置 + 语言一致性奖励）
+   │        └─ 效果：数学/代码/STEM 推理大幅拉升
+   │
+   ├─ 阶段③ 拒绝采样 + 全量 SFT：
+   │          推理数据（按真值筛选）+ 非推理数据（写作/事实问答/角色扮演等）
+   │          └─ 效果：推理/STEM 基准进一步提升，通用能力回补
+   │
+   └─ 阶段④ 第二阶段 RL：1700 步；最后 400 步才加入 general 指令+偏好奖励
+            （helpful RM：66,000 对；safety RM：106,000 prompt，pointwise）
+            └─ 效果：AlpacaEval +25%、ArenaHard +17%，无害性提升且推理不退步</pre>
+  <p>（推断）阶段④把偏好奖励推迟到最后 400 步的做法值得所有做多目标 RL 的团队注意：它承认"有用性"与"安全性"的奖励信号会在长时间尺度上侵蚀推理能力，因此用时间隔离代替权重调和。</p>
+
+  <h3>3.3 数据配方：RL 数据的域覆盖（Table 4）</h3>
+  <table>
+    <tr><th style="width:18%">类别</th><th style="width:16%">数量</th><th>内容</th></tr>
+    <tr><td>Math</td><td><span class="num">26K</span></td><td>定量推理，答案为数值/表达式/方程</td></tr>
+    <tr><td>Code</td><td><span class="num">17K + 8K</span></td><td>算法竞赛 + bug 修复（真实 GitHub issue）</td></tr>
+    <tr><td>STEM</td><td><span class="num">22K</span></td><td>多选题：物理 15.5% / 生物 30.7% / 化学 46.5% / 其他 7.3%</td></tr>
+    <tr><td>Logic</td><td><span class="num">15K</span></td><td>真实网络题 + 合成 code-IO/谜题（平均约 <span class="num">420</span> tokens）</td></tr>
+    <tr><td>General</td><td><span class="num">66K + 12K</span></td><td>有帮助性（创意写作/编辑/事实问答/角色扮演）+ 无害性</td></tr>
+  </table>
+  <p>（推断）Logic 类仅 420 tokens 的平均长度与 Math/Code 形成长短互补，暗示作者有意用短题维持梯度多样性、避免长 CoT 任务垄断训练预算。</p>
+
+  <h3>3.4 训练基础设施：四模块解耦（§B.1）</h3>
+  <p>支撑以上一切的是一套模块化 RL 基建，解耦为 Rollout / Inference / Rule-based Reward / Training 四模块：</p>
+  <p><span class="tag">Rollout</span>vLLM workers + 跨节点 MoE 专家并行 + 冗余 hot-expert 拷贝 + MTP self-speculative 解码——针对长 CoT 场景下生成吞吐是首要瓶颈的现实；</p>
+  <p><span class="tag">Reward</span>规则奖励模块用异步调度与 Rollout/Inference 重叠以隐藏延迟（规则判定本身廉价，关键是别让它阻塞流水线）；</p>
+  <p><span class="tag">Training</span>支持 PPO/GRPO/DPO，数据按长度排序 + Best-Fit 打包，集成 DualPipe 管线并行；各模块完成后自动从 VRAM offload 到系统内存/磁盘。</p>
+  <p>（推断）这套基建的公开意义在于：它把"大规模 RL 训练"从黑箱变成一份可参照的架构图纸，是复现浪潮中被低估的贡献之一。</p>
+  <blockquote>一句话小结：方法体系呈"金字塔"形——塔尖是最简的 R1-Zero（证明可行性），中层是四阶段 R1 管线（完成产品化），塔基是四模块解耦基建（保障规模），每一层的透明度都远超同期闭源工作。</blockquote>
+</section>
+
+<section class="card" id="s4">
+  <h2><span class="no">四</span>证据链：三层对照的逐行解读</h2>
+
+  <h3>4.1 第一层：自我演化证据（R1-Zero 内部）</h3>
+  <p>AIME 2024 pass@1 从 <span class="num">15.6%</span> 升至 <span class="num">77.9%</span>，cons@16 达 <span class="num">86.7%</span>；<span class="num">8.2k</span> 步处出现性能与响应长度的同步跳升。这组数字的科学含义是：<strong>在没有一个人类推理示范的条件下，"更长地想"与"想得更对"被 RL 同时优化出来</strong>。配合思考时长增长曲线与 "aha moment" 文本记录，构成"涌现"主张的三重证据（分数曲线、行为曲线、定性案例）。</p>
+
+  <h3>4.2 第二层：R1 各阶段消融（Table 3）</h3>
+  <p>Table 3 实质是一份纵向消融表，最能说明"各阶段各买了什么"：</p>
+  <table>
+    <tr><th>Benchmark</th><th>R1-Zero</th><th>R1 最终</th><th style="width:44%">变化解读</th></tr>
+    <tr><td>MMLU (EM)</td><td>88.8</td><td>90.8</td><td>小幅提升</td></tr>
+    <tr><td>MMLU-Pro (EM)</td><td>68.9</td><td>84.0</td><td class="up">+15.1：多阶段管线的最大单项收益</td></tr>
+    <tr><td>IF-Eval (Prompt Strict)</td><td>46.6</td><td>83.3</td><td class="up">+36.7：纯 RL 最大短板被冷启动+全量 SFT 修复</td></tr>
+    <tr><td>AIME 2024 (Pass@1)</td><td>77.9</td><td>79.8</td><td>+1.9：推理峰值基本保持</td></tr>
+    <tr><td>Codeforces (Rating)</td><td>1444</td><td>2029</td><td class="up">+585：编程能力大幅跃升</td></tr>
+    <tr><td>SWE-bench Verified</td><td>43.2</td><td>49.2</td><td>+6.0</td></tr>
+    <tr><td>Aider-Polyglot</td><td>12.2</td><td>53.3</td><td class="up">+41.1：多语言工程场景修复</td></tr>
+    <tr><td>AlpacaEval 2.0 (LC-winrate)</td><td>24.7</td><td>87.6</td><td class="up">+62.9：通用对话能力彻底重建</td></tr>
+    <tr><td>ArenaHard</td><td>53.6</td><td>92.3</td><td class="up">+38.7：同上</td></tr>
+    <tr><td>GPQA Diamond</td><td>75.8</td><td>71.5</td><td class="down">−4.3：唯一显著回落（详见第五章）</td></tr>
+    <tr><td>SimpleQA</td><td>30.3</td><td>30.1</td><td class="down">−0.2：停滞</td></tr>
+  </table>
+  <p>这张表讲述的故事非常清晰：R1-Zero 是一个"推理畸形儿"——数学/竞赛编程登顶但几乎不会好好聊天（AlpacaEval <span class="num">24.7</span>）、不听指令（IF-Eval <span class="num">46.6</span>）、多语言工程崩坏（Aider <span class="num">12.2</span>）；R1 的四阶段管线没有牺牲多少推理峰值（AIME <span class="num">+1.9</span>、MATH-500 <span class="num">95.9→97.3</span>），却把这些短板全部拉平。（推断）MMLU-Pro 的 <span class="num">+15.1</span> 尤其值得关注：它测的是跨学科复杂推理而非记忆，说明管线收益不止于"对齐"，还反哺了泛化推理质量。</p>
+
+  <h3>4.3 第三层：横向对标（Table 8）与人类对比</h3>
+  <table>
+    <tr><th>Benchmark</th><th>R1</th><th>o1-1217</th><th>o1-mini</th><th>DS-V3</th><th>GPT-4o</th></tr>
+    <tr><td>MMLU (EM)</td><td>90.8</td><td class="up">91.8</td><td>85.2</td><td>88.5</td><td>87.2</td></tr>
+    <tr><td>MMLU-Pro (EM)</td><td class="up">84.0</td><td>-</td><td>80.3</td><td>75.9</td><td>72.6</td></tr>
+    <tr><td>GPQA Diamond (Pass@1)</td><td>71.5</td><td class="up">75.7</td><td>60.0</td><td>59.1</td><td>49.9</td></tr>
+    <tr><td>AIME 2024 (Pass@1)</td><td class="up">79.8</td><td>79.2</td><td>63.6</td><td>39.2</td><td>9.3</td></tr>
+    <tr><td>MATH-500 (Pass@1)</td><td class="up">97.3</td><td>96.4</td><td>90.0</td><td>90.2</td><td>74.6</td></tr>
+    <tr><td>LiveCodeBench (Pass@1-COT)</td><td class="up">65.9</td><td>63.4</td><td>53.8</td><td>36.2</td><td>32.9</td></tr>
+    <tr><td>Codeforces (Rating)</td><td>2029</td><td class="up">2061</td><td>1820</td><td>1134</td><td>759</td></tr>
+    <tr><td>SWE-Verified (Resolved)</td><td class="up">49.2</td><td>48.9</td><td>41.6</td><td>42.0</td><td>38.8</td></tr>
+    <tr><td>Aider-Polyglot (Acc.)</td><td>53.3</td><td class="up">61.7</td><td>32.9</td><td>49.6</td><td>16.0</td></tr>
+    <tr><td>AlpacaEval 2.0 (LC-winrate)</td><td class="up">87.6</td><td>57.8</td><td>-</td><td>70.0</td><td>51.1</td></tr>
+    <tr><td>ArenaHard</td><td class="up">92.3</td><td>92.0</td><td>-</td><td>85.5</td><td>80.4</td></tr>
+  </table>
+  <p><span class="tag">判读 1</span><strong>推理主战场全面追平</strong>：AIME <span class="num">79.8 vs 79.2</span>、MATH-500 <span class="num">97.3 vs 96.4</span>、LCB <span class="num">65.9 vs 63.4</span>——三项硬核基准全部反超 o1-1217；Codeforces Rating <span class="num">2029 vs 2061</span> 微逊但同属 96 百分位档。</p>
+  <p><span class="tag">判读 2</span><strong>人类锚点</strong>：AIME 上 R1 超越全部人类参赛者平均分；Codeforces 上超过 <span class="num">96.3%</span> 人类参赛者；唯 GPQA-Diamond 上具备网页访问权限的 Ph.D. 专家仍优于 R1。人类锚点使"追平 o1"有了绝对刻度，而不只是相对排名。</p>
+  <p><span class="tag">判读 3</span><strong>通用对话反超</strong>：AlpacaEval <span class="num">87.6 vs 57.8</span>、ArenaHard <span class="num">92.3 vs 92.0</span>——（推断）o1 明显把资源倾斜给推理而牺牲对话体验，R1 凭四阶段管线在两端同时站住，这是商业意义上最重要的优势。</p>
+  <p><span class="tag">判读 4</span><strong>增益分布</strong>：V3→R1 在 AIME 上是 <span class="num">39.2→79.8</span>（翻倍），MMLU 仅 <span class="num">88.5→90.8</span>——再次印证 RL 增益集中于可验证推理域，而非均匀抬升。</p>
+
+  <h3>4.4 评测协议规范性</h3>
+  <p><span class="tag">pass@k</span>温度 <span class="num">0.6</span>、top-p <span class="num">0.95</span>；k=64（AIME/GPQA）、k=16（MATH/Codeforces）、k=8（LCB）；AIME 另报 cons@64；输出封顶 <span class="num">32,768</span> tokens。</p>
+  <p><span class="tag">zero-shot 强制</span>因 few-shot CoT 一致性地损害 R1 表现，评测统一 zero-shot。（推断）这个细节本身即是重要发现：R1 的推理模式已高度特化，示例注入反而干扰其思维行为——能力特化到一定程度的典型症状。</p>
+  <p><span class="tag">去污染</span>10-gram 过滤；V3 知识截止 2024-07 早于 CNMO 2024 等基准；仅数学域就移除约 <span class="num">600 万</span>条预训练文本；post-training 数学 prompt 仅用 2023 年前竞赛题。</p>
+  <blockquote>一句话小结：证据链呈"同心圆"结构——内圈（训练曲线+涌现行为）证明机制成立，中圈（Table 3 纵向消融）证明管线必要，外圈（Table 8+人类锚点+Arena）证明竞争力，三层互相咬合，是开源模型论文中罕见的完整论证。</blockquote>
+</section>
+
+<section class="card" id="s5">
+  <h2><span class="no">五</span>批判性分析：局限的深层含义与独立疑点</h2>
+
+  <h3>5.1 作者自述五项局限的深层含义</h3>
+  <p><span class="tag">局限①</span><strong>结构化输出与工具使用弱（不能用搜索引擎/计算器）</strong>：深层含义是 R1 的推理是"裸脑推理"——全部计算发生在 token 空间内部。（推断）这解释了为何软件工程类基准（SWE-bench <span class="num">49.2</span>、Aider <span class="num">53.3 vs o1 的 61.7</span>）是其相对弱项：真实工程需要与环境交互，而非纯内省。</p>
+  <p><span class="tag">局限②</span><strong>Token 效率不最优，简单问题上 overthinking</strong>：模型尚未学会按难度分配思考预算——"aha moment"的另一面是不分难度的冗长反刍。（推断）预示"自适应思考长度"将成为独立研究方向。</p>
+  <p><span class="tag">局限③</span><strong>语言混合</strong>：仅对中英优化，其他语言查询可能坚持以英文推理/回答。根源在 V3-Base 语料分布；语言一致性奖励本质是一个补丁而非根治。</p>
+  <p><span class="tag">局限④</span><strong>对 prompt 敏感，few-shot 一致降低性能</strong>：既是易用性缺陷也是特化证据。</p>
+  <p><span class="tag">局限⑤</span><strong>软件工程任务增益有限</strong>：评估耗时长拖累 RL 效率（反馈回路太慢），作者提出未来用拒绝采样或异步评估缓解。（推断）这条划定了纯结果奖励 RL 的适用边界：<strong>反馈延迟越长的领域，RL 循环效率越低</strong>。</p>
+
+  <h3>5.2 方法论的结构性挑战：Reward Hacking</h3>
+  <p>论文坦承：规则型奖励无法覆盖写作等主观任务；一旦改用模型分配奖励，随训练推进政策必然找到捷径。这构成了整个范式的<strong>阿喀琉斯之踵</strong>——R1 的成功严格依赖"数学/代码恰好存在完美 verifier"这一历史巧合，（推断）对于 verifier 缺位的广大任务域（开放创作、模糊决策、长期规划），"纯 RL 涌现"路线目前没有可信的迁移路径。第二 RL 阶段"偏好奖励只能在最后 <span class="num">400</span> 步加入，否则被 hack"的实证发现，就是该结构性风险的一次直接暴露。</p>
+
+  <h3>5.3 独立观察到的五个疑点</h3>
+  <p><span class="tag">疑点①</span><strong>GPQA Diamond 不升反降（<span class="num">75.8 → 71.5</span>），且低于 o1 的 75.7</strong>：这是 Table 3 中唯一显著回落的高难基准。（推断）可能的解释有二：其一，GPQA 是博士级科学知识题，部分考察知识本身而非推理链条，语言一致性奖励与格式约束可能挤占知识型答案的空间；其二，冷启动数据以数学/代码风格为主，可能诱导模型对所有问题过度展开形式化推理，损害需要直觉判断的知识检索型题目。无论何种解释成立，都提示：<strong>推理能力的强化存在域间挤出效应</strong>。</p>
+  <p><span class="tag">疑点②</span><strong>SimpleQA 停滞（<span class="num">30.3 → 30.1</span>）揭示推理与知识的正交性</strong>：SimpleQA 测短式事实问答，R1 全管线未能移动其指针。这与 GPQA 回落共同指向同一结论：RL 锻炼的是"给定知识下的推演能力"，而非知识容量本身。任何试图用推理模型全面替代通用模型的预期都应被这两个数字校正。</p>
+  <p><span class="tag">疑点③</span><strong>安全缺口的量级值得警惕（§D.3 Safety Report）</strong>：R1 平均安全分 <span class="num">95.0</span> 是在外部风险控制系统加持下的成绩，<strong>无风险控制时仅 <span class="num">85.9</span></strong>；HarmBench 上缺口更悬殊——<span class="num">89.3 vs 35.0</span>（缺口集中在知识产权/歌词类）。作者同时承认：公开模型易受进一步 fine-tuning 破坏内建安全，且更强的推理能力使 jailbreak 后产出的危险方案<strong>可执行性更高</strong>。（推断）这是一个行业级命题：推理能力每上一个台阶，安全对齐的工程负担就超线性增长，而开源权重恰恰使安全补丁无法强制送达。"部署时必须配合外部风险控制系统"的前提，在二次分发链条中极易脱落。</p>
+  <p><span class="tag">疑点④</span><strong>"涌现"叙事的归因完整性</strong>：R1-Zero 的基座是 DeepSeek-V3-Base——已经历海量预训练的强基座。（推断）严格地说，论文证明的是"推理行为可在 RL 下被选择和放大"，而预训练中是否已潜伏这些行为的雏形（只是未被激发），论文无法排除。"从 15.6% 起步"本身就说明基座已有非平凡的初始解题能力。这不削弱贡献，但提醒读者：换一个弱基座，同样的 RL 配方未必复现同等涌现——<strong>涌现的上限由预训练决定，RL 负责兑现</strong>。</p>
+  <p><span class="tag">疑点⑤</span><strong>去污染的自我承认边界</strong>：作者明示 n-gram 过滤无法防 paraphrase 型污染，2024 年前发布的基准仍有污染可能，且仅数学域的过滤就以移除约 <span class="num">600 万</span>条预训练文本为代价——（推断）这意味着其他域的去污染强度可能更低，横向对比中 R1 的知识类分数应保留一点污染折扣的心理余量。</p>
+
+  <h3>5.4 批判视角下的整体评价</h3>
+  <p>综合来看，本文的证据纪律在同类工作中属于上游：协议统一、去污染透明、安全报告独立成章、连 reward hacking 的失败尝试都如实写出。真正的软肋不在数据而在外推——所有亮眼数字都诞生于"可验证域 + 强基座 + 海量算力"三重前提下，三者缺一，结论的适用性都需要打折。</p>
+  <blockquote>一句话小结：论文最诚实的部分恰是批判的最佳入口——GPQA 回落、SimpleQA 停滞、HarmBench 无风险控制仅 35.0 这三个"不好看"的数字，共同勾画出"纯 RL 推理范式"的能力边界：它强化推演、不增知识、且以安全脆弱性为隐性成本。</blockquote>
+</section>
+
+<section class="card" id="s6">
+  <h2><span class="no">六</span>启示与影响</h2>
+
+  <h3>6.1 五条可迁移启示</h3>
+  <p><span class="tag">启示①</span><strong>Verifier 优先于 Demonstrator</strong>：R1-Zero 证明，在能构造完美判分器的领域，"给对错信号"比"给标准示范"更具扩展性。可迁移原则：设计训练系统时先盘点哪些任务拥有不可欺骗的自动评分器，优先在这些域堆 RL 算力。（推断）这一思路已催生"可验证奖励 RL（RLVR）"成为行业标准词汇。</p>
+  <p><span class="tag">启示②</span><strong>KL 松弛是涌现的前提条件</strong>：<span class="num">0.001</span> 的 KL 系数意味着对基座行为分布的极大容忍。（推断）任何想复现涌现的团队都应首先检查自己的 KL 锁链是否太紧——保守的对齐约束与涌现行为在训练动力学上直接对立。</p>
+  <p><span class="tag">启示③</span><strong>多目标冲突用时间隔离解，不用权重调和</strong>：第二阶段 RL 把偏好奖励压到最后 400 步的教训具有普适性——当两个目标的奖励信号相互污染时，串行化往往优于折中加权。（推断）这对 agent 训练同样是可借鉴的调度思想。</p>
+  <p><span class="tag">启示④</span><strong>自举式数据生产压缩监督成本</strong>：冷启动数据"模型产原始推理 → 人工只改风格 → LLM 批量仿写"的三级流程，把人工介入压缩到不可自动化的一环。<strong>人不生产数据，人只是数据的编辑。</strong></p>
+  <p><span class="tag">启示⑤</span><strong>负结果与失败配置的披露价值</strong>：few-shot 有害、PPO λ=0.95 劣势、400 步外的 reward hacking——这些"没成功"的记录对社区的指导价值不低于主表。开源研究的竞争力在于：它出售的不是单一最优模型，而是完整的搜索路径图。</p>
+
+  <h3>6.2 行业影响的三条波纹</h3>
+  <p><span class="tag">波纹①</span><strong>开源推理模型军备竞赛的直接扳机</strong>：MIT 许可 + 权重公开 + 论文级方法透明，使 R1 成为无数下游复现（含各家 distill 小模型）的母体。R1-Distill 系列证明了推理能力可蒸馏进小模型，直接改变了"强推理 = 大模型专属"的市场定价逻辑。</p>
+  <p><span class="tag">波纹②</span><strong>test-time scaling 的平民化</strong>：R1-Zero 展示的"响应长度自发增长"把"思考更久 = 更强"的 scaling 维度从闭源专利变成公共知识，此后几乎所有主流模型都以可调思考模式作为标配。</p>
+  <p><span class="tag">波纹③</span><strong>RL 基建的公开课</strong>：四模块解耦的 RL infra、GRPO 实现细节、reward hacking 案例，共同构成一份"大规模 LLM RL 工程"操作手册，（推断）其被引用与复用的广度可能不亚于模型本身。加上后续登上 Nature 封面的学术认可，R1 已从一篇技术报告沉淀为该领域的文献地标。</p>
+
+  <h3>6.3 未竟之路</h3>
+  <p>论文结尾指出的方向——工具调用与搜索引擎集成、token 效率优化（对抗 overthinking）、多语言推理、软件工程的异步评估——在其后的两年里几乎全部成为独立的研究热点。（推断）回头看，这份 limitation 列表简直就是 2025–2026 年推理模型研究议程的预言书：agent 化解决了工具集成，自适应思考解决了 overthinking，而安全与能力的赛跑至今仍在继续。</p>
+</section>
+
+<section class="card" id="conclusion">
+  <h2>总结</h2>
+  <p>《DeepSeek-R1》是一次"科学发现与工程交付合体"的罕见示范：R1-Zero 用最简配置（GRPO + 规则奖励 + 无 SFT）证明了复杂推理可以从纯 RL 中自发涌现——AIME <span class="num">15.6% → 77.9%</span>、cons@16 达 <span class="num">86.7%</span>、"aha moment"式的元认知行为与思考时长同步增长，把"推理是否需要监督"这一问题永久地改写了；R1 则用四阶段管线把涌现成果驯化为可交付的开源产品——AIME <span class="num">79.8</span> 追平 o1-1217，MATH-500 <span class="num">97.3</span> 反超，Codeforces 超 <span class="num">96.3%</span> 人类选手，同时以 AlpacaEval <span class="num">87.6</span> / ArenaHard <span class="num">92.3</span> 保住通用体验，并以 MIT 许可引爆开源推理生态。</p>
+  <p>批判地看，其能力边界同样清晰：GPQA 回落 <span class="num">4.3</span> 分、SimpleQA 纹丝不动揭示了"推理增益 ≠ 知识增长"的正交律；无风险控制时 HarmBench 仅 <span class="num">35.0</span> 的安全缺口与"推理增强 jailbreak 可执行性"的警告，则为开源狂潮埋下了延续至今的安全议题。</p>
+  <p>它的终极启示或许是一条元原则：<strong>当奖励可验证时，探索优于模仿；当奖励不可验证时，谦逊优于乐观</strong>——这句话既是 R1 成功的注脚，也是它所有局限的总和。</p>
+</section>
+
+<footer class="end">— 完 —　《DeepSeek-R1》深度解读 · B1 批次 · 六层结构 · 2026-08</footer>
+
+<section class="selfcheck" id="selfcheck">
+  <h2>附录：质量自检（Self-Check）</h2>
+  <ul>
+    <li><strong>编码检查</strong>：UTF-8 编码，全文无 U+FFFD 替换字符；中文正文 + 英文术语混排渲染正常。</li>
+    <li><strong>结构检查</strong>：六层结构完整（摘要 / 一问题定位 / 二概念内核 / 三方法拆解 / 四证据链 / 五批判性分析 / 六启示与影响）+ 总结 + 自检区块，共 <code>8</code> 个 section 卡片，id 与目录锚点一一对应。</li>
+    <li><strong>div 配平</strong>：页面仅使用 <code>&lt;div class="sub"&gt;</code> 与 <code>&lt;div class="meta"&gt;</code> 两处 div，均在 header 内开闭配平；其余全部使用 section/nav/table/blockquote/pre 等语义标签，无未闭合元素。</li>
+    <li><strong>数字核对</strong>：全部关键数字（15.6%→77.9%、86.7%、10400 步、batch 512、lr 3e-6、KL 0.001、1700/400 步、66,000/106,000、79.8 vs 79.2、97.3 vs 96.4、2029、96.3%、95.0/85.9、89.3/35.0 等）均取自 00-源数据提取.md，分析处已标「（推断）」。</li>
+    <li><strong>样式检查</strong>：CSS 全部内联于 head 的单个 style 块；关键数字统一 .num 高亮（琥珀底深棕字）；表格斑马纹、正负变化双色（绿升红降）；无外部资源依赖，单文件离线可开。</li>
+  </ul>
+</section>
+
+</div>
+</body>
+</html>

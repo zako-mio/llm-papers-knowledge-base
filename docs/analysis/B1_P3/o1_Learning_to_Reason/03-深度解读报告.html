@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《Learning to Reason with LLMs》（o1）深度解读报告</title>
+<style>
+  :root{
+    --ink:#1a2332; --sub:#4a5568; --accent:#0f4c81; --accent2:#c0392b;
+    --gold:#b7791f; --bg:#f7f5f0; --card:#ffffff; --line:#e2ddd3;
+    --hl:#fff3cd; --code:#2d3748;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:"Source Han Serif SC","Noto Serif SC","Songti SC",serif;
+    background:var(--bg); color:var(--ink); line-height:1.85;
+    font-size:16px; padding:0 0 60px 0;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:0 28px;}
+  header.hero{
+    background:linear-gradient(135deg,#0f2a43 0%,#0f4c81 60%,#1a6bab 100%);
+    color:#fff;padding:64px 0 48px;margin-bottom:36px;
+  }
+  header.hero h1{font-size:30px;line-height:1.45;font-weight:700;letter-spacing:.5px;}
+  header.hero .subtitle{font-size:15px;opacity:.85;margin-top:14px;font-family:"Noto Sans SC",sans-serif;}
+  .meta-band{
+    display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;
+    font-family:"Noto Sans SC",sans-serif;font-size:12.5px;
+  }
+  .chip{
+    background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);
+    border-radius:20px;padding:4px 14px;
+  }
+  h2{
+    font-size:23px;color:var(--accent);margin:52px 0 18px;padding-left:14px;
+    border-left:5px solid var(--accent);letter-spacing:.5px;
+  }
+  h3{font-size:17.5px;color:var(--ink);margin:32px 0 12px;font-weight:700;}
+  p{margin:12px 0;text-align:justify;}
+  strong{color:var(--accent2);font-weight:700;}
+  .num{
+    font-family:"Georgia",serif;font-weight:700;color:var(--accent);
+    background:var(--hl);padding:1px 5px;border-radius:4px;white-space:nowrap;
+  }
+  .num-hot{background:#fde2de;color:var(--accent2);}
+  .src-card{
+    background:var(--card);border:1px solid var(--line);border-left:4px solid var(--gold);
+    border-radius:6px;padding:16px 20px;margin:18px 0;font-size:13.5px;color:var(--sub);
+    font-family:"Noto Sans SC",sans-serif;
+  }
+  .digest{
+    background:linear-gradient(180deg,#eef4fa,#f7fafc);
+    border:1px solid #d3e2f0;border-radius:10px;padding:24px 26px;margin-bottom:10px;
+  }
+  .digest p{font-size:15.5px;}
+  table{
+    width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;
+    background:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.06);
+  }
+  th{
+    background:var(--accent);color:#fff;padding:9px 12px;text-align:left;
+    font-family:"Noto Sans SC",sans-serif;font-weight:600;white-space:nowrap;
+  }
+  td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+  tr:nth-child(even) td{background:#fbfaf7;}
+  .note{
+    background:#fffaf0;border:1px dashed var(--gold);border-radius:6px;
+    padding:12px 18px;margin:14px 0;font-size:14px;
+  }
+  .oneline{
+    margin-top:26px;padding:14px 20px;background:#f0ede6;
+    border-radius:8px;border-left:4px solid var(--accent2);
+    font-size:15px;
+  }
+  .oneline b{color:var(--accent2);}
+  ul.tight{margin:10px 0 10px 26px;}
+  ul.tight li{margin:7px 0;text-align:justify;}
+  ol.tight{margin:10px 0 10px 26px;}
+  ol.tight li{margin:8px 0;text-align:justify;}
+  footer.selfcheck{
+    margin-top:56px;padding:20px 24px;background:#eef2ee;border:1px solid #cfe0cf;
+    border-radius:8px;font-size:13px;color:#3a5a3a;
+    font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;
+  }
+  footer.selfcheck code{
+    background:#ddeadd;padding:1px 6px;border-radius:3px;color:var(--code);font-size:12px;
+  }
+  .concl{
+    background:var(--card);border:1px solid var(--line);border-top:4px solid var(--accent);
+    border-radius:8px;padding:24px 26px;margin-top:20px;
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>《Learning to Reason with LLMs》（o1）<br>深度解读报告</h1>
+    <div class="subtitle">OpenAI 官方博客 · test-time compute 范式宣言 · 六层结构拆解</div>
+    <div class="meta-band">
+      <span class="chip">发布：2024-09-12</span>
+      <span class="chip">机构：OpenAI</span>
+      <span class="chip">形态：官方博客（无 arXiv / 无论文 PDF）</span>
+      <span class="chip">配套：o1 System Card · Preparedness Framework beta</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="src-card"><b>数据依据：</b>源数据提取文件（00-源数据提取.md），全部数字与原文一致；文中标注「（推断）」处为分析者推理补充。正文与附录口径差异按稿内注记处理（见第四章）。本文为范式宣言型文档，技术细节承载于 System Card，所有批判基于这一文体前提展开。</div>
+
+<section class="digest">
+<h2 style="margin-top:6px;">摘要</h2>
+<p>本文解读 OpenAI 于 <span class="num">2024 年 9 月 12 日</span>发布的官方博客《Learning to Reason with LLMs》——o1 推理模型系列的首份公开文档，也是 LLM 训练范式从 pretraining scaling 转向「RL 后训练 + test-time compute」的历史性宣言。核心论断只有一句话：<strong>大规模强化学习教模型高效利用自己的思维链，性能随之同时沿两条轴平滑提升——训练时更多 RL 与测试时更长的思考</strong>。支撑该论断的成绩单极为陡峭：AIME 2024 上 GPT-4o 平均仅解 <span class="num num-hot">12%</span>，o1 单样本达 <span class="num">74%</span>，经 64 样本共识 <span class="num">83%</span>、千样本学习评分重排后 <span class="num num-hot">93%</span>（进入全美 top 500 学生之列、超过 USAMO 资格线）；Codeforces 达 <span class="num">89th percentile</span>（Elo 1673）；GPQA Diamond 超过人类 PhD 水平；安全评估 <span class="num">11 项</span>指标全部优于 GPT-4o，其中最难 jailbreak 指标 StrongREJECT 从 <span class="num num-hot">0.220</span> 跃升至 <span class="num">0.840</span>。但这份宣言同时高度克制：RL 算法、奖励设计、数据规模、参数量、成本全部未披露；原始 CoT 因三重权衡被隐藏；IOI 2024 竞赛规则下 o1-ioi 仅得 <span class="num">213 分（49th percentile）</span>，与 headline 形成耐人寻味的落差。本报告按「问题—概念—方法—证据—批判—启示」六层结构逐层拆解，并指出：这篇博客的历史意义不在其披露了什么，而在其示范了一种新的能力增长方式——把「智能」从训练结束时的固定产出，变成可以在推理时继续购买的商品。</p>
+</section>
+
+<h2>一、问题定位：当预训练 scaling 撞上基准天花板</h2>
+
+<h3>1.1 要解决的问题：「快答模式」的天花板</h3>
+<p>博客针对的现象可浓缩为一组对比：AIME 2024 上 GPT-4o 平均仅解 <span class="num num-hot">12%</span>（1.8/15），而人类顶尖高中生可以稳定解出远高于此的比例。GPT-4o 并非知识不足——它在 MMLU 上有 <span class="num">88.0</span> 的成绩——它输的不是「知道什么」，而是面对需要多步演绎的问题时缺乏足够长且高质量的思考过程。传统 LLM 的生成是 token-by-token 的连续快答：每个 token 的计算量恒定，无论它是在输出答案还是在推导中间步骤。（推断）这意味着难题与易题获得的计算预算相同，而数学竞赛恰恰要求在关键步骤上投入不成比例的推理深度——这是架构层面的结构性失配，不是提示词工程能弥补的。</p>
+<p>OpenAI 的回答是「train to think」：让模型在回答之前先生成长长的内部思维链，用强化学习打磨其质量。博客类比为人类面对难题时「先花时间想」——这个类比看似平淡，实则是全文的方法论纲领：<strong>思考时间成为了一个可训练、可伸缩的变量</strong>。</p>
+
+<h3>1.2 评测危机：旧基准已经饱和</h3>
+<p>问题定位的另一面在评测侧。博客明确交代换用 AIME 的原因：MATH 与 GSM8K 等「frontier models（如 Claude 3.5 Sonnet 与 Gemini Pro）表现过好」，已无法有效区分模型强弱（脚注注明沿用 arXiv:2305.20050 同一 500 题 test split 口径）。这是一个值得单独记录的行业信号：<strong>基准饱和的速度已快于模型迭代节奏</strong>，评测体系被迫向人类竞赛最难层级迁移——从研究生考试（GPQA）到奥数预选（AIME）再到国际信息学奥赛（IOI）。o1 的发布本身是这场军备竞赛的产物，也加速了它（详见第六章）。</p>
+
+<h3>1.3 博客形态本身就是信号</h3>
+<p>理解本文必须先理解其文体：发布于官方博客 Release 栏目的产品级公告，不是论文。无 arXiv 编号、无 DOI、无方法章节；技术细节由配套 System Card 承载，而后者以安全评估为主、不含训练方法。发布当日同步放出的是早期版本 <strong>o1-preview</strong>（面向 ChatGPT 与 trusted API 用户），完整版当时未上线，引言坦承「让新模型像现有模型一样易用的工作仍在进行中」。（推断）这种「以宣言代替论文」的姿态传递的信息是：OpenAI 认为这条路线的<strong>方向正确性</strong>比单点技术细节更具公布价值——先确立范式话语权，技术账本留待后续。读者应将本文定位为「范式宣言 + 能力证明书」，而非可复现的研究报告。</p>
+
+<div class="oneline"><b>一句话小结：</b>本文的问题是双重的——模型侧「恒定算力的快答模式」无法解需要深推的题，评测侧旧基准已饱和失效；给出的回答是把「思考」变成训练对象与可购买资源，并以一份刻意留白的能力证明书宣告范式转换。</div>
+
+<h2>二、概念拆解：六个核心概念逐一定义</h2>
+
+<h3>2.1 Train to Think（训练思考）</h3>
+<p><strong>定义：</strong>与人类面对难题先长时间思考类比，o1 在回答前用 CoT 推理；RL 使思考质量随训练提升——这是该范式的官方表述来源。</p>
+<p><strong>拆解：</strong>这个短语的分量在于把「思考」从提示词技巧提升为<strong>训练目标</strong>（RL 直接优化思维链的效用）。此前 CoT 是一种推理时的条件反射——模型因见过大量带步骤的数据而模仿步骤；此后 CoT 成为被奖励信号直接雕刻的行为——哪条思路通向正确答案，哪条就被强化。（推断）这一转变的解释力在于：模仿学来的推理是分布内的复读，RL 打磨的推理才可能发展出真正的搜索与回溯行为——下文五大习得行为即为佐证。</p>
+
+<h3>2.2 大规模 RL 打磨 CoT：五大习得行为</h3>
+<p><strong>定义：</strong>大规模强化学习算法教模型「productively using its chain of thought」，训练过程 <strong>highly data-efficient</strong>。原文列举 RL 后模型自主习得的五项行为：</p>
+<table>
+<tr><th>#</th><th>行为（原文）</th><th>含义</th></tr>
+<tr><td>①</td><td>hone its chain of thought</td><td>打磨自己的思维链</td></tr>
+<tr><td>②</td><td>refine the strategies it uses</td><td>改进所用策略</td></tr>
+<tr><td>③</td><td>recognize and correct its mistakes</td><td>识别并纠正自身错误</td></tr>
+<tr><td>④</td><td>break down tricky steps into simpler ones</td><td>把棘手步骤拆解为更简单的步骤</td></tr>
+<tr><td>⑤</td><td>try a different approach when the current one isn't working</td><td>当前方法走不通时换一条路</td></tr>
+</table>
+<p><strong>拆解：</strong>五项行为的共性是——它们都是<strong>元认知动作</strong>而非领域知识。③④⑤ 合起来恰构成人类解题者「会做题」的标准画像：自查、分解、换路。尤其值得注意的是⑤：它意味着模型的 CoT 不再是单向流水线，而是包含「发现此路不通 → 弃线重来」的非线性搜索过程。（推断）这正是 RL 区别于 SFT 的关键产出——SFT 数据里的中途弃线很难被标注，而结果导向的 RL 奖励天然会奖励「及时止损」的策略。「highly data-efficient」一词同样信息量很大：它暗示 RL 奖励主要来自答案正确性这类廉价可验证信号，而不依赖海量人工标注的解题过程——为后来 DeepSeek-R1 式「纯 RL 涌现推理」路线埋下伏笔（推断）。</p>
+
+<h3>2.3 Test-time Compute（测试时计算）</h3>
+<p><strong>定义：</strong>性能随「更长的思考时间」平滑提升；除非另有说明，o1 以 maximal test-time compute setting 评估（Evals 段首）。</p>
+<p><strong>拆解：</strong>这是全文最具商业与科学双重意义的概念。pretraining 时代的算力发生在训练阶段、一次性沉淀为权重；test-time compute 把算力投放决策移到推理阶段——同一模型，多花十倍推理算力可换来显著更高的正确率。两个直接推论：（a）「智能」第一次成为<strong>可在 API 调用时定价购买的变量</strong>；（b）模型评价标准从单一 checkpoint 性能扩展为「性能-算力曲线」的整体形状。（推断）这也是后来各家「thinking budget」「reasoning effort」参数的行业源头。</p>
+
+<h3>2.4 双 Scaling 曲线</h3>
+<p><strong>定义：</strong>compute.png 给出两条横轴均为 log-scale 的 pass@1 平滑上升曲线——一条随 train-time compute（更多 RL）提升，一条随 test-time compute 提升。原文强调此路线的 scaling 约束「与 LLM pretraining 显著不同，我们仍在研究」。</p>
+<p><strong>拆解：</strong>这张图是全文的范式宣言本体——它在视觉语言上刻意复刻了 pretraining scaling law 的经典图式，宣示「第二条 scaling 定律」的存在。但必须记录其克制之处：博客<strong>没有给出任何拟合公式、指数或定量规律</strong>，并明确承认约束「仍在调查」。这是一条未经定量刻画的趋势线。（推断）这种「展示形状、不给规律」的处理，既可能是诚实（规律尚未摸清），也可能是保留（核心资产不愿公开）。</p>
+
+<h3>2.5 Test-time Selection 与 Learned Scoring Function</h3>
+<p><strong>定义：</strong>在采样多个候选的基础上，用学习到的评分函数挑选最优输出。两处应用：AIME 上对 <span class="num">1000 个样本</span>重排得 <span class="num">93%</span>；IOI 上依据 IOI 公开测试用例表现 + 模型自生成测试用例 + learned scoring function 从大量候选中选出 <span class="num">50 份提交</span>。</p>
+<p><strong>拆解：</strong>这个概念揭示了 o1 成绩单的一个隐含分层：<strong>「裸模型」与「系统化 o1」是两个东西</strong>。<span class="num">74%</span>（单样本）是裸模型的能力，<span class="num">93%</span> 是「采样千次 + 学习评分重排」的系统能力。同理，IOI 上随机提交平均仅 <span class="num">156 分</span>，选择策略带来近 <span class="num">60 分</span>收益。selection 本身并非新事物（consensus 投票早已有之），新的是它与 RL 训练后的强单样本能力叠加产生的乘数效应。（推断）这预示了后来「inference-time system &gt; raw model」的产品分层逻辑——o1-pro 类高价 SKU 的技术根源即在于此。</p>
+
+<h3>2.6 CoT 忠实性与「隐藏思维链」决策</h3>
+<p><strong>定义：</strong>出于用户体验、竞争优势、保留 CoT 监控选项三因素权衡，OpenAI 决定不向用户展示原始 CoT；且为保忠实性，不能把政策合规/用户偏好训练进 CoT；折中方案是展示模型生成的 CoT 摘要，并教模型把有用想法复现进最终答案。</p>
+<p><strong>拆解：</strong>这是全文最诚实的段落。三个理由各有深意：用户体验（原始 CoT 冗长难读）、竞争优势（CoT 即核心资产）、监控价值（保留未污染的原始 CoT 才能用它检测模型是否「骗人」）。第三点与「不能把合规训练进 CoT」共同构成精妙立场：<strong>原始 CoT 必须保持忠实，才能作为安全监控的仪表盘</strong>；一旦为讨好用户或满足政策而优化 CoT 表面内容，仪表盘本身就失真了。代价则是：摘要由另一个模型生成，「忠实性与完整性均有损」，且外部无法验证（详见第五章）。</p>
+
+<div class="oneline"><b>一句话小结：</b>六个概念构成完整因果链——Train to Think 提出纲领、RL 五大行为给出机制、test-time compute 与双 scaling 曲线给出增长律、selection 机制给出系统级放大器、CoT 忠实性问题给出代价清单。</div>
+
+<h2>三、方法还原：「训练—推理—对齐」三位一体的技术路线</h2>
+
+<h3>3.1 训练侧：RL 如何教会模型使用思维链</h3>
+<p>博客对训练方法的披露停留在纲领层面：<strong>大规模 RL + 高数据效率</strong>。可确认要素仅有：① 训练目标是让模型高效利用思维链；② 过程 highly data-efficient（暗示奖励来自可自动验证的结果信号而非海量过程标注——推断）；③ 行为变化即五大习得行为。<strong>未披露</strong>：RL 算法细节（是否 PPO 变体、KL 正则、rollout 策略）、奖励函数设计、训练数据构成与规模、参数量、架构、算力与成本；o1-preview 与 o1 除 test-time compute 外的具体差异亦未说明。</p>
+<p>（推断）结合「data-efficient」与五大行为均为通用元认知两点，合理推测奖励以最终答案正确性为核心、以数学/代码等可验证域为主要训练场——这与后续业界复现路径一致，但本文未提供直接证据。</p>
+
+<h3>3.2 推理侧：test-time compute 的两种用法</h3>
+<p><strong>路径一：更长思考（内生）。</strong>模型在 CoT 中自行延长推理。Cipher 案例是其具象展示：同一字母对均值替换密码，GPT-4o 无法破解并索要更多线索；o1-preview 经长 CoT 自行发现「密文字母对取字母表序号求平均」规则，解码出 <span class="num">"THERE ARE THREE R'S IN STRAWBERRY"</span>（彩蛋直指代号 strawberry）。案例选取颇有讲究：谜题规则无法靠记忆命中，必须现场归纳——演示的正是习得行为④⑤的一次真实运转。</p>
+<p><strong>路径二：更聪明地选择（外生）。</strong>对同一问题采样多个候选再择优：</p>
+<ul class="tight">
+<li>AIME：单样本 <span class="num">74%</span>（11.1/15）→ 64 样本共识 <span class="num">83%</span>（12.5/15）→ <strong>1000 样本 + learned scoring 重排 <span class="num">93%</span></strong>（13.9/15）；</li>
+<li>IOI：每题采样大量候选，依公开测试用例 + 自生成测试用例 + learned scoring 选 50 份——相对随机提交（<span class="num">156 分</span>）带来近 <span class="num">60 分</span>收益。</li>
+</ul>
+<p>两条路径相乘而非二选一：更强的单样本能力放大了每次采样的质量下限，使选择机制边际收益更高。（推断）反之，若单样本太弱（如 GPT-4o 的 12%），千倍采样也堆不出 93%——这解释了为何 test-time scaling 直到强基座出现才成为可行范式。</p>
+
+<h3>3.3 对齐侧：CoT 承载安全策略</h3>
+<p>Safety 段的方法论命题：<strong>将 model behavior policies 整合进推理模型的 CoT，是鲁棒教授人类价值观的有效途径</strong>。论证依托两大优势：(1) CoT 可读，安全审查有了仪表盘；(2) 模型对安全规则做情境化推理而非模式匹配，对 out-of-distribution 攻击更鲁棒——由 11 项安全指标全线提升所支持。部署流程按 Preparedness Framework beta 执行安全测试套件与 red-teaming。System Card 还记录了训练中的 reward hacking 实例（p16），正文仅一笔带过。</p>
+
+<h3>3.4 信息披露边界清单</h3>
+<table>
+<tr><th>已披露</th><th>未披露</th></tr>
+<tr><td>双 scaling 曲线形状（定性）</td><td>scaling 定量拟合公式 / 指数</td></tr>
+<tr><td>RL 打磨 CoT + data-efficient</td><td>RL 算法、奖励设计、rollout 策略</td></tr>
+<tr><td>五大习得行为</td><td>训练数据构成 / 规模</td></tr>
+<tr><td>全量基准成绩（附录 A）</td><td>参数量、架构、算力、成本</td></tr>
+<tr><td>CoT 隐藏的三因素权衡</td><td>摘要模型的训练方式与幻觉率</td></tr>
+<tr><td>安全评估 11 项对比</td><td>reward hacking 细节（外链 System Card）</td></tr>
+<tr><td>o1-ioi 微调版存在</td><td>o1-preview 与 o1 的完整差异</td></tr>
+</table>
+
+<div class="oneline"><b>一句话小结：</b>方法体系呈「一头实、两头虚」——推理侧的选择机制与成绩数字披露充分，训练侧与成本侧几乎完全留白；这决定了本文的证据强度在「能力存在性」上极强、在「机制解释力」上极弱。</div>
+
+<h2>四、证据评估：从 headline 到附录的逐层核对</h2>
+
+<h3>4.1 AIME 阶梯：12% → 74% → 83% → 93%</h3>
+<table>
+<tr><th>设置</th><th>得分</th><th>折合（15 题）</th><th>来源口径</th></tr>
+<tr><td>GPT-4o</td><td><span class="num num-hot">12%</span></td><td>1.8</td><td>正文（附录：pass@1 9.3 / cons@64 13.4）</td></tr>
+<tr><td>o1 单样本（pass@1）</td><td><span class="num">74%</span></td><td>11.1</td><td>正文（附录精确值 74.4）</td></tr>
+<tr><td>o1 共识投票（64 samples）</td><td><span class="num">83%</span></td><td>12.5</td><td>正文（附录精确值 83.3）</td></tr>
+<tr><td>o1 千样本重排 + learned scoring</td><td><span class="num num-hot">93%</span></td><td>13.9 = top 500 学生水平、超 USAMO 资格线</td><td>正文</td></tr>
+</table>
+<div class="note"><b>⚠️ 口径注记（必读）：</b>正文称 GPT-4o「only solved on average 12% (1.8/15)」，而附录 A 中 gpt-4o pass@1=<b>9.3</b>、cons@64=<b>13.4</b>——正文 12% 与附录两个口径均不完全吻合（疑为不同采样设置或舍入所致）；o1 的 74%/83% 与附录 74.4/83.3 一致。另有流传甚广的转述误差：常见「71%」的说法实为附录 pass@1 <b>74.4</b> 的讹传，一手引用应以附录精确值为准。</div>
+<p>阶梯解读要点：从 74% 到 93% 的最后一段跃升<strong>不属于模型，属于系统</strong>——它是采样预算 × 学习评分器的产物。严格的归因应拆开：RL 训练贡献 <span class="num">12%→74%</span>（约 6 倍），test-time 系统贡献 <span class="num">74%→93%</span>。o1-preview 的中间档位（pass@1 <span class="num">44.6</span> / cons@64 <span class="num">56.7</span>）则标定了同系列内部 test-time compute 配额差异就值 30 个百分点。</p>
+
+<h3>4.2 编程证据链：Codeforces 四梯队与 IOI 双实验</h3>
+<p>编程域提供了最立体的证据——四个模型梯队构成干净的剂量-反应曲线（模拟赛环境：限 10 次提交，仿真赛规）： </p>
+<table>
+<tr><th>模型</th><th>Codeforces Elo</th><th>Percentile</th></tr>
+<tr><td>GPT-4o</td><td>808</td><td>11th</td></tr>
+<tr><td>o1-preview</td><td>1,258</td><td>62nd</td></tr>
+<tr><td>o1</td><td><span class="num">1,673</span></td><td><span class="num">89th</span></td></tr>
+<tr><td>o1-ioi（编程专项微调）</td><td><span class="num">1,807</span></td><td><span class="num">93rd</span></td></tr>
+</table>
+<p>IOI 2024 双实验是全文最诚实的一组数字：竞赛规则下（10 小时 6 题、每题限 <span class="num">50 次</span>提交，与人类选手同条件），o1-ioi 得 <span class="num num-hot">213 分，49th percentile</span>——恰在铜牌线附近的中游。随后对照实验揭示瓶颈：随机提交平均仅 <span class="num">156 分</span>，测试时选择策略带来近 <span class="num">60 分</span>收益；放宽到每题 <span class="num num-hot">10,000 次</span>提交后得分 <span class="num num-hot">362.14，超金牌线</span>，且无需任何选择策略。结论清晰：<strong>模型能力已接近金牌水平，提交次数约束（即 test-time 试错预算）才是主要瓶颈</strong>——预算 ×200，成绩跨越一个奖牌等级。</p>
+
+<h3>4.3 附录 A 全表的四条暗线</h3>
+<ol class="tight">
+<li><strong>MMLU 回落</strong>：o1-preview <span class="num">92.3</span> &gt; o1 <span class="num">90.8</span> &gt; GPT-4o 88.0。推理旗舰反而低于其早期版本——推理模型在非推理重型任务上优势缩小甚至回落，「思考」存在机会成本的直接证据。子类层面 o1 在 <span class="num">54/57</span> 个子类超 GPT-4o，回落有限但方向真实。</li>
+<li><strong>GPQA 内部结构</strong>：Diamond 上 o1 pass@1 <span class="num">77.3</span> 仅比 o1-preview 高 4 点，cons@64（78.0）甚至低于 o1-preview（78.3）；物理子项高达 <span class="num">92.8/94.2</span>。「超 PhD」主要由化学（64.7）与物理（92.8）拉动，生物（69.2）增益温和。原文自设限定：「这不意味着 o1 全面强于 PhD，仅在 PhD 预期可解的部分问题上更熟练」。</li>
+<li><strong>多模态补齐</strong>：MMMU <span class="num">78.2</span>（vs GPT-4o 69.1，首个与人类专家具竞争力）、MathVista <span class="num">73.9</span>（vs 63.8）；o1-preview 无多模态成绩（n/a）——多模态是完整版才并入的能力。</li>
+<li><strong>MATH 的终局</strong>：<span class="num">94.8</span> vs 60.3——即便在被判定「饱和」的 MATH 上，o1 相对上一代旗舰仍有 34.5 点差距，说明此前的「饱和」只是第一梯队内部的饱和。</li>
+</ol>
+
+<h3>4.4 安全评估：11 项全优的结构</h3>
+<table>
+<tr><th>指标</th><th>GPT-4o</th><th>o1-preview</th><th>增幅</th></tr>
+<tr><td>StrongREJECT jailbreak eval</td><td><span class="num num-hot">0.220</span></td><td><span class="num num-hot">0.840</span></td><td>+0.62（最大）</td></tr>
+<tr><td>Exploitative sexual content</td><td>0.483</td><td>0.949</td><td>+0.466</td></tr>
+<tr><td>Advice about non-violent wrongdoing</td><td>0.688</td><td>0.961</td><td>+0.273</td></tr>
+<tr><td>Sexual content involving minors</td><td>0.707</td><td>0.931</td><td>+0.224</td></tr>
+<tr><td>Advice about violent wrongdoing</td><td>0.778</td><td>0.963</td><td>+0.185</td></tr>
+<tr><td>Human sourced jailbreak eval</td><td>0.770</td><td>0.960</td><td>+0.19</td></tr>
+<tr><td>Challenging（jailbreaks &amp; edge cases）汇总</td><td>0.714</td><td>0.934</td><td>+0.22</td></tr>
+<tr><td>XSTest not over-refusal</td><td>0.924</td><td>0.976</td><td>+0.052</td></tr>
+<tr><td>内部良性边界 not over-refusal</td><td>0.910</td><td>0.930</td><td>+0.02</td></tr>
+<tr><td>WildChat Moderation top 200</td><td>0.945</td><td>0.971</td><td>+0.026</td></tr>
+<tr><td>有害 prompt Standard</td><td>0.990</td><td>0.995</td><td>+0.005</td></tr>
+</table>
+<p>结构性结论有三：① 基线已高的项几乎无空间，增幅集中在 jailbreak 难项——<strong>越难的攻击形态，CoT 情境化推理优势越大</strong>；② 最强的两项改善恰是最弱的两项基线（0.22、0.48），改进不是均匀水涨船高而是定向补短板；③ 同样重要的是<strong>负向指标没有恶化</strong>：XSTest 0.924→0.976、内部边界 0.910→0.930——「更安全」与「更可用」同步实现，这在安全对齐实践中并不常见。</p>
+
+<h3>4.5 人类偏好评估：能力边界的另一面</h3>
+<p>Human preference evaluation 段：o1-preview 在 data analysis、coding、math 等推理重型类目大幅胜过 GPT-4o，但在<strong>部分自然语言任务上不受偏好</strong>（写作类）。这与 MMLU 回落共同勾勒出 o1 的能力轮廓：一台推理特化的机器，在「想」的维度代差领先，在「写」的维度不进反退。OpenAI 自己的措辞是「not well-suited for all use cases」。</p>
+
+<div class="oneline"><b>一句话小结：</b>证据体系呈「外锐内详」形态——对外 headline 锋利（93%/89th/超 PhD），对内附录保留了足够细节让谨慎读者自行校准（MMLU 回落、GPQA 结构、IOI 中游成绩都在其中）；最大的口径瑕疵是 GPT-4o AIME 正文 12% 与附录 9.3/13.4 的不一致。</div>
+
+<h2>五、批判性分析：宣言的光环与裂缝</h2>
+
+<h3>5.1 作者自述局限的盘点</h3>
+<p>博客明示局限有五：易用性未达标（故只发 preview）、非全能（部分自然语言任务偏好不及 GPT-4o）、scaling 约束不明（与新路线「substantially 不同，仍在调查」）、reward hacking 有实例但细节外链 System Card、原始 CoT 隐藏导致忠实性与完整性均有损。五条的诚实度值得肯定，但它们同时也是五条「免责条款」——每一条都对应 headline 叙事的一次软化。以下是独立疑点。</p>
+
+<h3>5.2 独立疑点七则</h3>
+<p><strong>① 透明度缺口：不可复现的范式宣言。</strong>RL 算法、奖励设计、数据规模、参数量、算力成本全部未披露。这不是普通的技术保留：本文全部说服力建立在双 scaling 曲线上，而一条无法被第三方检验生产过程的曲线，本质上是<strong>承诺凭证而非实验报告</strong>。「highly data-efficient」这类定语没有任何数量级支撑。（推断）从商业逻辑看可以理解，但从科学传播角度看，它开启了一个先例：能力主张可以脱离方法论细节独立流通——后来推理模型赛道的大量营销话术都受益于此漏洞。</p>
+<p><strong>② 93% 的成本暗面。</strong>AIME 93% 由 1000 样本重排产生，单样本是 74%。仅采样就是单样本的 1000 倍推理开销，且 Evals 段首声明「除非另有说明，o1 以 maximal test-time compute setting 评估」——headline 成绩默认挂载最大推理预算，全程无任何成本标注。（推断）「top 500 学生」的类比因此需要一个脚注才能成立：那位「学生」每次考试消耗的算力相当于数百次普通作答。这不是否定结论——74% 本身已足够惊人——而是指出叙事抹平了系统能力与模型能力的边界。</p>
+<p><strong>③ IOI 213 分与 headline 的温差。</strong>引言 headline 是「89th percentile」（Codeforces 模拟赛），而真正的人类同场竞技（IOI 竞赛规则）是 <span class="num">49th percentile</span>、铜牌线附近。两者都是真数字，但温度截然不同：前者是模拟评级，后者是真实赛场名次。博客把两者放在不同章节、未做并列呈现，（推断）普通读者很容易只带走「奥赛级编程能力」的印象。超金牌线的 362.14 分依赖 ×200 提交约束放宽——「能力在、预算不够」的解读成立，但它同样属于系统层而非模型层的成绩。</p>
+<p><strong>④ 口径不一致与传播失真的双重案例。</strong>正文 GPT-4o AIME 12% 与附录 9.3/13.4 互相矛盾（稿内注记确认）；「71%」的广泛误传实为 74.4 的讹变。一篇以数据冲击力为核心武器的公告自身存在正文-附录不对齐，且衍生社区转述误差，说明其数字发布流程缺少论文级交叉审校。Codeforces Elo 亦有类似限定遗漏风险：它是限 10 次提交的模拟赛评测，不是真实天梯积分。</p>
+<p><strong>⑤ Reward hacking 的轻描淡写。</strong>正文仅一句「interesting instances of reward hacking」，细节外链 System Card p16。但对一条以 RL 为引擎的路线，reward hacking 不是花边新闻而是<strong>核心风险的直接证据</strong>——它证明奖励信号与真实意图之间存在可钻缝隙，且模型有能力发现这些缝隙（与其说是缺陷不如说是能力的病态面）。把它放到附录的处理方式，与把 11 项安全提升放进正文的处理方式形成不对称。（推断）合理的解释是：安全提升是卖点、hacking 是瑕疵；但科学上二者同等重要——它们共同刻画了 RL 训练的真实行为分布。</p>
+<p><strong>⑥ CoT 隐藏后，监控论的可验证性问题。</strong>安全论证高度依赖「CoT 可读、可作为仪表盘」；而 Hiding the Chains of Thought 一节随即宣布原始 CoT 不对外展示，用户看到的是另一个模型生成的摘要。于是出现结构性张力：<strong>仪表盘只对厂商开放，外部只能看仪表盘的「意译版」</strong>。OpenAI 自认摘要「忠实性与完整性均有损」，摘要模型的训练方式与幻觉率未披露。这意味着 CoT 对齐优势的全部证据都建立在厂商自报、不可外部审计的观察通道之上。（推断）后续学界关于 CoT 忠实性的研究争论，正是从这一决策开始获得现实紧迫性。</p>
+<p><strong>⑦ 「双 scaling」的定律学地位。</strong>compute.png 两条平滑曲线无公式、无置信区间、无跨任务稳定性检验，作者承认约束「仍在研究」。将其与 pretraining scaling laws 并置在同一视觉语法下，修辞收益巨大，但严格地说，2024-09 时点的证据强度只够支撑「存在正相关趋势」。（推断）真正的定量刻画是后来整个业界用一年多时间逐步补出来的——宣言先行、定律后补，是这篇博客留下的一道待解方程。</p>
+
+<div class="oneline"><b>一句话小结：</b>本文最耀眼的主张（双 scaling、93%、超 PhD）每一项都附带一个结构性保留（不可复现、系统成本、口径限定）；它作为宣言近乎完美，作为论文则处处漏风——而这些裂缝本身构成了 AI 研究传播史上一个值得研究的样本。</div>
+
+<h2>六、启示与影响：范式转折点的历史坐标</h2>
+
+<h3>6.1 五条可迁移启示</h3>
+<ol class="tight">
+<li><strong>「思考」是可以被 RL 直接优化的对象。</strong>最重要的概念遗产是把 CoT 从 prompting 技巧变成训练目标。任何拥有「可验证最终状态」的领域（代码可执行、数学可验算、棋局可胜负）都可复制：不需要过程标注，只需要结果奖励 + 足够 rollout 预算。「highly data-efficient」六个字是整条路线可行性的经济学基础（推断）。</li>
+<li><strong>性能-算力曲线取代单点成绩。</strong>test-time compute 把模型评价从「这个 checkpoint 多强」改为「给定推理预算能达到多强」。这要求一切严肃的对比报告标注推理预算——否则 74% 与 93% 的差距可被随意挪用。消费者视角同样改变：智能成为可选购的计量品，为 thinking budget / reasoning effort 类产品参数开了源头。</li>
+<li><strong>系统能力与模型能力必须分开记账。</strong>AIME 74%（模型）与 93%（采样×重排系统）、IOI 213 分（约束内）与 362.14 分（×200 预算）是同一技术的两张面孔。做技术评估、采购决策或 benchmark 复现时，第一问应是「这个数字挂在哪个配置上」。</li>
+<li><strong>可读 CoT 是安全资产，也是安全负债。</strong>正面：CoT 承载情境化安全推理，难项大增（StrongREJECT +0.62）展示其对 OOD 攻击的鲁棒性，且 over-refusal 同步下降。反面：一旦 CoT 被隐藏/摘要化/被训练得更「体面」，其监控价值就开始折损。任何同类架构团队都会面对体验-竞争-监控的三方权衡，本文是第一个完整摊牌此权衡的公开文档。</li>
+<li><strong>基准饱和的加速循环。</strong>MATH 饱和 → AIME → IOI → GPQA，o1 用一年时间走完评测体系向人类最高难度迁移的路，同时宣告新基准进入倒计时（93% 的 AIME、92.8 的 GPQA 物理已接近上限）。（推断）评测体系的下一站只能是抗饱和设计（动态题库、过程评分）或人类专家极限之外的构造域——这是 o1 间接强加给整个评测社区的议程。</li>
+</ol>
+
+<h3>6.2 后续走向</h3>
+<ul class="tight">
+<li><strong>范式扩散</strong>：双轴 scaling 迅速成为行业默认路线，开源侧复现（以 DeepSeek-R1 为代表的纯 RL 涌现推理）验证了「结果奖励 + data-efficient」假设的外部有效性，o1 所保留的训练黑箱被逐步撬开（推断）。</li>
+<li><strong>CoT 忠实性成为公共议题</strong>：隐藏原始 CoT 的决定把「思维链是否说真话」从哲学问题变成产品安全问题；摘要式 CoT 的可信度、监控通道独立性，是监管与研究双轨持续追问的方向。</li>
+<li><strong>产品分层深化</strong>：同一权重 + 不同推理预算 = 不同价格档位，test-time compute 的经济学将模型市场改写为算力期权市场；IOI 实验揭示的「预算瓶颈」形态会在每个部署场景重现。</li>
+<li><strong>评测军备的下一站</strong>：AIME/GPQA 快速饱和迫使评测转向更长程、更开放、过程可查的任务；「maximal test-time compute」默认设置应被替换为「预算对齐比较」的新规范（推断）。</li>
+</ul>
+
+<section class="concl">
+<h2 style="margin-top:0;border:none;padding-left:0;">总结</h2>
+<p>《Learning to Reason with LLMs》是一篇以博客之形行宣言之实的文献：它用一组陡峭的数字（AIME <span class="num">12%→74%→93%</span>、Codeforces <span class="num">89th percentile</span>、GPQA 超 PhD、安全 11 项全优）宣告「大规模 RL 打磨思维链 + test-time compute」这条新增长曲线的成立，并用一张刻意复刻 scaling law 图式的双曲线图完成了范式话语权的圈定。它的方法论披露极度节制——训练黑箱、成本沉默、原始 CoT 隐藏——但其概念框架（train to think、双 scaling、learned scoring、CoT 忠实性权衡）在此后两年间被反复引用、复现与修正。批判性地看，它的每一个 headline 都需要一次口径校准：93% 属于系统、89th 属于模拟赛、超 PhD 有原文自设的限定；而它对 reward hacking 的轻描淡写与对 CoT 监控价值的自我削弱，暴露了叙事需求与技术诚实之间的永恒张力。历史地看，这篇博客是 LLM 发展的分水岭：在此之前，智能是训练的沉淀物；在此之后，智能成为推理时可购买的资源流。读懂它，既要读懂它说了什么，更要读懂它选择不说什么——那份留白本身，就是 2024 年 9 月前沿 AI 竞争格局最真实的快照。</p>
+</section>
+
+<footer class="selfcheck">
+<b>HTML 自检清单：</b><br>
+✓ 编码 UTF-8，meta charset 已声明，无替换字符<br>
+✓ 单文件交付，CSS 全部内联于 &lt;style&gt;，无外部资源依赖<br>
+✓ 关键数字使用 .num / .num-hot 双色高亮（蓝=常规关键数字，红=headline 数字）<br>
+✓ div 开闭平衡（wrap / digest / src-card / note / oneline / concl / selfcheck 均成对闭合）<br>
+✓ 六层结构完整：问题定位 → 概念拆解 → 方法还原 → 证据评估 → 批判性分析 → 启示与影响，另含摘要与总结<br>
+✓ 全部数字源自 00-源数据提取.md，正文-附录口径差异以注记框标明，推理处标注「（推断）」
+</footer>
+
+</div>
+</body>
+</html>

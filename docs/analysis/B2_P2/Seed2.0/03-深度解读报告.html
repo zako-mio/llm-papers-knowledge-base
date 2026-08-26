@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seed2.0 Model Card 深度解读报告</title>
+<style>
+  :root{
+    --ink:#1a2332; --muted:#5b6b7f; --line:#dde4ec; --bg:#f7f9fb;
+    --accent:#0f62fe; --accent-soft:#e8f0fe; --gold:#b7791f; --gold-soft:#fdf3e3;
+    --warn:#c0392b; --warn-soft:#fdeeec; --green:#1e7d43; --green-soft:#e9f6ee;
+    --card:#ffffff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Source Han Serif SC","Noto Serif SC","Songti SC",Georgia,"Times New Roman",serif;
+    background:var(--bg); color:var(--ink); line-height:1.85; font-size:16px;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:48px 28px 80px}
+  header.hero{
+    border-bottom:3px solid var(--ink); padding-bottom:28px; margin-bottom:34px;
+  }
+  .hero .kicker{
+    font-family:"Noto Sans SC",sans-serif; font-size:.78rem; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--accent); margin-bottom:10px;
+  }
+  h1{font-size:1.9rem;line-height:1.4;font-weight:700;margin-bottom:14px}
+  .hero .meta{
+    font-family:"Noto Sans SC",sans-serif;font-size:.85rem;color:var(--muted);
+    display:flex;flex-wrap:wrap;gap:8px 18px;
+  }
+  nav.toc{
+    background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:18px 24px;margin-bottom:38px;
+    font-family:"Noto Sans SC",sans-serif;font-size:.88rem;
+  }
+  nav.toc b{display:block;color:var(--muted);font-weight:600;letter-spacing:.15em;font-size:.75rem;margin-bottom:8px}
+  nav.toc ol{list-style:none;display:flex;flex-wrap:wrap;gap:6px 22px}
+  nav.toc a{color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent)}
+  main section{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:30px 34px;margin-bottom:30px;
+  }
+  h2{
+    font-size:1.32rem;font-weight:700;margin-bottom:20px;padding-left:14px;
+    border-left:5px solid var(--accent);line-height:1.5;
+  }
+  h3{font-family:"Noto Sans SC",sans-serif;font-size:1rem;font-weight:700;margin:22px 0 10px;color:#0d3a8c}
+  p{margin-bottom:14px;text-align:justify}
+  ul.plain,ol.steps{margin:0 0 16px 22px}
+  ul.plain li,ol.steps li{margin-bottom:8px;text-align:justify}
+  table{
+    width:100%;border-collapse:collapse;margin:14px 0 20px;
+    font-family:"Noto Sans SC",sans-serif;font-size:.86rem;
+  }
+  th{background:var(--accent-soft);color:#0d3a8c;font-weight:600;text-align:left}
+  th,td{padding:8px 12px;border:1px solid var(--line);vertical-align:top}
+  tbody tr:nth-child(even){background:#fafbfd}
+  td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+  span.num{
+    font-family:"JetBrains Mono","SFMono-Regular",Consolas,monospace;
+    font-weight:700;color:var(--accent);
+    padding:0 3px;border-radius:4px;background:var(--accent-soft);
+    font-size:.92em;white-space:nowrap;
+  }
+  span.neg{color:var(--warn);background:var(--warn-soft)}
+  span.best{color:var(--green);background:var(--green-soft)}
+  span.gold-tag{color:var(--gold);background:var(--gold-soft)}
+  blockquote{
+    border-left:4px solid var(--gold);background:var(--gold-soft);
+    padding:14px 18px;margin:0 0 22px;border-radius:0 8px 8px 0;
+    font-size:.92rem;color:#5a4632;
+  }
+  blockquote p{margin-bottom:6px}
+  .callout{
+    border:1px dashed var(--accent);background:var(--accent-soft);
+    border-radius:10px;padding:14px 18px;margin:16px 0;
+    font-family:"Noto Sans SC",sans-serif;font-size:.88rem;
+  }
+  .infer{color:var(--muted);}
+  .infer::before{content:"（推断）";font-weight:700;color:var(--gold);font-size:.85em;}
+  footer.check{
+    margin-top:44px;border-top:2px solid var(--ink);padding-top:22px;
+    font-family:"Noto Sans SC",sans-serif;font-size:.8rem;color:var(--muted);
+  }
+  footer.check h4{color:var(--ink);font-size:.85rem;margin-bottom:8px;letter-spacing:.1em}
+  footer.check ul{list-style:none;margin-left:0}
+  footer.check li::before{content:"✓ ";color:var(--green);font-weight:700}
+  @media print{
+    body{background:#fff} main section{border:none;padding:0;break-inside:avoid-page}
+    nav.toc{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">LLM 关键节点论文全集 · B2_P2 · Seed2.0 · 深度解读报告（03）</div>
+  <h1>Seed2.0 Model Card：以"真实世界复杂性"为标尺的前沿模型全景自述</h1>
+  <div class="meta">
+    <span>来源：arXiv:2607.00248v1 [cs.AI]</span>
+    <span>机构：ByteDance Seed</span>
+    <span>发布：2026-06-30</span>
+    <span>体裁：Model Card（87 页，评测为主）</span>
+    <span>数据依据：同目录《00-源数据提取.md》，数字唯一出处；推理性内容以<span class="infer"></span>标记</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <b>目录 CONTENTS</b>
+  <ol>
+    <li><a href="#s1">一、问题定位</a></li>
+    <li><a href="#s2">二、概念内核</a></li>
+    <li><a href="#s3">三、方法拆解</a></li>
+    <li><a href="#s4">四、证据链</a></li>
+    <li><a href="#s5">五、批判性分析</a></li>
+    <li><a href="#s6">六、启示与影响</a></li>
+    <li><a href="#s7">附录：关键数字速查</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<section id="abs">
+  <h2>摘要</h2>
+  <blockquote>
+    <p>Seed2.0 是字节跳动 Seed 团队发布的前沿大模型家族（Pro / Lite / Mini 三档），其 Model Card 以 <span class="num">87</span> 页篇幅完成了一次"以评测代架构"的能力自述。核心叙事有三条：</p>
+    <p><b>其一，价格锚定</b>——Pro 版 API 定价 <span class="num">$0.47/$2.37</span>（输入/输出每 M tokens），约为 GPT-5.2 High（<span class="neg num">$1.75/$14.00</span>）与 Claude-Opus-4.5（<span class="neg num">$5/$25</span>）的 <span class="num">1/4–1/10</span>，以数量级价差换取部署规模；<b>其二，能力选点</b>——在奥赛数学（IMO 2025 <span class="best num">35/42 金牌</span>）、长尾知识（Encyclo-K <span class="best num">65.7 最高</span>）、agentic 搜索与研究（BrowseComp-zh <span class="best num">82.4</span>、HLE-Verified <span class="best num">73.6</span> 均最高）、视觉/视频理解上全面冲顶，同时罕见地量化自认短板（SWE-Evo 仅 <span class="neg num">8.5</span> 对 Claude 的 <span class="num">27.1</span>、MRCR v2 <span class="neg num">54.0</span> 对 GPT 的 <span class="num">89.4</span>）；<b>其三，方法论自觉</b>——竞品分数取官方与自测最大值、自研长尾基准、Model-on-Model 自动诊断管线。</p>
+    <p>该文档的价值不在单项刷榜，而在于展示了前沿竞争从"单点能力"转向"定价 × 长尾知识 × agent 生态 × 自我诊断"的多维权衡结构。（约 300 字）</p>
+  </blockquote>
+</section>
+
+<section id="s1">
+  <h2>一、问题定位</h2>
+  <h3>1.1 这份文档在回答什么问题</h3>
+  <p>Seed2.0 Model Card 回答的不是"这个模型怎么造出来的"，而是三个更贴近产业的问题：</p>
+  <ol class="steps">
+    <li><b>它值多少钱、能干什么</b>——通过 API 定价对比（Table 1）与四维评估框架（§3）给出采购决策所需的全部硬数字；</li>
+    <li><b>它在真实世界中被如何使用</b>——§2 首次将 MaaS 部署数据写入 Model Card：互联网行业流量绝对主导，非结构化信息处理为最大场景，agentic coding 查询中前端开发与 bug fix 显著主导，Vue.js 采用率为 React 三倍以上（反映中国大陆生态）；</li>
+    <li><b>它差在哪里</b>——§1 开篇即自认与 Claude（编码）、Gemini（长尾知识）的差距，§4 用表格量化每一项短板。</li>
+  </ol>
+  <h3>1.2 在同类文档谱系中的位置</h3>
+  <p><b>评测占比极端放大</b>：<span class="num">87</span> 页中 Results 与 Use Cases 占据 p8–46 近四十页，方法论（§3）再占 4 页，传统技术报告中的架构章节完全缺席。这既是商业保密的选择，也暗示作者的自信来自"可验证的外部行为"而非内部设计。<span class="infer"></span></p>
+  <p><b>诊断闭环</b>：§5.5 的 Model-on-Model 行为诊断管线让模型成为同级模型的"考官"，产出 code-switching、重复 CoT 模式等结构化行为发现——就本知识库收录范围而言属首次出现的自动化自我审视机制。<span class="infer"></span></p>
+  <h3>1.3 目标读者</h3>
+  <p>文档同时面向企业采购方（定价表 + ToB 场景基准）、开发者社区（agentic coding 分布 + 用例细节）、研究同行（基准设计 + 公平化协议）。三线并行导致体量膨胀至 <span class="num">87</span> 页，但也使它成为一份罕见的"全息"模型档案。</p>
+</section>
+
+<section id="s2">
+  <h2>二、概念内核</h2>
+  <h3>2.1 四维评估框架：把"智能前沿"操作化</h3>
+  <p>标题中的 "Intelligence Frontier for Real-World Complexity" 被操作化为四个高级任务维度（§3.4）：</p>
+  <table>
+    <thead><tr><th>维度</th><th>基准载体</th><th>考察内核</th></tr></thead>
+    <tbody>
+      <tr><td>Scientific Discovery</td><td>AInstein Bench（科学编码）、BABE（生物多模态推理）</td><td>从假设到实验设计的科学推理链</td></tr>
+      <tr><td>Vibe Coding</td><td>NL2Repo-Bench</td><td>从自然语言规格端到端构建整个仓库，考跨文件一致性与依赖管理</td></tr>
+      <tr><td>Context Learning</td><td>CL-Bench / KOR-Bench / DeR2（噪声长文档抽取利用）+ 内部客服 Q&amp;A 与复杂工作流</td><td>长上下文中知识的定位、抗噪与利用</td></tr>
+      <tr><td>Real-World Tasks</td><td>GDPVal-Verified（rubric 自动评分）、XpertBench、WorldTravel（多步规划）</td><td>开放世界任务的可评分执行</td></tr>
+    </tbody>
+  </table>
+  <p>四个维度的共同点：<b>都不再是"单轮问答"</b>，而是要求模型在多步、跨文件、含噪声的真实约束下维持一致性——对标题承诺的直接兑现。</p>
+  <h3>2.2 长尾专业知识：自研基准的三重设计</h3>
+  <ul class="plain">
+    <li><b>LPFQA</b>：专业论坛真实问题——覆盖真实提问分布；</li>
+    <li><b>Encyclo-K</b>：书籍级原子知识语句动态组合——支持 zero/few-shot ICL 探测训练前后知识内化程度，即区分"背下来的知识"与"泛化的知识"；</li>
+    <li><b>HLE-Verified</b>：领域专家复核原 HLE 中模糊/错误题目后的可靠子集——对既有权威基准做质量修正。</li>
+  </ul>
+  <p>三者分别解决"分布真实性""内化深度""标注可靠性"三个经典基准失效模式。Encyclo-K 上 Seed2.0 取得 <span class="best num">65.7 最高</span>，HLE-Verified <span class="best num">73.6 最高</span>——自研基准上的胜利需结合第五节口径分析解读。</p>
+  <h3>2.3 价格—能力平面上的卡位逻辑</h3>
+  <table>
+    <thead><tr><th>模型</th><th class="n">输入 $/M</th><th class="n">输出 $/M</th></tr></thead>
+    <tbody>
+      <tr><td><b>Seed2.0 Pro</b></td><td class="n"><span class="best num">0.47</span></td><td class="n"><span class="best num">2.37</span></td></tr>
+      <tr><td>GPT-5.2 High</td><td class="n"><span class="num">1.75</span></td><td class="n"><span class="num">14.00</span></td></tr>
+      <tr><td>Claude-Opus-4.5</td><td class="n"><span class="num">5</span></td><td class="n"><span class="num">25</span></td></tr>
+    </tbody>
+  </table>
+  <p>输出侧价差达 <span class="num">5.9×–10.5×</span>，输入侧 <span class="num">3.7×–10.6×</span>，与文中 "roughly an order of magnitude lower" 主张一致。配合 Mini 档 decode <span class="num">&lt;$0.50/M</span> tokens 的定位，Seed2.0 家族在"价格—能力平面"上选择<b>右下方强攻</b>：接受部分能力维度的非顶尖，换取单位智能成本的数量级优势。<span class="infer"></span>这一卡位与其 MaaS 流量中互联网行业主导、成本敏感型场景占大的观察互为因果。</p>
+  <h3>2.4 家族分工</h3>
+  <ul class="plain">
+    <li><b>Pro</b>：复杂推理与长上下文旗舰；</li>
+    <li><b>Lite</b>：均衡档，小模型梯队多数基准居首或次席（SpreadsheetBench <span class="num">82.3</span>、BrowseComp <span class="num">72.1</span>、WorldTravel TEXT <span class="num">24.0</span>）；</li>
+    <li><b>Mini</b>：decode <span class="num">&lt;$0.50/M</span> tokens，主打高吞吐低成本大规模部署。</li>
+  </ul>
+</section>
+
+<section id="s3">
+  <h2>三、方法拆解</h2>
+  <blockquote><p>Model Card 未披露架构/参数量/训练配方，方法学内容集中在<b>评测方法与工具增强</b>两层。</p></blockquote>
+  <h3>3.1 评测公平化协议（§3.3）</h3>
+  <p>全文方法论密度最高的段落，包含四道工序：</p>
+  <ol class="steps">
+    <li><b>竞品分数取最大值</b>：官方报告与自己复测二者取大，避免"挑弱配置对比"的指控；</li>
+    <li><b>测试脚本重构</b>：预建镜像、修复退化环境、内网镜像源——消除环境性失败；</li>
+    <li><b>质量过滤</b>：剔除不可复现用例（多容器 Compose、参考解不过自身验证、非确定性行为、异常磁盘/网络依赖）；</li>
+    <li><b>透明剔除声明</b>：Terminal-Bench 2.0 因网络限制剔除 <span class="num">3</span> 题，脚注标明 Terminus2 脚手架。</li>
+  </ol>
+  <div class="callout">脚注同时披露部分竞品官方分数与对齐设置复测差异巨大（如 BrowseComp 上 Claude-Sonnet-4.5 官方 <span class="num">43.9</span> vs 复测 <span class="neg num">29.5</span>）——说明"官方数字"本身已不可全信，双口径保留是必要的诚实。</div>
+  <h3>3.2 工具增强推理</h3>
+  <ul class="plain">
+    <li><b>Thinking with Tracking</b>（§4.3）：提示模型显式输出逐帧边界框再判定运动类型，对 Gemini 与 Seed 均有效——TOMATO 从 <span class="num">59.9</span> 提升至 <span class="num best">65.3</span>（人类 <span class="num">95.2</span>）。提示工程即可迁移的通用增益技巧。</li>
+    <li><b>VideoCut</b>：指定起止时间戳以 <span class="num">1–5 FPS</span> 重采样回放片段捕获高帧率细节，家族默认启用。效果：ZeroVideo <span class="num">14.5 → 27.9</span>（对照：Seed1.8 用工具 <span class="num">18.8</span>、Gemini-3-Pro <span class="num">14.3</span>）；LVBench <span class="num">76.4 → 80.0</span>。</li>
+    <li><b>形式定理证明配置</b>：Putnam-200 采用 Pass@8 并允许 Lean/Python/search 工具，得 <span class="best num">35.5 最高</span>（Gemini-3-Pro <span class="num">26.5</span>、Seed1.5-Prover <span class="num">26.5</span>）——工具组合策略本身即能力的一部分。</li>
+  </ul>
+  <h3>3.3 Model-on-Model 自动诊断管线（§5.5）</h3>
+  <p>三层架构：<b>数据处理层</b>（指标 + token 用量/格式合规/轮次/emoji 频率/best-of-N 统计 + 实例级轨迹）→ <b>场景自适应分析工作流层</b> → <b>报告合成层</b>。用 LLM 分析同级模型在异构基准上的评测产物，产出三类发现：弱点清单、策略权衡、行为问题（code-switching、重复 CoT 模式）。实质是将"人工红队 + 用户反馈"的传统诊断替换为可规模化的自动审计。<span class="infer"></span>统计特征的选择（emoji 频率、best-of-N）暗示其对齐调优阶段的行为监控需求。</p>
+  <h3>3.4 部署行为反哺研发（§2）</h3>
+  <p>将 MaaS 使用分布写进 Model Card 本身是一种方法：前端开发与 bug fix 主导、Vue.js 三倍于 React 的查询结构，为"优先改进什么"提供流量加权依据——这也解释了为什么中文复杂指令跟随基准（<span class="num">912</span> 例 <span class="num">17</span> 维）会单独强调 tone（<span class="best num">+15.16</span>）、phrasing（<span class="num">+10.31</span>）、few-shot（<span class="num">+9.53</span>）这些生产体验维度。</p>
+</section>
+
+<section id="s4">
+  <h2>四、证据链</h2>
+  <h3>4.1 语言与推理：第一梯队，数学最尖</h3>
+  <table>
+    <thead><tr><th>类别</th><th>成绩</th><th>对照/备注</th></tr></thead>
+    <tbody>
+      <tr><td>IMO 2025</td><td><span class="gold-tag num">35/42 金牌</span>（P1–P5 满分各 7）</td><td>Table 2</td></tr>
+      <tr><td>CMO 2025</td><td><span class="gold-tag num">114/126 金牌</span></td><td>Table 2</td></tr>
+      <tr><td>AIME2025 / AIME2026</td><td><span class="num">98.3</span> / <span class="num">94.2</span></td><td>Table 3</td></tr>
+      <tr><td>BeyondAIME / IMOAnswerBench(no tool)</td><td><span class="best num">86.5 最高</span> / <span class="best num">89.3 最高</span></td><td>Table 3</td></tr>
+      <tr><td>Codeforces Elo（no tool）</td><td><span class="num">3020</span></td><td>GPT-5.2 为 <span class="num">3148</span></td></tr>
+      <tr><td>Putnam-200（Pass@8 + 工具）</td><td><span class="best num">35.5 最高</span></td><td>Gemini-3-Pro <span class="num">26.5</span></td></tr>
+      <tr><td>Encyclo-K / HealthBench-Hard</td><td><span class="best num">65.7 最高</span> / <span class="best num">29.1 最高</span></td><td>长尾知识域</td></tr>
+      <tr><td>中文指令跟随（912 例 17 维）</td><td><span class="num">75.26%</span>（较 Seed1.8 <span class="num">+2.37%</span>）</td><td>内部基准，Table 7</td></tr>
+    </tbody>
+  </table>
+  <p>奥赛 + Codeforces + Putnam 构成"竞赛难度三角"，覆盖自然语言解题、速度场竞技与形式化证明三种推理范式。</p>
+  <h3>4.2 视觉与视频：密集 SOTA 带</h3>
+  <p><b>图像九大类</b>（Table 8）：MathVision <span class="num">88.8</span>、MathKangaroo <span class="num">90.5</span>、MathVista <span class="num">89.8</span> 并列第一、MathCanvas <span class="num">61.9</span>；感知类 VLMsAreBlind <span class="num">98.6</span>、VLMsAreBiased <span class="num">77.4</span>；空间理解 DA-2K <span class="num">92.3</span>、RefSpatialBench <span class="num">72.6</span>、BLINK <span class="num">79.5</span>、FSC-147 MAE <span class="num">11.3 最优</span>；文档类 OmniDocBench1.5 NED <span class="best num">0.099 最优</span>（越低越好）、DUDE <span class="num">72.4</span>、MMLongBench <span class="num">74.8</span>。另有 LogicVista <span class="num">81.9</span>、ZeroBench main/sub <span class="num">12.0/47.6</span>、VisuLogic <span class="num">47.4</span>。相对 Seed1.8 的跃升示例：HiPhO <span class="num">+15.8</span>、ArcAGI2-Image 从 <span class="num">1.3</span> 到 <span class="num">43.3</span>。</p>
+  <p><b>视频三域</b>（Table 9–10）：推理域 VideoReasonBench <span class="num">77.8</span>、CrossVid <span class="best num">60.3 新 SOTA</span>；运动感知 MotionBench <span class="num">75.2</span>、EgoTempo <span class="num">71.8</span>、ContPhy <span class="num">67.4</span>、TVBench <span class="num">75.0</span> 多为 SOTA；流式 OVBench <span class="num">69.2</span>、LiveSports-3K <span class="num">78.0</span>、OVOBench <span class="num">77.0</span>、ODVBench <span class="num">72.5</span> 全面领先；综合 VideoMME <span class="num">89.5</span>。残余差距：ViSpeak <span class="neg num">78.5</span> 对 Gemini <span class="num">89.0</span>，VideoMMMU/MMVU 略逊。</p>
+  <h3>4.3 Agentic：搜索与研究最强，编码一线而非顶尖</h3>
+  <p><b>最强域</b>（Table 11）：BrowseComp-zh <span class="best num">82.4 最高</span>、HLE-text <span class="num">54.2 最高</span>、DeepSearchQA <span class="num">77.4 最高</span>、τ²-Bench retail <span class="best num">90.4 最高</span>、DeepConsult <span class="num">61.1</span> / DeepResearchBench <span class="num">53.3</span> / ResearchRubrics <span class="num">50.7</span> 均最高；视觉 agent 大幅领先——Minedojo-Verified <span class="best num">49.0</span>（其余所有模型 ≤<span class="num">23.3</span>）、MM-BrowseComp <span class="best num">48.8</span>（其余 ≤<span class="num">26.3</span>）。结构化工件：SpreadsheetBench Verified <span class="num">79.1 最高</span>、XPert Bench <span class="best num">64.5 最高</span>（较第二名 GPT-5.2 的 <span class="num">53.3</span> 高出 <span class="num">11.2</span>）。</p>
+  <p><b>编码 agent 一线但非顶尖</b>：Terminal-Bench 2.0 得 <span class="neg num">55.8</span> 对 GPT-5.2 的 <span class="num">62.4</span>；SWE-Evo 仅 <span class="neg num">8.5</span> 对 Claude-Opus-4.5 的 <span class="num">27.1</span>（约 3 倍差距），作者明示为优先改进方向。</p>
+  <p><b>竞赛编程交叉验证</b>：ICPC 2025 五场官方赛题（World Finals Baku + 西安/成都/武汉/上海区域赛）Pass@8 = <span class="best num">73.02%</span>，五场全部达金牌水平，高于 GPT-5.2 的 <span class="num">65.08%</span> 与 Gemini-3-Pro 的 <span class="num">63.49%</span>（Fig.7）。</p>
+  <h3>4.4 高级任务与用例：定性证据补足定量</h3>
+  <ul class="plain">
+    <li>科学发现：AInstein <span class="best num">47.7 最高</span>；ToB 场景（客服问答/信息抽取/意图识别/K12）多项最高印证生产优化方向；</li>
+    <li><b>FEAL 密码分析</b>（§5.1.1）：采用 meet-in-the-middle 攻击而非暴力枚举，且解法异于基准参考实现——证明非记忆性；</li>
+    <li><b>DVC 跨版本升级</b>（§5.1.4）：<span class="num">79</span> turns 仅凭 release notes 完成 SWE-EVO 跨版本升级，以测试套件为验收 oracle；</li>
+    <li><b>GUI 操作</b>（§5.2）：FreeCAD/CapCut 展示状态跟踪与 UI 出错自恢复；</li>
+    <li><b>科研辅助</b>（§5.3）：GROMACS 分子动力学参数化；Golgi 亚细胞多组学实验方案被评审为"超出典型 PhD 学生水平"，同时被指出 Giantin 标记选择欠妥——正面负面并存的最诚实一笔。</li>
+  </ul>
+  <h3>4.5 短板证据链（自认部分）</h3>
+  <table>
+    <thead><tr><th>短板</th><th class="n">Seed2.0</th><th>对照</th></tr></thead>
+    <tbody>
+      <tr><td>仓库级生成 SWE-Evo</td><td class="n"><span class="neg num">8.5</span></td><td>Claude-Opus-4.5 <span class="num">27.1</span></td></tr>
+      <tr><td>NL2Repo-Bench</td><td class="n"><span class="neg num">27.9</span>（Pass@1 仅 <span class="neg num">3.0</span>）</td><td>GPT-5.2 <span class="num">49.3</span></td></tr>
+      <tr><td>MRCR v2 (8-needle)</td><td class="n"><span class="neg num">54.0</span></td><td>GPT <span class="num">89.4</span></td></tr>
+      <tr><td>Graphwalks BFS</td><td class="n"><span class="neg num">68.9</span></td><td>GPT <span class="num">98.0</span></td></tr>
+      <tr><td>FactScore（幻觉抑制）</td><td class="n"><span class="neg num">71.2</span></td><td>约 <span class="num">92</span></td></tr>
+      <tr><td>SimpleQA-Verified</td><td class="n"><span class="neg num">36.0</span></td><td>Opus <span class="num">48.6</span></td></tr>
+      <tr><td>SuperGPQA</td><td class="n"><span class="neg num">68.7</span></td><td>Gemini-3-Pro <span class="num">73.8</span></td></tr>
+      <tr><td>DeR2（噪声抽取）</td><td class="n"><span class="neg num">58.2</span></td><td>GPT <span class="num">69.0</span></td></tr>
+      <tr><td>WorldTravel VLM</td><td class="n"><span class="neg num">12.0</span></td><td>GPT <span class="num">19.3</span></td></tr>
+      <tr><td>TOMATO 运动感知</td><td class="n"><span class="neg num">59.9</span>（tracking 后 <span class="num">65.3</span>）</td><td>人类 <span class="num">95.2</span></td></tr>
+    </tbody>
+  </table>
+  <p>短板呈<b>聚类结构</b>：仓库级生成、检索型长上下文、长尾事实召回三项集中在"精确信息管理"象限，与搜索/研究 agent 的强势形成互补镜像。<span class="infer"></span>这可能反映训练资源向推理链与工具调用倾斜的机会成本。</p>
+</section>
+
+<section id="s5">
+  <h2>五、批判性分析</h2>
+  <h3>5.1 评测口径的自利风险</h3>
+  <p>尽管 §3.3 的公平化协议设计精良，仍有三处结构性偏向需要警惕：</p>
+  <ol class="steps">
+    <li><b>竞品取双口径最大值</b>是对自己最有利的保守主义——它防止了低估对手，同时意味着所有"最高"头衔都是在对手最强口径下取得的，这一点反而增强了可信度；真正的风险在反向：自家模型没有对应的独立第三方复测。</li>
+    <li><b>内部基准占比高</b>：Encyclo-K、HLE-Verified、DeepSearchQA、ToB 系列、WorldTravel 等均为自研或自修基准，直接服务"长尾知识领先"的核心主张。虽然 HLE-Verified 是对公开基准的质量修正（方向正当），但"自命题 + 自答卷"的组合仍需外部复现检验。</li>
+    <li><b>Terminal-Bench 2.0 剔除 3 题</b>且换用自家 agent 框架（Terminus2 脚手架仅以脚注说明）——剔除理由合理，但剔除 + 换架叠加后横向可比性边界变模糊。</li>
+  </ol>
+  <h3>5.2 双口径差异本身就是行业级发现</h3>
+  <p>BrowseComp 上 Claude-Sonnet-4.5 官方 <span class="num">43.9</span> vs 复测 <span class="neg num">29.5</span>（差 <span class="num">14.4</span> 分）值得单独强调：前沿模型的 agent 能力测评结果<b>高度依赖脚手架与环境设置</b>，任何未注明设置的横向比较都不可靠。把这一点写进正文，客观上为行业树立了"分数必须携带环境元数据"的规范诉求。</p>
+  <h3>5.3 "对用户体验影响有限"的辩词未经检验</h3>
+  <p>面对检索型长上下文的明显落后（MRCR v2 <span class="num">54.0</span> vs <span class="num">89.4</span>），作者辩称此类能力"对真实用户体验影响有限"。这是未经外部验证的判断，且文档未给出用户侧留存/满意度证据；鉴于 Context Learning 本身位列四维评估框架之一，此辩词与自身框架存在轻微张力。</p>
+  <h3>5.4 用例证据的选择性</h3>
+  <p>GUI 与科研用例均为精选个案，无成功率统计——FEAL、DVC、Golgi 的精彩表现无法外推为基础率。相比之下，ICPC 五场 <span class="num">73.02%</span> 的全量统计说服力强得多。读者应保持"亮点 ≠ 均值"的警惕。</p>
+  <h3>5.5 不披露的代价与收益</h3>
+  <p>零架构披露使本文档无法支撑任何关于"为什么强/为什么弱"的机理解释（例如搜索 agent 强是否源于检索语料的数据飞轮），一切机理讨论只能停留在外部行为层面。这是 Model Card 体裁的天花板，也是商业竞争下的理性选择。</p>
+</section>
+
+<section id="s6">
+  <h2>六、启示与影响</h2>
+  <h3>6.1 对模型评测行业的启示</h3>
+  <ul class="plain">
+    <li><b>双口径记录应成标配</b>：竞品分数同时保留官方与复测值，暴露了当前 leaderboard 文化的脆弱基础；</li>
+    <li><b>基准质量修正运动</b>：HLE-Verified 证明"专家复核旧基准"是可行的基准治理路径，比无限造新基准更能保护历史可比性；</li>
+    <li><b>部署数据入卡</b>：§2 将真实流量分布写进 Model Card，为"哪些能力值得优化"提供需求侧锚点，值得后续 model card 模板吸收。</li>
+  </ul>
+  <h3>6.2 对竞争格局的影响</h3>
+  <ul class="plain">
+    <li><b>价格战升级为"单位智能成本"战</b>：输出 token 单价 <span class="num">1/4–1/10</span> 的差距，配合 Lite/Mini 完整低价梯队，将竞争焦点从榜单名次转向"每美元可得推理量"；<span class="infer"></span>这将迫使竞品在下一轮定价中作出反应。</li>
+    <li><b>差异化而非全面碾压</b>：在 agentic 搜索/研究、视觉/视频、数学竞赛三个可展示域建立压倒性优势，同时公开承认编码生成与长上下文检索的劣势——"扬长认短"叙事若被市场接受，将改变"全能旗舰"的单一线性竞争叙事。</li>
+    <li><b>中国大陆生态信号</b>：Vue.js 三倍于 React 的查询分布，首次在顶级模型文档中量化了中国开发者生态与国际主流叙事的差异。</li>
+  </ul>
+  <h3>6.3 对使用者的实操建议</h3>
+  <ol class="steps">
+    <li><b>成本敏感的长文处理</b>：视频理解、文档解析（OmniDocBench NED <span class="best num">0.099 最优</span>）、深度研究报告类任务可优先选用 Pro 档，性价比优势明确；</li>
+    <li><b>仓库级代码生成慎用</b>：SWE-Evo <span class="num">8.5</span> / NL2Repo Pass@1 <span class="num">3.0</span> 表明端到端仓库构建仍应首选 Claude/GPT 系，直至 Seed 系列补课完成；</li>
+    <li><b>长上下文检索类应用需自测</b>：MRCR/Graphwalks 的落后意味着"大海捞针"类 RAG 应用不能默认达标，建议按自身负载复测；</li>
+    <li><b>借力 Thinking with Tracking / VideoCut</b>：逐帧边界框显式输出与时间戳重采样回放两项技巧已被验证可迁移（对 Gemini 同样有效），可直接纳入自有 agent 提示工程工具箱。</li>
+  </ol>
+  <h3>6.4 对本知识库的意义</h3>
+  <p>Seed2.0 Model Card 是"评测驱动型"前沿文档的代表样本：与技术报告（Gemini_2.5、Llama_3 等）形成体裁对照，与 Seed1.8、Seed-OSS 构成同门演进序列。其评测公平化协议、长尾基准三层设计、Model-on-Model 诊断管线三项方法论资产，可作为后续所有模型评测类论文的分析模板。</p>
+</section>
+
+<section id="s7">
+  <h2>附录：关键数字速查</h2>
+  <table>
+    <thead><tr><th>类别</th><th>数字</th></tr></thead>
+    <tbody>
+      <tr><td>定价（Pro）</td><td><span class="best num">$0.47/$2.37</span> per M tokens（vs GPT-5.2 <span class="num">$1.75/$14.00</span>，Opus-4.5 <span class="num">$5/$25</span>）</td></tr>
+      <tr><td>IMO 2025</td><td><span class="gold-tag num">35/42 金牌</span>（P1–P5 全满分）</td></tr>
+      <tr><td>ICPC 2025 五场</td><td>Pass@8 <span class="best num">73.02%</span>（GPT-5.2 <span class="num">65.08</span>，Gemini-3-Pro <span class="num">63.49</span>）</td></tr>
+      <tr><td>Codeforces Elo</td><td><span class="num">3020</span>（no tool；GPT-5.2 为 <span class="num">3148</span>）</td></tr>
+      <tr><td>BrowseComp-zh / HLE-Verified</td><td><span class="best num">82.4</span> / <span class="best num">73.6</span> 均 最高</td></tr>
+      <tr><td>视觉 agent</td><td>Minedojo-Verified <span class="best num">49.0</span>（其余 ≤<span class="num">23.3</span>）</td></tr>
+      <tr><td>最大短板</td><td>SWE-Evo <span class="neg num">8.5</span> vs Claude <span class="num">27.1</span>；MRCR v2 <span class="neg num">54.0</span> vs GPT <span class="num">89.4</span></td></tr>
+      <tr><td>TOMATO</td><td><span class="num">59.9→65.3</span>（tracking 增强）vs 人类 <span class="num">95.2</span></td></tr>
+    </tbody>
+  </table>
+  <div class="callout"><b>标注约定</b>：本报告未加标记的全部数字均直接引自《00-源数据提取.md》§3/§5/§6；带金色「（推断）」前缀的句子为基于源数据的分析性延伸，不代表原文观点；竞品分数按原文双口径（官方/复测）保留。</div>
+</section>
+
+<footer class="check">
+  <h4>自检清单 SELF-CHECK</h4>
+  <ul>
+    <li>UTF-8 编码，无替换字符（U+FFFD）</li>
+    <li>单文件 HTML，CSS 全部内联于 &lt;style&gt;</li>
+    <li>div 开闭配平（wrap/main/section/callout 均成对闭合）</li>
+    <li>关键数字以 span.num / span.best / span.neg / span.gold-tag 高亮</li>
+    <li>全部数字仅出自 00-源数据提取.md；推理性内容带「（推断）」标记</li>
+    <li>竞品分数双口径保留（如 BrowseComp Sonnet 43.9 官方 / 29.5 复测）</li>
+    <li>六章结构完整：问题定位 / 概念内核 / 方法拆解 / 证据链 / 批判性分析 / 启示与影响</li>
+  </ul>
+  <p style="margin-top:10px">0825-LLM关键节点论文全集 · analysis/B2_P2/Seed2.0/03-深度解读报告.html · 生成日期 2026-08-26</p>
+</footer>
+
+</main>
+</div>
+</body>
+</html>

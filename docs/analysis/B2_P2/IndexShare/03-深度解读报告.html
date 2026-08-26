@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IndexCache 深度解读：跨层索引复用加速稀疏注意力</title>
+<style>
+:root{--ink:#1a2332;--sub:#4a5568;--accent:#0b6e99;--accent2:#c2571a;--bg:#f7f8fa;--card:#fff;--line:#dde3ea;--soft:#eef4f8;--num-bg:#fff3e0;--num-ink:#b34700;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Source Han Serif SC","Noto Serif SC","Songti SC",serif;background:var(--bg);color:var(--ink);line-height:1.85;font-size:16.5px;}
+.wrap{max-width:920px;margin:0 auto;padding:48px 28px 80px;}
+header.hero{background:linear-gradient(135deg,#0b3954 0%,#0b6e99 60%,#1287bf 100%);color:#fff;border-radius:14px;padding:44px 40px;margin-bottom:36px;box-shadow:0 6px 24px rgba(11,57,84,.22);}
+header.hero .kicker{font-family:sans-serif;font-size:.78rem;letter-spacing:.22em;text-transform:uppercase;opacity:.82;margin-bottom:12px;}
+header.hero h1{font-size:2rem;line-height:1.35;font-weight:700;}
+header.hero .meta{margin-top:18px;font-size:.88rem;opacity:.92;font-family:"PingFang SC",sans-serif;}
+header.hero .meta span{display:inline-block;margin-right:18px;}
+main section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:34px 38px;margin-bottom:26px;box-shadow:0 1px 4px rgba(26,35,50,.05);}
+h2{font-size:1.32rem;color:var(--accent);margin-bottom:18px;padding-left:14px;border-left:5px solid var(--accent);}
+h3{font-size:1.06rem;margin:24px 0 10px;}
+p{margin-bottom:12px;text-align:justify;}
+span.num{background:var(--num-bg);color:var(--num-ink);font-family:Consolas,monospace;font-size:.93em;padding:1px 6px;border-radius:5px;font-weight:600;white-space:nowrap;}
+.infer::before{content:"（推断）";font-weight:600;color:#8a6d3b;}
+ul,ol{padding-left:1.6em;margin-bottom:12px;}
+li{margin-bottom:6px;text-align:justify;}
+table{width:100%;border-collapse:collapse;margin:16px 0 20px;font-size:.92rem;font-family:"PingFang SC",sans-serif;}
+th{background:var(--soft);color:var(--accent);text-align:left;padding:9px 12px;border:1px solid var(--line);}
+td{padding:8px 12px;border:1px solid var(--line);vertical-align:top;}
+tr:nth-child(even) td{background:#fbfcfe;}
+.notebox{background:var(--soft);border-left:4px solid var(--accent);padding:14px 18px;border-radius:0 8px 8px 0;margin:14px 0 18px;font-size:.94rem;}
+.pattern{font-family:Consolas,monospace;background:#12233a;color:#7fd4a8;padding:10px 14px;border-radius:8px;font-size:.86rem;letter-spacing:.08em;display:block;margin:10px 0 16px;word-break:break-all;line-height:1.7;}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:18px 0 22px;}
+.kpi{background:linear-gradient(160deg,#fdfefe,#f1f6fa);border:1px solid var(--line);border-radius:10px;padding:16px 18px;text-align:center;}
+.kpi .v{font-family:Consolas,monospace;font-size:1.5rem;font-weight:700;color:var(--accent2);}
+.kpi .l{font-size:.83rem;color:var(--sub);margin-top:4px;font-family:"PingFang SC",sans-serif;}
+footer{text-align:center;color:var(--sub);font-size:.82rem;margin-top:30px;font-family:"PingFang SC",sans-serif;}
+@media(max-width:640px){body{font-size:15.5px;}main section{padding:24px 20px;}header.hero{padding:32px 24px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">LLM 关键节点论文解读 · B2_P2 · IndexShare</div>
+  <h1>IndexCache：用跨层索引复用，砍掉 DSA 的「隐形账单」四分之三</h1>
+  <div class="meta"><span>arXiv:2603.12201v1</span><span>2026-03-12</span><span>清华大学 × Z.ai</span><span>高效推理 / 稀疏注意力</span></div>
+</header>
+
+<main>
+
+<section id="abstract">
+<h2>摘要</h2>
+<p>DeepSeek Sparse Attention（DSA）以轻量 lightning indexer 为全部前文打分选 top-k（k=<span class="num">2048</span>），把核心注意力从 O(L²) 压到 O(Lk)，但 indexer 自身需在每层独立运行、总成本 O(NL)，长上下文 prefill 中占比随长度急剧上升。作者实测发现相邻层 top-k 索引重叠率高达 <span class="num">70–100%</span> 且呈块状结构——逐层重算索引大量冗余。据此提出 IndexCache：将层划分为保留 indexer 的 F 层与复用前置缓存索引的 S 层。训练无关路线以贪心搜索决定 F/S 分布，移除 <span class="num">75%</span> indexer 计算时质量几乎无损；训练感知路线引入多层蒸馏，使均匀模式即可反超基线（Long Avg <span class="num">51.6</span> vs <span class="num">51.0</span>）。系统收益：30B 模型 200K prefill 最高 <span class="num">1.82×</span>（19.5s→10.7s），单请求 decode 吞吐 <span class="num">1.48×</span>；生产级 GLM-5 上 1/2 保留性能持平、端到端约 <span class="num">1.2×</span> 加速。<span class="infer">该工作把「索引计算」本身变成可优化对象，是 DSA 生态中低成本、即插即用的推理加速节点。</span></p>
+</section>
+
+<section id="problem">
+<h2>一、问题定位：稀疏注意力的残余瓶颈</h2>
+<h3>1.1 DSA 的收益与账单</h3>
+<p>DSA 用 lightning indexer（多头 ReLU 门控点积 + FP8 + 低秩，每 FLOP 成本比 MLA 低一个量级）为全部前文打分并选 top-k，将核心注意力由 O(L²) 降至 O(Lk)。但 indexer 需在<strong>每一层独立运行</strong>，对全部前文打分的总成本为 O(NL)；profiling 显示其在 prefill 中占比随上下文长度<strong>急剧上升</strong>。<span class="infer">当上下文足够长时，「选 token」本身会成为新瓶颈，稀疏化的收益被索引计算部分吃掉。</span></p>
+<h3>1.2 关键观察：索引跨层高度冗余</h3>
+<p>论文出发点是一条直接测量结论（Abstract; Appendix A）：47 层 30B 模型、200K 校准集（768 样本）上所有层对的 top-k 重叠率 |T⁽ⁱ⁾∩T⁽ʲ⁾|/k 显示<strong>相邻层重叠达 70–100%</strong>，呈块状聚类——相邻各层「各自算一遍」得到的入选 token 几乎相同。</p>
+<h3>1.3 问题形式化</h3>
+<p>由此问题被精确定义：在不显著损伤质量的前提下，让一部分层不再自跑 indexer、直接复用最近保留层的缓存索引——以及，<strong>哪些层可以安全掏空、哪些必须保留？</strong><span class="infer">这是典型的结构化剪枝问题，但剪枝对象不是权重，而是推理时的计算步骤。</span></p>
+<div class="kpi-grid">
+  <div class="kpi"><div class="v">70–100%</div><div class="l">相邻层 top-k 重叠率</div></div>
+  <div class="kpi"><div class="v">75%</div><div class="l">可移除的 indexer 计算</div></div>
+  <div class="kpi"><div class="v">19.5s→10.7s</div><div class="l">200K prefill（1.82×）</div></div>
+  <div class="kpi"><div class="v">58→86 tok/s</div><div class="l">单请求 decode 吞吐（1.48×）</div></div>
+</div>
+</section>
+
+<section id="concept">
+<h2>二、概念内核：F/S 划分与两次概念跃迁</h2>
+<h3>2.1 F/S 层划分与索引缓存</h3>
+<p>N 层划分为 F（Full，保留自己的 indexer 并写缓存）与 S（Shared，不跑 indexer、直接读最近前置 F 层缓存：T←T_f(ℓ)，f(ℓ)=max{j&lt;ℓ:c=F}）。推理循环只增加一个条件分支；缓存是覆盖式临时张量，<strong>无额外显存开销</strong>；首层恒为 F。<span class="infer">设计不触碰注意力主体与 KV cache，只动 indexer 调度，与现有 DSA 推理栈天然兼容。</span></p>
+<h3>2.2 跃迁一：从「保留多少」到「保留哪些」</h3>
+<p>训练无关实验揭示反直觉结论：<strong>均匀交错次优</strong>。uniform 在 1/2、1/4 保留率使 Long Avg 从 50.2 掉至 <span class="num">47.4</span>（−2.8）与 <span class="num">43.0</span>（−7.2），而贪心搜索恢复至 <span class="num">50.3</span>/<span class="num">49.9</span>，与原 DSA 持平——网络早期/过渡区某些层对 indexer 移除远比其他层敏感，<strong>保留哪些比保留多少更关键</strong>。</p>
+<h3>2.3 跃迁二：训练可消解敏感性</h3>
+<p>经多层蒸馏训练后模型主动适应共享，uniform 即追平并超过搜索模式（Long Avg <span class="num">51.6</span> vs <span class="num">50.6</span>），层特异性敏感性完全消失。<span class="infer">「哪些层关键」是权重的性质而非架构必然；重训可以把这种脆弱性训练掉。</span></p>
+<h3>2.4 与相邻概念的辨析</h3>
+<ul>
+<li><strong>≠ KV cache 复用</strong>：KV cache 缓存键值对，IndexCache 缓存的是 top-k 索引集合，作用于不同组件；</li>
+<li><strong>≠ 层剪枝</strong>：S 层注意力主体完整运行，只是不自算索引；</li>
+<li><strong>≠ 权重共享</strong>：无参数绑定，仅复用一次前向中的中间产物。</li>
+</ul>
+</section>
+<section id="method">
+<h2>三、方法拆解：两条路线</h2>
+<h3>3.1 Training-Free：贪心层选择（Algorithm 1）</h3>
+<ul>
+<li><strong>为何均匀次优</strong>：重叠度热力图显示模型组织为功能块（层 3–5、6–8、17–30、31–36），块内选择高度一致；跨界处重叠骤降，少数「过渡层」大幅转移注意力焦点；早晚层关注根本不同的 token 子集（热力图角落重叠 ≤<span class="num">0.4</span>）。均匀交错无视了这种结构。</li>
+<li><strong>贪心算法</strong>：从全 F 出发，每步试探将某 F 层翻转为 S，取校准集 LM loss 最小者提交，共 K 步（如 K=3N/4 对应保留 1/4）；流水线并行下按 P 个 stage 分块可将前向次数减少约 P×。</li>
+<li><strong>经验规律</strong>：loss 曲线区分「easy 层」（前 20 步即移除）与「critical 层」（35 步后才动）；结果对校准集稳定。</li>
+<li><strong>搜得模式</strong>（GLM-4.7-Flash 30B、保留 1/4，Appendix B）：F 层非周期分布且<strong>前段密后段疏</strong>——深层更可共享：</li>
+</ul>
+<pre class="pattern">FSFSFSSSSFSSSFSSFFSSFSSFS SSSFSSSFSSSSFSSSSSSSSS</pre>
+<div class="notebox"><strong>负结果（Appendix C）</strong>：基于注意力输出相似度 / top-k 重叠度的 DP 精确搜索与 uniform 相当。重叠率是聚合指标，不计哪些具体 token 不同；冻结权重下少量错配关键 token 即可级联放大——局部相似度无法预测扰动级联，必须端到端 loss 评估。greedy 共享块与自然重叠簇并不完全重合，亦印证此点。</div>
+<h3>3.2 Training-Aware：多层蒸馏（§3.2）</h3>
+<ul>
+<li><strong>损失设计</strong>：L_multi = Σ_j KL(p_t^(ℓ+j) ‖ q_t^(ℓ))，令每个保留 indexer 对其服务的 m+1 层联合负责；Proposition 1 证明其梯度等价于对各服务层注意力分布取平均后的单目标蒸馏（蒸馏到「质心」分布），非启发式正则。</li>
+<li><strong>训练流程</strong>：沿用 DSA 两阶段——warm-up 只训 indexer（冻结其余），sparse phase 联合训练加 LM loss；工程侵入性低。</li>
+<li><strong>相变现象</strong>：训练后 uniform 1/2 达 Long Avg <span class="num">51.6</span>，反超基线 <span class="num">51.0</span>、超搜索模式 <span class="num">50.6</span>。<span class="infer">训练把「哪里必须自己看」重新分配给整个网络，共享成为被内化的常态。</span></li>
+</ul>
+<table>
+<tr><th>维度</th><th>Training-free</th><th>Training-aware</th></tr>
+<tr><td>前置条件</td><td>校准集 + 前向评估</td><td>两阶段重训管线</td></tr>
+<tr><td>模式决策</td><td>贪心搜索</td><td>uniform 即可</td></tr>
+<tr><td>1/2 保留 Long Avg</td><td>50.3</td><td><strong>51.6</strong>（反超基线 51.0）</td></tr>
+<tr><td>主要风险</td><td>关键层脆弱；搜索需 N(N−1)/2 次前向</td><td>训练成本；GLM-5 未验证</td></tr>
+</table>
+</section>
+
+<section id="evidence">
+<h2>四、证据链：观察 → 质量 → 系统 → 规模</h2>
+<h3>4.1 质量—稀疏度权衡</h3>
+<table>
+<tr><th>Training-free 配置</th><th>Long Avg</th><th>vs 基线 50.2</th></tr>
+<tr><td>uniform 1/2</td><td><span class="num">47.4</span></td><td>−2.8</td></tr>
+<tr><td>searched 1/2</td><td><span class="num">50.3</span></td><td>+0.1</td></tr>
+<tr><td>uniform 1/4</td><td><span class="num">43.0</span></td><td>−7.2</td></tr>
+<tr><td>searched 1/4</td><td><span class="num">49.9</span></td><td>−0.3</td></tr>
+<tr><td>searched 1/8</td><td><span class="num">46.1</span></td><td>−4.1</td></tr>
+</table>
+<p><strong>Training-aware</strong>：uniform 1/2 Long Avg <span class="num">51.6</span> 反超基线 <span class="num">51.0</span>；1/4 与基线差距 ≤<span class="num">0.4</span>。消融：去跨层蒸馏后 51.6→<span class="num">49.8</span>（AA-LCR 49.8→<span class="num">44.0</span>），跨层蒸馏贡献实质增益。<strong>通用推理</strong>：除 uniform 1/8 外所有配置 G&R Avg 与基线 <span class="num">74.6</span> 差距 &lt;1 分；1/4 searched 甚至优于原 DSA（AIME2025 <span class="num">92.6</span> vs 91.0；GPQA-Diamond <span class="num">78.6</span> vs 77.6）。</p>
+<h3>4.2 端到端系统收益（Table 1，SGLang + dp=8，单节点 H100）</h3>
+<ul>
+<li>Prefill：200K 最高 <span class="num">1.82×</span>（19.5s→10.7s）；10K 仍有 <span class="num">1.27×</span>；</li>
+<li>Decode 单并发吞吐：<span class="num">1.48×</span>（58→86 tok/s）；</li>
+<li>KV 打满时总 decode 吞吐：+<span class="num">22–51%</span>（197→297 tok/s @200K，1.51×）。</li>
+</ul>
+<h3>4.3 规模化验证（GLM-5，744B-A40B，§4.5）</h3>
+<p>移除 50% indexer 计算，长上下文与推理任务性能持平：Long Avg <span class="num">78.1</span> ≈ 基线 78.4，searched <span class="num">78.7</span> 略超；端到端约 <span class="num">1.2×</span> 加速，&gt;100K 时 prefill 与 decode 均 ≥<span class="num">1.3×</span>；ArtificialAnalysis Index 全测与原 GLM-5 几乎无差。</p>
+<h3>4.4 实验底座与口径</h3>
+<p>底座 GLM-4.7-Flash（30B-A3B MoE、MLA、47 层），两阶段 DSA 化训练（1000 步 dense warm-up + 4000 步 sparse training，SFT 数据、200K 上下文）。评测 = 长上下文 5 项（MRCR v2、GraphWalks、LongBench v2、RULER、AA-LCR）+ 通用推理 4 项（AIME2025、GPQA-Diamond、LiveCodeBench v6、IFBench）。<span class="infer">结论链闭环：①training-free 下「保留哪些」更关键；②training-aware 下「怎么分」不再敏感；③跨层蒸馏贡献实质增益。</span></p>
+</section>
+
+<section id="critique">
+<h2>五、批判性分析</h2>
+<h3>5.1 强点</h3>
+<p>问题定义精准（先测重叠再谈复用，测量先行）；三视角系统测量（TTFT / 单并发吞吐 / KV 打满吞吐）避免单一指标美化；负结果（Appendix C）如实报告增强可信度。</p>
+<h3>5.2 弱点与边界</h3>
+<ul>
+<li><strong>极限稀疏退化</strong>：1/8 保留即使配合搜索仍明显掉点（46.1 vs 50.2），安全边界约在 <strong>75% 移除以内</strong>；</li>
+<li><strong>搜索成本与脆弱性</strong>：全量贪心需 N(N−1)/2 次前向（可并行化约 P×），相似度代理已证伪，无法用廉价指标快速求解；冻结权重下少量关键 token 错配即可沿深层传播放大；</li>
+<li><strong>生产验证不完整</strong>：GLM-5 尚未应用 training-aware 变体（作者称「近期计划」）；当前生产收益来自较保守的 1/2 保留 + training-free；<span class="infer">若 training-aware 的反超能力可迁移到 744B 规模，仍有可观收益空间。</span></li>
+<li><strong>适用面限定</strong>：前提是动态 token 选择型稀疏注意力；作者指出可推广至 MoBA/NSA 类块选择但未实验；<span class="infer">对固定稀疏模式方法不直接适用。</span></li>
+</ul>
+</section>
+
+<section id="impact">
+<h2>六、启示与影响</h2>
+<h3>6.1 对推理系统工程</h3>
+<ol>
+<li><strong>加速器自身也是可优化对象</strong>：<span class="infer">任何「引入辅助计算换主计算下降」的设计都应审视辅助计算自身的缩放行为——DSA 解决了 O(L²)，配套 indexer 的 O(NL) 却在长上下文成为新瓶颈。</span></li>
+<li><strong>复用优于重算</strong>：相邻计算输出高度相关（重叠 70–100%）时，缓存-复用最朴素有效，且本例做到零额外显存。</li>
+<li><strong>调度下沉到层粒度</strong>：F/S 串提供逐层二值的成本-质量旋钮。</li>
+</ol>
+<h3>6.2 对模型训练</h3>
+<p>跨层蒸馏给出通用范式：推理期做「共享/近似」，就在训练期让被共享方对服务质量负责（KL 到质心分布），把推理期的脆弱性转化为训练期的适应性。<span class="infer">该思想或可迁移至 KV cache 压缩、投机解码等其他加速技术。</span></p>
+<h3>6.3 生态定位与跟踪清单</h3>
+<p><span class="infer">IndexCache 属于 DSA 落地后的第一波「架构内优化」：不改注意力数学、不改 KV 布局、不加显存，纯调度 + 可选微调即得 1.2–1.8× 长度依赖加速。</span>建议跟踪：①GLM-5 上 training-aware 落地结果；②向 MoBA/NSA 类方法的推广实验；③推理框架对 F/S 调度的原生支持进展。</p>
+<div class="notebox"><strong>自检声明</strong>：本页 UTF-8 编码、无替换字符；全部数字取自《00-源数据提取.md》，推断性内容均以「（推断）」标注；单文件内联 CSS、无外部依赖；div 标签开闭配平（wrap → hero / main(6 sections) / footer）。</div>
+</section>
+</main>
+
+<footer>
+  <p>B2_P2 批次 · IndexShare（IndexCache）深度解读 · 数据唯一依据：同目录《00-源数据提取.md》（arXiv:2603.12201v1）· 推断性内容已标注</p>
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《Deep Contextualized Word Representations》（ELMo）深度解读报告</title>
+<style>
+  :root {
+    --ink: #1a2332;
+    --sub: #5a6a7f;
+    --accent: #0b5cad;
+    --accent-soft: #e8f1fa;
+    --gold: #b8860b;
+    --line: #dde4ec;
+    --bg: #f6f8fb;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.85;
+    font-size: 16px;
+  }
+  .page { max-width: 960px; margin: 0 auto; padding: 24px 20px 60px; }
+  header.hero {
+    background: linear-gradient(135deg, #0b3d6b 0%, #0b5cad 100%);
+    color: #fff;
+    border-radius: 14px;
+    padding: 42px 40px 34px;
+    margin-bottom: 28px;
+  }
+  header.hero h1 { font-size: 27px; line-height: 1.45; letter-spacing: .5px; }
+  header.hero .meta { margin-top: 14px; font-size: 13.5px; opacity: .92; }
+  header.hero .meta span { display: inline-block; margin-right: 18px; }
+  .abstract {
+    background: var(--card);
+    border-left: 4px solid var(--accent);
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(15,40,80,.06);
+    padding: 26px 30px;
+    margin-bottom: 34px;
+  }
+  .abstract h2 { font-size: 19px; color: var(--accent); margin-bottom: 12px; }
+  section.block {
+    background: var(--card);
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(15,40,80,.05);
+    padding: 30px 34px;
+    margin-bottom: 30px;
+  }
+  section.block > h2 {
+    font-size: 21px;
+    color: var(--ink);
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+  }
+  section.block h3 { font-size: 17px; color: var(--accent); margin: 22px 0 10px; }
+  p { margin-bottom: 12px; text-align: justify; }
+  ul, ol { margin: 0 0 14px 22px; }
+  li { margin-bottom: 7px; text-align: justify; }
+  strong { color: #0b3d6b; }
+  .num {
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: 700;
+    color: #fff;
+    background: var(--accent);
+    border-radius: 5px;
+    padding: 1px 7px 2px;
+    white-space: nowrap;
+    font-size: 95%;
+  }
+  .num.up { background: #1e8449; }
+  .num.warn { background: #b03a2e; }
+  em.term { font-style: normal; color: var(--gold); font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0 18px; font-size: 14.5px; }
+  th, td { border: 1px solid var(--line); padding: 9px 11px; text-align: center; }
+  th { background: var(--accent-soft); color: #0b3d6b; font-weight: 700; }
+  tr:nth-child(even) td { background: #fafcfe; }
+  td.left { text-align: left; }
+  .callout {
+    background: var(--accent-soft);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 16px 0 6px;
+    font-size: 15px;
+  }
+  .callout b { color: var(--accent); }
+  .formula {
+    font-family: "Cambria Math", Georgia, serif;
+    background: #f2f5f9;
+    border: 1px dashed #b9c8da;
+    border-radius: 8px;
+    padding: 12px 18px;
+    margin: 12px 0;
+    text-align: center;
+    font-size: 15.5px;
+  }
+  footer.selfcheck {
+    background: #eef3ee;
+    border: 1px solid #cfe0cf;
+    border-radius: 10px;
+    padding: 18px 24px;
+    font-size: 13px;
+    color: #38553a;
+  }
+  footer.selfcheck h2 { font-size: 15px; margin-bottom: 8px; color: #2e5c33; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="hero">
+  <h1>《Deep Contextualized Word Representations》（ELMo）深度解读报告</h1>
+  <div class="meta">
+    <span>Peters et al. · AI2 &amp; University of Washington</span>
+    <span>NAACL 2018 · arXiv:1802.05365v2</span>
+    <span>六层结构：问题—概念—方法—证据—批判—启示</span>
+  </div>
+</header>
+
+<div class="abstract">
+  <h2>摘要</h2>
+  <p>ELMo 的核心论断是：<strong>词表示不应是查表得到的常量，而应是上下文的函数</strong>。论文用双向语言模型（biLM）在大规模语料上预训练，将 biLM 的<strong>全部内部状态</strong>——字符卷积 token 层加各层双向 LSTM 的前向/后向隐藏状态——以任务特定权重线性加权，生成「深度上下文词表示」。方案为纯特征注入式：下游模型主体不动，仅拼接 ELMo 向量，就在 SQuAD、SNLI、SRL、Coref、NER、SST-5 <span class="num">6</span> 个异构任务上同时刷新 SOTA，<strong>相对误差降低 6%–20%</strong>；其中 SQuAD F1 从基线 <span class="num">81.1</span> 升至 <span class="num up">85.8</span>（相对 <span class="num up">24.9%</span>），远超 CoVe 的 <span class="num">+1.8%</span>。分析章节证明 biLM 层间分工明确——<em class="term">低层偏句法、高层偏上下文词义</em>，「暴露全部层让下游学权重」显著优于「只取顶层」。ELMo 是特征式预训练路线的巅峰，也是通向 BERT「预训练 + 微调」范式的最后一座高峰（推断）。</p>
+</div>
+
+<section class="block">
+  <h2>一、问题定位：静态词向量的「一词千面」死结</h2>
+
+  <h3>1.1 论文要解决的问题</h3>
+  <p>word2vec / GloVe 一代词向量的根本假设：<strong>每个词型对应词表中一个固定向量</strong>。但同一个 "play"，在戏剧评论里是名词、在体育报道里是动词——静态嵌入把一个词型的所有出现映射到同一坐标点，多义词被迫「挤」在一个位置，语境信息全部丢失。论文的动机正是：真正的「深度上下文化」表示应当随语境改变同一词的向量。</p>
+  <p>论文援引对神经机器翻译编码器的观察作旁证：MT 编码器内部表示已能区分上下文词义（如对 "play" 给出语义近邻而非词形近邻），说明「上下文化的深度表示」确实存在且有用。问题在于：能否用一个专门的目标函数，在大规模无标注语料上把它系统学出并交付所有任务使用？</p>
+
+  <h3>1.2 先行方案的谱系与不足</h3>
+  <ul>
+    <li><strong>浅层上下文增强</strong>（如 TagLM）：只给词向量附加一层很窄的语言模型信号，上下文建模能力有限，往往只对单一任务有效；</li>
+    <li><strong>跨任务迁移编码器（CoVe）</strong>：用机器翻译编码器输出作上下文表示——但同一 SQuAD 基线上加 CoVe 仅 <span class="num warn">+1.8%</span>，与 ELMo 的 <span class="num up">+4.7%</span> 差距悬殊。论文由此提出质疑：通用上下文表示的潜力远未被 CoVe 榨干。</li>
+  </ul>
+
+  <h3>1.3 ELMo 的答案站位</h3>
+  <ol>
+    <li><strong>换预训练目标</strong>：不用翻译/分类等有监督目标，改用纯粹的双向语言模型——数据无限、与具体任务无关；</li>
+    <li><strong>加深表示</strong>：多层 biLSTM 叠加，让不同抽象层级各自成形；</li>
+    <li><strong>改变交付方式</strong>：不交付单一顶层向量，而是把<strong>全部内部层打包</strong>交给下游，由任务自己学加权系数按需取用。</li>
+  </ol>
+  <div class="callout"><b>一句话小结：</b>ELMo 把问题从「找一个更好的词向量」重构为「训练一个通用的上下文表示发生器，并把它的全部中间产物开放给下游」——这是从「资源」到「模型」的视角跃迁。</div>
+</section>
+
+<section class="block">
+  <h2>二、概念内核：五个核心概念逐一定义</h2>
+
+  <h3>2.1 深度上下文词表示</h3>
+  <p><strong>定义</strong>：每个词在其具体语境中的表示，由多层网络内部状态构成，随语境变化而变化。<strong>拆解</strong>：「深度」指表示是一组层级向量（字符层、各 LSTM 层），携带多粒度信息；「上下文化」指同一词型在不同句子中表示不同——这是它与静态嵌入的本质分野。（推断）今天说「预训练表示」，默认都是上下文化的，而这个默认正是 ELMo 建立的。</p>
+
+  <h3>2.2 双向语言模型（biLM）</h3>
+  <p><strong>定义</strong>：前向 LM 与后向 LM 的联合，从两个方向分别预测下一个/前一个 token，联合最大化双向似然：</p>
+  <div class="formula">p(t₁,…,t_N) ≈ ∏ₖ p(tₖ | t₁…tₖ₋₁) · p(tₖ | tₖ₊₁…t_N)</div>
+  <p><strong>拆解</strong>：把左右两个方向的 LM 共享输入堆在一起，每个位置的内部状态同时编码完整上下文。（推断）这个「两个单向拼成双向」的朴素方案是为规避自回归约束下「预测 tₖ 不能看到自身」的矛盾——它比 masked 语言模型笨拙，却是在纯自回归框架内的最大程度双向化；BERT 的掩码设计可视为对同一矛盾更激进的解法。</p>
+
+  <h3>2.3 表示集合 R_k</h3>
+  <p><strong>定义</strong>：对第 k 个 token，biLM 提供 R_k = {x_k, h_{k,j}<sup>fwd</sup>, h_{k,j}<sup>bwd</sup> | j = 1..L} 共 <span class="num">2L+1</span> 个表示。x_k 是 token 层（字符卷积 CNN + 两层 highway 输出），其余是每层 biLSTM 前/后向隐藏状态拼接。实际配置 L=2，即<strong>每个 token 打包 5 个向量</strong>。</p>
+  <p><strong>拆解</strong>：传统做法（含 CoVe）只交出最顶上的那一个向量；ELMo 把整包交出去。保留 x_k 这个「零层」，既保留了不含上下文的形态信息，也是 OOV 覆盖的基础。</p>
+
+  <h3>2.4 任务特定的层加权融合公式</h3>
+  <div class="formula">ELMo_k = γ · Σⱼ s_j · h_{k,j}</div>
+  <p>s_j 是 softmax 归一化的任务层权重，γ 为标量缩放因子，求和遍历全部 <span class="num">2L+1</span> 个内部状态。softmax 归一化使权重可解释为各层重要性分布；γ 对齐 ELMo 与原任务表示的尺度；整套机制自由参数极少（推断），保证「无痛插入任何现有模型」。正则化采用 dropout 加 λ‖w‖² 权重惩罚——后者形成「逼近所有 biLM 层平均」的归纳偏置。</p>
+
+  <h3>2.5 字符级 token 表示与半监督信号的层次分工</h3>
+  <ul>
+    <li><strong>字符卷积层（x_k）</strong>：<span class="num">2048</span> 个字符 n-gram 卷积滤波器 → <span class="num">2</span> 层 highway → <span class="num">512</span> 维表示。输入是字符而非查表，任何 OOV 词都能即时算出表示；</li>
+    <li><strong>层次分工</strong>：低层 LSTM 状态更擅句法（POS 标注更优），高层捕获上下文词义（可直接用于消歧）。所以「暴露全部层」不是工程妥协，而是方法论必然。</li>
+  </ul>
+  <div class="callout"><b>一句话小结：</b>五个概念构成一条因果链——biLM 目标在深网络上训出分层表示，字符卷积保底 OOV，加权公式把选择权交给任务，而层分工解释了为什么必须交出全部层。</div>
+</section>
+
+<section class="block">
+  <h2>三、方法拆解：预训练、融合与工程权衡的全链路</h2>
+
+  <h3>3.1 预训练侧：biLM 的构造与规模取舍</h3>
+  <ul>
+    <li><strong>语料与时长</strong>：1B Word Benchmark 训练 <span class="num">10</span> 个 epoch；</li>
+    <li><strong>主干</strong>：L=<span class="num">2</span> 层 biLSTM，每层 <span class="num">4096</span> 单元 + <span class="num">512</span> 维投影，层间残差连接；</li>
+    <li><strong>输入端</strong>：<span class="num">2048</span> 字符 n-gram 卷积滤波 → <span class="num">2</span> 层 highway → <span class="num">512</span> 维表示；</li>
+    <li><strong>规模折中</strong>：单向最强模型 CNN-BIG-LSTM 前向困惑度 <span class="num">30.0</span>，最终 biLM 前向/后向平均 <span class="num warn">39.7</span>。原因是一次显式算力取舍：<strong>把 CNN-BIG-LSTM 的嵌入维和隐藏维全部减半</strong>，以在可承受预算内容纳双向双倍计算量。（推断）这个「倒退」如实记录了 2018 年初的算力现实。</li>
+  </ul>
+
+  <h3>3.2 集成侧：两种注入位置与正则化</h3>
+  <ul>
+    <li><strong>输入端注入（全任务通用）</strong>：ELMo 向量与原词嵌入拼接 [x_k; ELMo_k] 送入任务 RNN，模型其余部分一字不改；</li>
+    <li><strong>输出端二次注入（SNLI、SQuAD）</strong>：在任务 RNN 输出端再拼一次 [h_k; ELMo_k]，引入另一组输出专用线性权重。经验规律：含 attention 层的任务从输出端注入获益——模型可直接 attend biLM 内部表示；SRL、coref 仅在输入端注入最稳；</li>
+    <li><strong>正则化</strong>：dropout + λ‖w‖² 惩罚，避免过拟合到某一两层。</li>
+  </ul>
+
+  <h3>3.3 关键设计决策还原</h3>
+  <ul>
+    <li><strong>为什么是线性加权？</strong>产品定位是「即插即用的特征」：参数开销近乎为零、不干扰下游模型动力学、每个任务几分钟就能学会自己的层偏好。（推断）这种克制正是它在六个架构迥异的模型上全部奏效的原因，但也埋下表达力上限的隐患（见第五章）。</li>
+    <li><strong>为什么减半宽度而不是砍层数？</strong>论文的核心主张恰恰是「深度」本身有价值——层数是主张的一部分；砍宽度只是均匀损失容量。（推断）</li>
+    <li><strong>为什么保留字符卷积作为第 0 层？</strong>OOV 覆盖、形态信息保留、以及与上层 LSTM 形成「形态—句法—语义」天然梯度，成为层分工分析的物理基础。（推断）</li>
+  </ul>
+  <div class="callout"><b>一句话小结：</b>方法体系「一头重一头轻」——预训练重（大 biLM、深网络、全量语料），集成轻（两组线性权重、可选输出端拼接、dropout）；轻重落差正是特征式方法工程友好的来源。</div>
+</section>
+
+<section class="block">
+  <h2>四、证据链：Table 1 主结果与三层消融</h2>
+
+  <h3>4.1 主证据：六任务全面刷新 SOTA（Table 1）</h3>
+  <table>
+    <tr><th style="text-align:left">任务（指标）</th><th>此前 SOTA</th><th>基线</th><th>基线 + ELMo</th><th>提升</th></tr>
+    <tr><td class="left">SQuAD（F1）</td><td>—</td><td>81.1</td><td><b>85.8</b>（集成 87.4）</td><td>+4.7 绝对 / 24.9% 相对</td></tr>
+    <tr><td class="left">SNLI（accuracy）</td><td>88.6</td><td>88.0</td><td>88.7±0.1</td><td>+0.7 绝对 / 5.8% 相对</td></tr>
+    <tr><td class="left">SRL（F1）</td><td>81.7</td><td>81.4</td><td><b>84.6</b></td><td>+3.2 绝对 / 17.2% 相对</td></tr>
+    <tr><td class="left">Coref（平均 F1）</td><td>67.2</td><td>67.2</td><td><b>70.4</b></td><td>+3.2 绝对 / 9.8% 相对（较最佳集成再 +1.6）</td></tr>
+    <tr><td class="left">NER（F1）</td><td>91.93±0.19</td><td>90.15</td><td><b>92.22±0.10</b></td><td>+2.06 绝对 / 21% 相对</td></tr>
+    <tr><td class="left">SST-5（accuracy）</td><td>53.7</td><td>51.4</td><td>54.7±0.5</td><td>+3.3 绝对 / 6.8% 相对</td></tr>
+  </table>
+  <p>六个任务横跨 QA、推理、结构化句法语义、信息抽取、情感五类范式，下游架构互不相同。「只加一种表示就全线破纪录」的说服力不在单项数字而在<strong>普适性</strong>——相对误差降低 6%–20% 覆盖了从饱和任务到中低资源任务的完整光谱。NER 与 SST-5 因测试集较小报 5 个随机种子均值 ± 标准差，这是诚实的方差披露。</p>
+
+  <h3>4.2 对照组一：vs CoVe——「上下文化」含量之争</h3>
+  <p>同一 SQuAD 基线上：<span class="num warn">+CoVe 仅 +1.8%</span> vs <span class="num up">+ELMo +4.7%</span>。交叉证据来自 BCN 模型：SST-5 上用 ELMo 替换 CoVe 获得 <span class="num up">1.0%</span> 绝对准确率提升并刷新该任务 SOTA。两者合围指向同一结论：CoVe 的失败不是「上下文化表示无用」，而是它的上下文化含量不足——MT 编码器为翻译优化，其内部状态未被要求保留通用语言结构信息；语言模型目标则天然逼着每一层记住「真实文本长什么样」。（推断：后半句为机制解释）</p>
+
+  <h3>4.3 消融一：全层加权 vs 仅取顶层（Table 2）</h3>
+  <table>
+    <tr><th style="text-align:left">任务</th><th>起点</th><th>LastOnly（仅顶层）</th><th>λ=1（全层平均）</th><th>λ=0.001（学习层权重）</th></tr>
+    <tr><td class="left">SQuAD（dev F1）</td><td>80.8</td><td>84.7（+3.9）</td><td>85.0（再 +0.3）</td><td><b>85.2</b>（再 +0.2）</td></tr>
+    <tr><td class="left">SNLI</td><td>88.1</td><td>88.9</td><td>89.3</td><td><b>89.5</b></td></tr>
+    <tr><td class="left">SRL</td><td>81.6</td><td>84.1</td><td>84.6</td><td><b>84.8</b></td></tr>
+  </table>
+  <p>三个任务呈完全一致的阶梯：「仅顶层已拿到大头收益，但全层利用仍稳定再挤出约 0.3–0.6」，且弱正则（λ 取小值）总是最优。这是「深度内部状态优于仅顶层」的直接量化，也是「层分工」论断的性能注脚。</p>
+
+  <h3>4.4 消融二：注入位置（Table 3）</h3>
+  <table>
+    <tr><th style="text-align:left">任务</th><th>input-only</th><th>input+output</th><th>output-only</th></tr>
+    <tr><td class="left">SQuAD</td><td>85.1</td><td><b>85.6</b></td><td>84.8</td></tr>
+    <tr><td class="left">SNLI</td><td>88.9</td><td><b>89.5</b></td><td>88.7</td></tr>
+    <tr><td class="left">SRL</td><td><b>84.7</b></td><td>84.3</td><td>80.9</td></tr>
+  </table>
+  <p>规律清晰：含 attention 的任务两端注入最好；SRL 则 input-only 最优、output-only 崩至 80.9（比 input-only 低近 4 点）。<strong>不存在万能注入点，注入策略须与任务架构匹配</strong>——这对实践者是极具操作价值的指南。</p>
+
+  <h3>4.5 内在证据：层的功能分化</h3>
+  <ul>
+    <li><strong>句法探针（POS 标注）</strong>：低层 LSTM 状态表现最佳；</li>
+    <li><strong>词义探针</strong>：WordNet 第一义项基线 <span class="num">65.9</span>，高层状态可用于消歧；</li>
+    <li><strong>最近邻对比</strong>：GloVe 对 "play" 的最近邻全是词形近邻（game / games / played）；biLM 高层给出的是上下文语义近邻（"signed to do a Broadway play" 类用法）。</li>
+  </ul>
+  <p>这组实验把「ELMo 为什么有效」从性能数字下沉到表示内容层面——<strong>同一模型的不同深度自发学会了语言学分层</strong>。（推断：这一发现超出 ELMo 本身，开创了 BERT 时代 probing 研究的先河。）</p>
+
+  <h3>4.6 数据效率：低资源场景的红利</h3>
+  <p>小训练集任务（如 NER）对 λ 不敏感；低资源场景下预训练 ELMo 的数据效率收益最明显——预训练表示承担了本需大量标注才能学到的语言先验。（推断：这正是日后「预训练 + 少样本」叙事的雏形。）</p>
+  <div class="callout"><b>一句话小结：</b>证据体系呈金字塔结构——塔尖是六任务 SOTA 的广度，中层是与 CoVe 的定向对照，塔基是三层消融 + 层语义探针构成的机制解释；越往下越能回答「为什么有效」，而不仅是「有效」。</div>
+</section>
+
+<section class="block">
+  <h2>五、批判审视：局限的深层含义与独立疑点</h2>
+
+  <h3>5.1 论文自述局限的深层解读</h3>
+  <ol>
+    <li><strong>规模与效率成本</strong>：需预训练并维护大型双向 LSTM 语言模型，推理与存储开销远高于轻量词向量，文中未给出精细效率对比。深层含义：ELMo 的「即插」并不「免费」（推断：部署方要在每个请求上跑一遍 biLM 前向）。</li>
+    <li><strong>任务特定加权参数</strong>：每个下游任务都要额外学 s_j 与 γ，引入超参（λ、dropout 率）与调参负担。「自动适配」是有代价的自动化。</li>
+    <li><strong>仍是特征式而非端到端</strong>：ELMo 注入现有架构而不微调全部参数，语言理解覆盖深度受限——这是作者所处范式的边界，也是其「过渡桥梁」的历史宿命。</li>
+    <li><strong>单语言单语料</strong>：基于 1B Word Benchmark 英文语料，跨语言泛化未充分实验。</li>
+    <li><strong>评测可比性边界</strong>：GLUE 等统一基准尚未成熟，跨论文直接比较困难；NER/SST-5 测试集小只能多种子报均值 ± 标准差。</li>
+  </ol>
+
+  <h3>5.2 独立观察到的五个疑点</h3>
+  <ul>
+    <li><strong>① 线性加权的表达力天花板</strong>：s_j 对每个任务是全局静态的——整份语料共用一套层权重，无法做逐实例动态路由。（推断）BERT 之后把预训练表示深度织入任务模型甚至整体微调，本质上正是为了突破「一层线性组合」的容量极限。克制成就兼容性，也锁死了上限。</li>
+    <li><strong>② 困惑度的隐性代价</strong>：biLM 平均 <span class="num warn">39.7</span> 对比同家族 CNN-BIG-LSTM 前向 <span class="num">30.0</span>——为双向化与算力预算，语言建模本职明显退步。（推断）若算力允许不减维，全层加权的收益是否还如此显著？论文无法回答。</li>
+    <li><strong>③ 收益并不均匀</strong>：SNLI 仅 +0.7 绝对（88.0→88.7），此前 SOTA 88.6 本就贴着基线上限；SRL +3.2、NER +2.06 的空间宽裕得多。（推断）「相对误差降低 6–20%」口径会放大低基线任务观感——在接近天花板的任务上，ELMo 更像「追平 SOTA」而非「大幅超越」。阅读 Table 1 应带着任务难度光谱的意识。</li>
+    <li><strong>④ 双向化实现是历史折中</strong>：前向 + 后向两个独立 LM 的内部状态在融合前从未真正交互——每股只见一半上下文，直到最后线性组合才相遇。（推断）这与 BERT 的深层双向自注意力有质的不同：后者每一层都在完整上下文上运算。ELMo 的「双向」是表示层面的双向，不是计算层面的双向。</li>
+    <li><strong>⑤ 消融未覆盖「表示来源」本身</strong>：缺少同等容量随机初始化 biLM 注入同任务的对照。（推断）若无此对照，「收益来自深度上下文知识」与「收益来自随机特征的正则化效应」在逻辑上未完全分离——尽管 CoVe 对照与最近邻定性证据已大大降低了后者的可能性权重。</li>
+  </ul>
+  <div class="callout"><b>一句话小结：</b>ELMo 最坚固的证据（六任务普适增益 + 层分工机制）与它最深的天花板（静态线性加权 + 伪双向计算）是同一枚硬币的两面——它证明了「深度上下文表示」的价值，也恰好停在了证明「必须更深地交互」的门槛之前。</div>
+</section>
+
+<section class="block">
+  <h2>六、启示提炼：历史定位与可迁移的经验</h2>
+
+  <h3>6.1 历史影响：一座桥的两端</h3>
+  <ul>
+    <li><strong>向后看</strong>：biLM 目标、「预训练表示 + 下游适配」骨架、「不同层编码不同语言学属性」的发现被 BERT 全盘继承并推向「预训练 + 微调」新范式；「contextualized representation」从此成为领域默认词汇。</li>
+    <li><strong>向前看</strong>：即便微调范式成熟后，ELMo 式「冻结大模型、只学轻量适配参数」的思想以 LoRA、Adapter、prompt tuning 等形态反复复活——PEFT 可视为 ELMo「轻量集成哲学」在新架构上的重生。（推断）</li>
+  </ul>
+
+  <h3>6.2 五条可迁移的经验</h3>
+  <ol>
+    <li><strong>无监督预训练目标是通用资产</strong>：语言建模不依赖标注，却能产出对六类任务都有用的表示；凡存在大规模无标注数据的领域皆可复制此路径。</li>
+    <li><strong>不要过早丢弃中间产物</strong>：「仅取顶层」浪费了网络的大部分学习成果；把全部层级暴露给消费者按需加权，是值得复用的系统设计模式。</li>
+    <li><strong>轻量集成是推广利器</strong>：两组线性参数换来任何现有模型立刻受益；推广表示技术时，兼容性设计与效果本身同等重要。</li>
+    <li><strong>字符级输入根治 OOV</strong>：表示应覆盖开放集合——这一精神在子词时代依然适用。</li>
+    <li><strong>普适性是最强的说服策略</strong>：与其在一个任务上刷到极致，不如在多个异构架构上同时展示一致增益——后者对「通用贡献还是特调技巧」的证明力完全不同。</li>
+  </ol>
+
+  <h3>6.3 范式交替的方法论教训</h3>
+  <p>ELMo 与 BERT 之间不到一年的交替提示：当一条路线的效果天花板由其<strong>核心设计决策</strong>（此处是线性融合与伪双向计算）决定时，渐进优化无法突破，唯有替换该决策。识别「哪个组件是天花板」比在组件周围堆砌消融更重要——ELMo 自身的层分工分析恰恰为继任者指明了突破口。（推断）</p>
+</section>
+
+<section class="block">
+  <h2>总结</h2>
+  <p>《Deep Contextualized Word Representations》用最朴素的技术组合——双向语言模型 + 全层线性加权——完成了一次范式级论证：<strong>上下文化的深度表示是 NLP 的通用燃料</strong>。它在 <span class="num">6</span> 个异构任务上同步刷新 SOTA（相对误差降低 <span class="num up">6%–20%</span>，SQuAD 相对提升 <span class="num up">24.9%</span>），用与 CoVe 的定向对照（<span class="num up">+4.7%</span> vs <span class="num warn">+1.8%</span>）确立了语言模型目标对迁移编码器的优越性，又以层分工分析（低层句法 / 高层词义）为「为什么要全部层」给出机制答案。它的局限——静态线性加权的容量上限、表示层面而非计算层面的双向化、特征注入而非端到端微调——在一年内被 BERT 逐一突破，但这无损其历史地位：正是 ELMo 第一次以无可辩驳的普适证据，把整个领域的重心从「为每个任务设计表示」推到了「为表示设计预训练」。读懂 ELMo，就读懂了 BERT 之所以然的一半；另一半，藏在 ELMo 停下的地方。（推断）</p>
+</section>
+
+<footer class="selfcheck">
+  <h2>文档自检</h2>
+  <ul>
+    <li>编码：UTF-8，全文无 U+FFFD 替换字符。</li>
+    <li>结构：摘要 + 六大章节（问题定位 / 概念内核 / 方法拆解 / 证据链 / 批判审视 / 启示提炼）+ 总结，共 8 个区块完整。</li>
+    <li>排版：单文件内联 CSS，无外部依赖；div 标签开闭平衡。</li>
+    <li>数据：全部数字取自 00-源数据提取.md；分析者推理处均标注「（推断）」。</li>
+    <li>关键数字高亮：蓝底白字为一般数字，绿底为正向增益，红底为代价/劣势项。</li>
+  </ul>
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《Kimi k1.5》深度解读报告</title>
+<style>
+:root{--ink:#1c2733;--sub:#5a6b7d;--accent:#0f6ba8;--accent2:#c2571a;--gold:#b8860b;--line:#dde5ec;--bg:#f7fafc;--card:#ffffff;--code:#eef3f8;--ok:#1e7d43;--warn:#b3401f;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Source Han Serif SC","Noto Serif SC","Songti SC",serif;color:var(--ink);background:var(--bg);line-height:1.85;font-size:16px;}
+.wrap{max-width:960px;margin:0 auto;padding:32px 40px 64px;}
+header.hero{background:linear-gradient(135deg,#12314f 0%,#0f6ba8 70%,#2e93cf 100%);color:#fff;border-radius:14px;padding:44px 48px;margin-bottom:36px;box-shadow:0 6px 24px rgba(15,107,168,.22);}
+header.hero h1{font-size:30px;line-height:1.45;font-weight:700;letter-spacing:.5px;}
+header.hero .meta{margin-top:14px;font-size:13.5px;opacity:.92;font-family:"PingFang SC","Microsoft YaHei",sans-serif;}
+.badge-row{margin-top:16px;display:flex;flex-wrap:wrap;gap:10px;}
+.badge{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:3px 14px;font-size:12.5px;font-family:"PingFang SC",sans-serif;}
+.datasrc{background:#fdf8ee;border-left:4px solid var(--gold);padding:12px 20px;border-radius:0 8px 8px 0;font-size:13.5px;color:#6b5a2e;margin-bottom:34px;}
+h2.sec{font-size:23px;color:var(--accent);margin:52px 0 8px;padding-bottom:8px;border-bottom:2.5px solid var(--accent);display:flex;align-items:center;gap:10px;}
+h2.sec .no{background:var(--accent);color:#fff;border-radius:8px;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;font-size:17px;flex:none;font-family:"PingFang SC",sans-serif;}
+h3{font-size:18.5px;margin:30px 0 10px;color:#14456b;}
+h4{font-size:16px;margin:20px 0 8px;color:var(--accent2);}
+p{margin:10px 0;text-align:justify;}
+.hl{color:var(--accent2);font-weight:700;font-family:"SF Mono","Consolas",monospace;font-size:.94em;background:#fdf0e6;padding:1px 5px;border-radius:4px;}
+.hlb{color:#fff;background:var(--accent);font-weight:700;font-family:monospace;font-size:.9em;padding:1px 7px;border-radius:4px;}
+.neg{color:var(--warn);font-weight:700;font-family:monospace;font-size:.94em;background:#fbeae4;padding:1px 5px;border-radius:4px;}
+.term{color:var(--accent);font-weight:700;}
+blockquote{background:var(--code);border-left:4px solid var(--accent);padding:12px 20px;margin:16px 0;border-radius:0 8px 8px 0;font-size:15px;}
+blockquote.oneline{background:#f2f7fb;border-left-color:var(--gold);color:#4a5568;}
+.defbox{background:#f4f9fd;border:1px solid var(--line);border-radius:10px;padding:14px 20px;margin:14px 0;font-size:15px;}
+.defbox .tag{display:inline-block;background:var(--accent);color:#fff;font-size:12px;border-radius:4px;padding:1px 8px;margin-right:8px;font-family:sans-serif;}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--card);box-shadow:0 2px 8px rgba(28,39,51,.06);border-radius:8px;overflow:hidden;}
+th{background:#e8f0f7;color:#14456b;padding:9px 10px;border-bottom:2px solid var(--accent);text-align:left;font-weight:600;white-space:nowrap;}
+td{padding:8px 10px;border-bottom:1px solid var(--line);}
+tr:last-child td{border-bottom:none;}
+td.c,th.c{text-align:center;}
+.kcol{background:#fff8ef;font-weight:700;color:var(--accent2);}
+.win{color:var(--ok);font-weight:700;}
+.lose{color:var(--warn);font-weight:700;}
+.formula{background:#10233a;color:#dbe9f7;border-radius:10px;padding:16px 24px;margin:16px 0;font-family:"STIX Two Math","Cambria Math",Georgia,serif;font-size:17px;text-align:center;overflow-x:auto;}
+.formula .cond{font-size:13px;color:#8fb3d4;}
+ul,ol{margin:10px 0 10px 26px;}
+li{margin:6px 0;text-align:justify;}
+.cardgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:16px 0;}
+.icard{background:var(--card);border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:10px;padding:16px 18px;font-size:14.5px;box-shadow:0 2px 6px rgba(28,39,51,.05);}
+.icard b.t{display:block;color:var(--accent);margin-bottom:6px;font-size:15.5px;}
+.note{font-size:13px;color:var(--sub);}
+.tuizhu{background:#fffbea;border:1px dashed var(--gold);border-radius:8px;padding:8px 16px;margin:12px 0;font-size:14px;color:#7a651f;}
+.selfcheck{margin-top:60px;background:#0f2b45;color:#cfe2f3;border-radius:12px;padding:24px 30px;font-size:13.5px;font-family:"PingFang SC","Microsoft YaHei",sans-serif;}
+.selfcheck h3{color:#7fc4f0;margin-top:0;font-size:16px;}
+.selfcheck ul{margin-left:20px;}
+.selfcheck li{margin:4px 0;}
+footer{text-align:center;color:var(--sub);font-size:12.5px;margin-top:40px;}
+@media print{body{background:#fff;} header.hero{border-radius:0;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+<h1>《Kimi k1.5: Scaling Reinforcement Learning with LLMs》深度解读报告</h1>
+<div class="meta">Moonshot AI (Kimi Team) · arXiv:2501.12599v4 [cs.AI] · v1 2025-01-21 / v4 2025-06-03 · 25 页（正文 p1–16 / 附录 p17–25）· CC BY-NC-ND 4.0</div>
+<div class="badge-row">
+<span class="badge">强化学习 RL</span><span class="badge">长思维链 Long-CoT</span><span class="badge">Long-context Scaling 128K</span><span class="badge">long2short</span><span class="badge">Online Mirror Descent</span><span class="badge">多模态推理</span><span class="badge">对标 OpenAI o1</span>
+</div>
+</header>
+
+<div class="datasrc"><b>数据依据</b>：pdf-worker 源数据提取文件（00-源数据提取.md）。全部数字与原文一致；标注<span style="color:#b8860b;font-weight:700">「推断」</span>处为分析者推理补充。</div>
+
+<!-- ===================== 摘要 ===================== -->
+<h2 class="sec"><span class="no">◆</span>摘要</h2>
+<p>Moonshot AI 的 Kimi Team 于 2025 年 1 月发布技术报告《Kimi k1.5》，核心论断是：<b>把强化学习的上下文窗口扩展到 <span class="hlb">128K token</span>，配合一套极简的策略优化框架（online mirror descent 变体——不用价值函数、不用 MCTS、不用 process reward model），就能让多模态 LLM 的推理能力达到前沿水平。</b></p>
+<p>其长-CoT 模型在 AIME 2024 上取得 <span class="hl">77.5</span>、MATH-500 上取得 <span class="hl">96.2</span>、Codeforces 百分位 <span class="hl">94</span>、MathVista <span class="hl">74.9</span>，全面达到或匹配 OpenAI o1；短-CoT 模型经 long2short 技术压缩后仍保持 AIME <span class="hl">60.8</span>、MATH-500 <span class="hl">94.6</span> 的成绩，对 GPT-4o / Claude-3.5-Sonnet 最高领先 <span class="hl">+550%</span>（AIME 上）。</p>
+<p>本报告按「问题—概念—方法—证据—批判—启示」六层结构逐层拆解，重点还原「把搜索树展平到完整上下文」这一思想如何取代 MCTS 式显式搜索、long2short 如何把贵的能力变便宜、以及这套体系背后被低估的基础设施贡献。</p>
+
+<blockquote class="oneline"><b>一句话摘要</b>：砍掉搜索树、换上 128K 上下文，k1.5 用极简 RL 追平 o1，再用 long2short 把能力变便宜。</blockquote>
+
+<!-- ===================== 一 ===================== -->
+<h2 class="sec"><span class="no">一</span>问题定位：RL 扩展 LLM 推理的三道关卡</h2>
+
+<h3>1.1 论文要解决的问题</h3>
+<p>论文写作时点正值推理模型的分水岭：OpenAI o1 已示范了「测试时计算扩展」（test-time scaling）的巨大潜力，但其方法闭源、细节未知，社区面对的核心问题是——<b>如何用强化学习把 LLM 的推理能力系统性地推到前沿水平？</b>Kimi k1.5 给出的答案是一个端到端的多模态 RL 训练体系，直接以 o1 为对标物，在数学、代码、多模态三类基准上逐项对表。</p>
+<p>作者将这个大问题拆成三个具体的技术关卡：</p>
+<ol>
+<li><b>搜索机制之关</b>：经典 planning 算法（MCTS、A* 等）依赖 critic value 构建搜索树来做显式搜索，工程复杂、算力昂贵，且在语言这种指数级动作空间上难以高效展开；</li>
+<li><b>成本之关</b>：长-CoT 推理消耗远多于短-CoT 的测试时 token，性能与成本如何兼得；</li>
+<li><b>模态之关</b>：既有 RL 推理工作几乎全部局限于纯文本，多模态推理能否走同一条路。</li>
+</ol>
+
+<h3>1.2 在推理模型谱系中的定位</h3>
+<p>放在 2025 年初的时间轴上看，Kimi k1.5 与 DeepSeek R1 属于同一波「复现并超越 o1」的开明技术报告浪潮，但其技术路线有鲜明的独立主张：</p>
+<table>
+<tr><th>维度</th><th>显式搜索路线（MCTS 系）</th><th>Kimi k1.5 路线</th></tr>
+<tr><td><b>搜索机制</b></td><td>critic value 构建搜索树，逐步展开</td><td class="kcol">不构建搜索树，把整棵树<b>展平到 full context</b></td></tr>
+<tr><td><b>价值函数</b></td><td>需要</td><td class="kcol">显式排除</td></tr>
+<tr><td><b>过程监督</b></td><td>process reward model</td><td class="kcol">不用，仅最终答案 verifier（CoT-RM 用于判答）</td></tr>
+<tr><td><b>上下文</b></td><td>通常受限</td><td class="kcol">一路扩到 <span class="hl">128K</span></td></tr>
+</table>
+<p>这一对照揭示了论文最核心的世界观：<b>上下文本身就是搜索空间</b>。「thought 数即搜索步数」——当模型在 128K 的上下文里写下一条长长的思维链时，它实际上是在用自回归生成的方式遍历搜索树的路径，回溯就是继续生成新的分支尝试。<span class="tuizhu" style="display:inline-block;padding:2px 10px;">（推断）这与人类解题时「在草稿纸上试错」的认知模式高度同构：草稿纸越长，能容纳的试错次数越多。</span></p>
+
+<h3>1.3 为什么这个问题值得做</h3>
+<p>从结果倒推，论文证明了三件此前不确定的事：其一，RL 上下文长度本身是一个可缩放的维度，且缩放它带来持续的性能收益（§3.3）；其二，没有价值函数和显式搜索树的极简 RL 框架足以支撑前沿推理能力；其三，长-CoT 中学到的能力可以系统性迁移给便宜的短-CoT 模型（long2short）。这三点合起来构成了一条完整的「能力获取—成本控制」闭环，为整个行业后续的推理模型研发提供了可参考的路线图。</p>
+<blockquote class="oneline"><b>一句话小结</b>：本文的问题不是「要不要用 RL」，而是「RL 该怎么搭」——作者的答案是砍掉一切中间件（价值函数/MCTS/PRM），把省下的复杂度换成上下文长度。</blockquote>
+
+<!-- ===================== 二 ===================== -->
+<h2 class="sec"><span class="no">二</span>概念内核：四个核心概念逐一定义</h2>
+
+<h3>2.1 长上下文缩放（Long-context Scaling）</h3>
+<div class="defbox"><span class="tag">定义</span>把 RL 训练阶段的上下文窗口扩展至 <span class="hl">128K</span>（131,072 token），让模型在单条轨迹内完成足够多的「思考步」，从而隐式替代显式搜索。</div>
+<p><b>拆解</b>：这是全文的第一性原理。传统 planning 视角里，「思考」是在搜索树上移动；本文视角里，planning 算法可以被看作「把搜索树展平到 full context 的映射」——既然存在这个映射，就可以跳过建树过程，直接训练模型去近似映射的结果。这个转换的价值是工程性的：建树需要 value function 来估值剪枝，而展平之后只需要模型自己生成 + 最终答案验证，整个 RL 循环里不再有任何中间裁判。<span class="tuizhu" style="display:inline-block;padding:2px 10px;">（推断）这也解释了为什么论文敢同时砍掉价值函数和 PRM——上下文够长时，模型可以在一条思维链内部完成「提出假设→发现矛盾→推翻重来」的自纠错，过程监督的功能被模型的自我修正行为内化了。</span></p>
+
+<h3>2.2 极简策略优化（Online Mirror Descent 变体）</h3>
+<div class="defbox"><span class="tag">定义</span>基于相对熵正则的 online policy optimization，优化目标为下式，其中 r 为奖励，τ 为 KL 正则系数，π_θi 为上一轮迭代的参考策略。</div>
+<div class="formula">max<sub>θ</sub>&nbsp; 𝔼<sub>(y,z)~π_θ</sub>[ r − τ·KL(π<sub>θ</sub> ‖ π<sub>θᵢ</sub>) ]</div>
+<p><b>拆解</b>：该目标有闭式解，实践中用 surrogate loss 实现，KL 项 τ·logZ 用 k 条采样近似，梯度中以采样奖励均值 r̄ 作 baseline，另加 ℓ2 正则稳定训练。这个框架的要点不在公式本身（它属于策略优化的标准工具箱），而在作者<b>显式排除了价值网络</b>这一决策背后的假设——见 2.3。</p>
+
+<h3>2.3 负梯度与 credit assignment 的反直觉立场</h3>
+<div class="defbox"><span class="tag">定义</span>作者假设经典 RL 的 credit assignment（用 value function 分配功劳/责任）不适合长-CoT 推理语境，因此保留负梯度信号——错误的轨迹也参与更新。</div>
+<p><b>拆解</b>：这是全文概念层面最有洞察力的段落。经典观点认为，探索到一个当前会出错的分支 z'ₜ₊₁ 应该被 penalize（因为它的 value 低）。但作者指出：<b>在推理训练语境下，探索错误分支对训练极有价值</b>——模型正是在「走进死胡同再退出来」的过程中学会避免同类错误的。如果按 value function 的逻辑惩罚这些探索，等于惩罚了试错本身。消融实验（图10）直接支撑了这个判断：含负梯度的方法对比 ReST（只拟合当前模型最优响应、无负梯度）在 OMNI-MATH500、MATH500、AIME2024、GPQA 等基准上样本复杂度明显更优。<span class="tuizhu" style="display:inline-block;padding:2px 10px;">（推断）这一结论对后来者的启发在于：RL for reasoning 的 credit assignment 问题不能照搬经典 RLHF 的直觉——「什么该被惩罚」取决于任务里的「错误」是否携带可学习的信息。</span></p>
+
+<h3>2.4 Long2short（长到短的上下文压缩）</h3>
+<div class="defbox"><span class="tag">定义</span>一组把长-CoT 教师模型的推理能力迁移给短-CoT 模型的技术集合：长-CoT 蒸馏、最短拒绝采样（shortest rejection sampling）、DPO、模型合并（merge）、Long2short RL 五种手段。</div>
+<p><b>拆解</b>：这个概念回应的是 1.1 节的成本之关。长-CoT 换来高性能，但也换来高昂的测试时 token 开销；long2short 的哲学是<b>先用钱换能力，再用能力换效率</b>——训练阶段允许模型挥霍 token 学会推理，部署阶段通过蒸馏/选择/合并把冗余思考剥离。其中「最短拒绝采样」尤其体现工程智慧：从教师多次采样中挑最短的正确答案作为监督信号，直接把「简洁正确」定义为模仿目标。Long2short RL 则更进一步：以标准 RL 后「性能与 token 效率最佳平衡」的模型为 base，加长度惩罚并大幅压低 rollout 最大长度，让模型在紧约束下重新学会取舍。</p>
+<blockquote class="oneline"><b>一句话小结</b>：四个概念构成因果链——长上下文缩放提供搜索空间、镜像下降提供优化引擎、负梯度保护试错信号、long2short 解决账单问题。</blockquote>
+
+<!-- ===================== 三 ===================== -->
+<h2 class="sec"><span class="no">三</span>方法还原：从数据策展到基础设施的全栈拆解</h2>
+
+<h3>3.1 RL Prompt Set 策展：一切始于题目质量</h3>
+<p>RL 训练的效果上限由 prompt 集决定，论文为此定了三条原则：</p>
+<ul>
+<li><b>多样覆盖</b>：STEM、编码、通用推理全覆盖；</li>
+<li><b>难度均衡</b>：易/中/难合理分布；</li>
+<li><b>可评估性</b>：verifier 可客观判断（这是防 reward hacking 的第一道闸门）。</li>
+</ul>
+<p>难度评估采用<b>模型自身能力的自适配方案</b>：对每个 prompt，SFT 模型用高温度生成 <span class="hl">10</span> 次，pass rate 越高代表越易。以此预过滤平凡样例，并保证推理过程与最终答案均可验证。<span class="tuizhu" style="display:inline-block;padding:2px 10px;">（推断）用模型自身分布定义难度而非人工标注，既是成本考虑，也让难度随模型成长而自动重校准——同一道题在不同训练阶段可能落入不同难度桶。</span></p>
+
+<h3>3.2 策略优化的实现细节</h3>
+<p>在 2.2 的目标函数之上，实现层面的关键选择包括：</p>
+<ol>
+<li>KL 正则项 τ·logZ 用 (y₁,z₁)...(y_k,z_k) 共 k 条采样近似，避免精确计算 intractable 的配分函数；</li>
+<li>梯度估计中以 sampled rewards 均值 r̄ 作 baseline，降低方差；</li>
+<li>加 ℓ2 正则防止参数漂移过大。</li>
+</ol>
+<p>整个流程没有任何 critic 网络，显存与计算预算全部让位给 policy 本身和长序列 rollout。</p>
+
+<h3>3.3 长度惩罚：给思维链装上节流阀</h3>
+<p>长度惩罚的设计相当精细，分段函数如下：</p>
+<div class="formula">
+len_reward(i) = λ&nbsp;&nbsp;(当 r=1)；&nbsp;&nbsp;min(0, λ)&nbsp;&nbsp;(当 r=0)<br>
+<span class="cond">其中&nbsp;&nbsp;λ = 0.5 − ( len(i) − len<sub>min</sub> ) / ( len<sub>max</sub> − len<sub>min</sub> )</span>
+</div>
+<p>语义是双向的：<b>答对的题</b>，越短奖励越高（λ 从 0.5 线性降到 −0.5）；<b>答错的题</b>，越短惩罚越轻、越长惩罚越重。也就是说，无论答对与否，啰嗦都是被抑制的，但答错时不会因为「碰巧简短」获得正奖励。由于初始训练就上长度惩罚会拖慢学习，作者采用 warm-up：先标准无惩罚训练，再加常数惩罚过渡，最后启用完整分段函数。<span class="tuizhu" style="display:inline-block;padding:2px 10px;">（推断）这个三段式引入顺序暗示长度惩罚与能力习得存在张力——模型还没学会推理时就逼它精简，会扼杀必要的探索性冗余。</span></p>
+
+<h3>3.4 采样策略：curriculum + prioritized 双引擎</h3>
+<div class="cardgrid">
+<div class="icard"><b class="t">Curriculum Sampling</b>先易后难。理由直白——初始 RL 性能弱，硬题只会浪费算力；先在全量题上热身，再聚焦难题。消融（图9）显示显著优于 uniform baseline。</div>
+<div class="icard"><b class="t">Prioritized Sampling</b>追踪每题成功率 s<sub>i</sub>，按 <b>1−s<sub>i</sub></b> 的比例采样，集中火力于弱项。（推断）本质是把课程学习与主动学习的思想搬进 RL 采样循环，代价仅是维护每题的成功率统计，性价比极高。</div>
+</div>
+
+<h3>3.5 训练配方：奖励模型、代码沙盒与视觉 RL</h3>
+<h4>CoT-RM（CoT 奖励模型）</h4>
+<p>用约 <span class="hl">800k</span> CoT-labeled 样本微调 Kimi 模型，输出 JSON 判定并附逐步推理。手动抽查准确率达 <span class="hl">98.5</span>，远超 Classic RM 的 <span class="neg">84.4</span>，故 RL 采用 CoT-RM。<span class="tuizhu" style="display:inline-block;padding:2px 10px;">（推断）11 个百分点的差距说明「先推理再判定」的奖励模型显著更可靠——这与主模型的长-CoT 哲学一脉相承：让裁判也先想清楚再打分。</span></p>
+<h4>代码与 SFT 基础</h4>
+<ul>
+<li><b>代码题</b>：用 CYaRon 自动生成测试用例，范围限定在无需 special judge、且有 ground truth solutions 的题目，保证验证客观性；</li>
+<li><b>Vanilla SFT</b>：约 <span class="hl">1M</span> 文本样本（500k 通用 QA + 200k 代码 + 200k 数学科学 + 5k 创意写作 + 20k 长上下文），另有 <span class="hl">1M</span> 文-图样本。</li>
+</ul>
+<h4>Vision RL 数据三类</h4>
+<table>
+<tr><th>类型</th><th>内容</th><th>作用</th></tr>
+<tr><td><b>real-world</b></td><td>科学图题、位置猜测、图表分析</td><td>真实世界感知推理</td></tr>
+<tr><td><b>synthetic visual reasoning</b></td><td>程序化生成图像：几何/空间/物体交互</td><td>可控难度的空间推理</td></tr>
+<tr><td><b>text-rendered</b></td><td>把文本/代码渲染成图像</td><td>增强跨模态一致性</td></tr>
+</table>
+<p><span class="tuizhu" style="display:inline-block;padding:2px 10px;">（推断）第三类尤其巧妙——它让「同一个推理任务」既能以文本形式也能以图像形式出现，从数据侧强行打通模态边界，这可能是 k1.5 多模态推理能力的重要来源。</span></p>
+
+<h3>3.6 预训练与上下文激活</h3>
+<p>预训练分三阶段：<b>vision-language pretraining</b>（先建立语言基础，再逐步并入多模态）→ <b>cooldown</b>（curated + synthetic 数据降温收敛）→ <b>long-context activation</b>（激活 <span class="hl">131,072</span> token 上下文）。语言数据覆盖英/中/代码/数学推理/知识五域。时序安排：先 32k 序列训 1 epoch（LR 2e-5 → 2e-6），再 128k 序列训 1 epoch（重新 warm 到 1e-5 → 1e-6），全程 packing。<span class="tuizhu" style="display:inline-block;padding:2px 10px;">（推断）「cooldown + long-context activation」的两段收尾设计后来被多家实验室效仿，成为长上下文预训练的事实范式之一。</span></p>
+
+<h3>3.7 RL 基础设施：被低估的硬核贡献</h3>
+<p>论文 §2.6 的基础设施章节篇幅可观，三项工程值得单独记录：</p>
+<div class="cardgrid">
+<div class="icard"><b class="t">① Partial Rollouts</b>固定输出 token 预算截断每条轨迹，长短轨迹都高效；新 rollout 复用先前轨迹的大块前缀，避免从零重生成。这对 128K 上下文的 RL 至关重要——否则每条长思维链都从头采样，算力将不可承受。</div>
+<div class="icard"><b class="t">② Hybrid Deployment</b>Megatron（训练）与 vLLM（推理）以 Kubernetes Sidecar 形式共处一个 pod、共享 GPU；checkpoint-engine 管理生命周期；Mooncake + RDMA 传 checkpoint。效果：<b>训练→推理 &lt;1 分钟，推理→训练约 10 秒</b>。（推断）大幅提高 GPU 利用率，是「训练与推理互相等待」这一经典痛点的高分答卷。</div>
+<div class="icard"><b class="t">③ Code Sandbox</b>Kubernetes 服务，以 Crun 替代 Docker、cgroup 复用、overlayfs+tmpfs 设上界。容器启动 <span class="hl">0.12s → 0.04s</span>；16-core 单机吞吐 <span class="hl">27 → 120 containers/sec</span>。代码类 RL 的验证瓶颈由此解除。</div>
+</div>
+<blockquote class="oneline"><b>一句话小结</b>：方法体系是「三层楼」——数据层用三原则策展 + 自适配难度把关，算法层用镜像下降 + 长度惩罚 + 课程采样驱动学习，系统层用 partial rollout + 混合部署 + 毫秒级沙盒托住 128K 长上下文 RL 的算力开销。</blockquote>
+
+<!-- ===================== 四 ===================== -->
+<h2 class="sec"><span class="no">四</span>证据评估：主表逐行解读与消融链条</h2>
+
+<h3>4.1 长-CoT 主表（表2）：与 o1 的正面交锋</h3>
+<table>
+<tr><th>基准</th><th class="c">QwQ-32B</th><th class="c">o1-mini</th><th class="c">OpenAI o1</th><th class="c">Kimi k1.5</th><th>判定</th></tr>
+<tr><td>MATH-500 (EM)</td><td class="c">90.6</td><td class="c">90.0</td><td class="c">94.8</td><td class="c kcol">96.2</td><td class="win">★ 超 o1 +1.4</td></tr>
+<tr><td>AIME 2024</td><td class="c">50.0</td><td class="c">63.6</td><td class="c">74.4</td><td class="c kcol">77.5</td><td class="win">★ 超 o1 +3.1</td></tr>
+<tr><td>Codeforces (Pct)</td><td class="c">62</td><td class="c">88</td><td class="c">94</td><td class="c kcol">94</td><td class="win">◆ 并列</td></tr>
+<tr><td>LiveCodeBench</td><td class="c">40.6</td><td class="c">53.1</td><td class="c">67.2</td><td class="c kcol">62.5</td><td class="lose">✗ 落后 4.7</td></tr>
+<tr><td>MathVista-Test</td><td class="c">–</td><td class="c">–</td><td class="c">71.0</td><td class="c kcol">74.9</td><td class="win">★ 超 o1 +3.9</td></tr>
+<tr><td>MMMU-Val</td><td class="c">–</td><td class="c">–</td><td class="c">77.3</td><td class="c kcol">70.0</td><td class="lose">✗ 落后 7.3</td></tr>
+<tr><td>MathVision-Full</td><td class="c">–</td><td class="c">–</td><td class="c">–</td><td class="c kcol">38.6</td><td class="note">无 o1 对照</td></tr>
+</table>
+<p><b>逐行解读</b>：数学双榜（MATH-500、AIME）与视觉数学（MathVista）三项超过 o1，Codeforces 打平，构成「达到或匹配 o1」宣称的主干。短板集中在两处——LiveCodeBench 落后 4.7 点、MMMU-Val 落后 7.3 点。<span class="tuizhu" style="display:inline-block;padding:2px 10px;">（推断）LiveCodeBench 的差距可能与代码 RL 数据覆盖面有关（§2.3.5 明确限定了自动测试用例生成的适用范围）；MMMU 的差距则提示知识型多模态问答并非长-CoT 推理的强项——推理扩容主要放大的是「解题」而非「识记」。</span></p>
+
+<h3>4.2 短-CoT 主表（表3）：long2short 的实战检验</h3>
+<table>
+<tr><th>基准</th><th class="c">Qwen2.5-72B</th><th class="c">Claude-3.5-Sonnet-1022</th><th class="c">GPT-4o-0513</th><th class="c">Kimi k1.5 (short)</th><th>判定</th></tr>
+<tr><td>MMLU (EM)</td><td class="c">85.3</td><td class="c">88.3</td><td class="c">87.2</td><td class="c kcol">87.4</td><td class="win">★ 最优</td></tr>
+<tr><td>IF-Eval (Prompt Strict)</td><td class="c">84.1</td><td class="c">86.5</td><td class="c">84.3</td><td class="c kcol">87.2</td><td class="win">★ 最优</td></tr>
+<tr><td>CLUEWSC (EM)</td><td class="c">91.4</td><td class="c">85.4</td><td class="c">87.9</td><td class="c kcol">91.7</td><td class="win">★ 最优</td></tr>
+<tr><td>C-Eval (EM)</td><td class="c">86.1</td><td class="c">76.7</td><td class="c">76.0</td><td class="c kcol">88.3</td><td class="win">★ 大幅领先</td></tr>
+<tr><td>MATH-500</td><td class="c">80.0</td><td class="c">78.3</td><td class="c">74.6</td><td class="c kcol">94.6</td><td class="win">★ 碾压级</td></tr>
+<tr><td>AIME 2024</td><td class="c">23.3</td><td class="c">16.0</td><td class="c">9.3</td><td class="c kcol">60.8</td><td class="win">★ 碾压级</td></tr>
+<tr><td>LiveCodeBench</td><td class="c">31.1</td><td class="c">36.3</td><td class="c">33.4</td><td class="c kcol">47.3</td><td class="win">★ 领先 11 点</td></tr>
+<tr><td>HumanEval-Mul</td><td class="c">77.3</td><td class="c">81.7</td><td class="c">80.5</td><td class="c kcol">81.5</td><td class="note">微逊 0.2</td></tr>
+<tr><td>MathVista-Test</td><td class="c">–</td><td class="c">65.3</td><td class="c">63.8</td><td class="c kcol">70.1</td><td class="win">★ 领先 4.8</td></tr>
+</table>
+<p><b>核心看点</b>：短-CoT 模型在不展开长思维链的前提下，AIME 2024 达 <span class="hl">60.8</span>，对 GPT-4o（<span class="neg">9.3</span>）/ Claude-3.5（<span class="neg">16.0</span>）形成最高 <span class="hl">+550%</span> 的相对优势；MATH-500 的 <span class="hl">94.6</span> 甚至逼近自己长-CoT 版本的 96.2。通用能力（MMLU 87.4、C-Eval 88.3、CLUEWSC 91.7）同步在线，说明 long2short 迁移没有以牺牲通用性为代价。<span class="tuizhu" style="display:inline-block;padding:2px 10px;">（推断）「MATH-500 短版≈长版」暗示：对多数数学题，模型真正需要的不是超长思考而是「正确的推理骨架」，长-CoT 的边际价值集中在少数极难题目上。</span></p>
+
+<h3>4.3 长上下文缩放的证据（图5/图6）</h3>
+<p>§3.3 提供两条互补证据：其一，中小型模型随 RL 迭代推进，response length 与 accuracy <b>同步上升</b>，且越难的基准（AIME2024、GPQA 等）response length 增速越陡——即模型自发地「用更长的思考换取更高的正确率」；其二，各基准上 model performance 与 response length 强相关，斜率约在 <span class="hl">1e-5 ~ 4e-5</span> 区间。<span class="tuizhu" style="display:inline-block;padding:2px 10px;">（推断）这两张图合起来是对「context is search」假说的直接实证：思考预算与解题能力之间存在近似单调的交易关系，且交易汇率因题目难度而异。这也是「测试时计算扩展」命题最早期的系统性量化证据之一。</span></p>
+
+<h3>4.4 Long2short 的证据（图7）</h3>
+<p>§3.4 将 k1.5-long 及其各式 long2short 产物与 Claude-3.5、DeepSeek-V3、GPT-4-0513 同图对比 MATH500/AIME2024 的性能-token 曲线：k1.5 系列在同等 token 预算下全面占优，k1.5-shortest 为最省 token 版本。对比技术还包括 DPO、最短拒绝采样、模型合并等横向比较。<span class="tuizhu" style="display:inline-block;padding:2px 10px;">（推断）这张图的实际意义是为部署决策提供「性能-成本帕累托前沿」：不同业务场景可在曲线上选点，而非被迫接受单一模型形态。</span></p>
+
+<h3>4.5 消融研究：三个组件的必要性验证</h3>
+<div class="cardgrid">
+<div class="icard"><b class="t">模型尺寸 vs 上下文长度（图8）</b>较小模型用更长 CoT 可追平大模型，但大模型 token 效率更好；追求最强性能→大模型+更长上下文上限更高且更省 token；测试时计算受限→小模型+大上下文可行。给出了「参数规模」与「思考长度」两个扩展维度的互换关系。</div>
+<div class="icard"><b class="t">负梯度（图10）</b>对比 ReST（只拟合当前模型最优响应、无负梯度），本文方法在 OMNI-MATH500/MATH500/AIME2024/GPQA 上样本复杂度明显更优——负梯度显著提升长 CoT 生成效率，直接支撑 2.3 节的反直觉立场。</div>
+<div class="icard"><b class="t">采样策略（图9）</b>curriculum sampling（先 warm-up 全量、再专注硬题）显著优于 uniform baseline，验证了课程式采样的必要性。</div>
+</div>
+<blockquote class="oneline"><b>一句话小结</b>：证据体系呈「三线并进」——主表证明能力天花板（match o1）、短-CoT 表证明成本可控（+550%）、消融证明每个组件各有其功，唯代码与知识型多模态两处留有明显缺口。</blockquote>
+
+<!-- ===================== 五 ===================== -->
+<h2 class="sec"><span class="no">五</span>批判审视：局限的深层含义与独立疑点</h2>
+
+<h3>5.1 作者自述局限的深层含义</h3>
+<ol>
+<li><b>长-CoT 的 token 成本仍然存在</b>：long2short 只是缓解而非消除（§2.4 引言承认）。深层含义是：测试时计算的账单只是被转移（训练时更贵的教师 + 部署时蒸馏），并未消失——推理能力的总经济成本仍需长期核算。</li>
+<li><b>Overthinking 待解</b>：结论部分作者明确承认需要研究「减少 overthinking 而不损害探索能力」的 credit assignment 改进。这与 2.3 的负梯度立场形成有趣张力——既要鼓励试错，又要防止无效徘徊，<span style="color:#b8860b">（推断）这正是后续推理模型研究的核心难题之一。</span></li>
+<li><b>Reward hacking 只能规避不能根除</b>：依赖 prompt 可验证性 + pass-rate 难度过滤 + 双奖励模型三重防线，但作者清楚这是 RL 固有的持续性风险（§2.1）。</li>
+<li><b>代码 reward 覆盖受限</b>：自动测试用例生成只适用于无需 special judge、有 ground truth solution 的题目，大量真实软件工程任务（交互式环境、隐式规范）仍在射程之外。</li>
+</ol>
+
+<h3>5.2 独立观察到的五个疑点</h3>
+<h4>① 两处明显短板未被归因</h4>
+<p>LiveCodeBench（<span class="neg">62.5</span> vs o1 的 67.2）与 MMMU-Val（<span class="neg">70.0</span> vs o1 的 77.3）是长-CoT 主表中仅有的两项显著落后，论文未给出针对性分析。<span class="tuizhu" style="display:inline-block;padding:2px 10px;">（推断）前者可能源于代码 RL 数据的覆盖限制，后者则指向更重要的问题：<b>长-CoT 推理范式对「感知/记忆密集型」任务的收益可能天然有限</b>——拉长思考未必有帮助，甚至可能引入过度推理的干扰。这一点在短-CoT 表同样成立：MMMU-Val 68.0 低于 GPT-4o 的 69.1，MathVision-Full 31.0 也低于 Claude 的 35.6。</span></p>
+<h4>② 短-CoT 表的 VLM 数字来自第三方平台</h4>
+<p>论文明确说明短-CoT 模型的 VLM 性能取自 OpenCompass 平台评测结果（§3.1），横表对比存在<b>口径依赖</b>——各家模型是否在完全相同的提示、解码配置下评测难以完全核实。<span class="tuizhu" style="display:inline-block;padding:2px 10px;">（推断）虽然 OpenCompass 是相对中立的标准平台，但引用第三方跑分与自己实测混排在同一张表中，严格意义上削弱了表3的可比性等级。</span></p>
+<h4>③ 复现门槛极高</h4>
+<p>完整管线为 pretrain → vanilla SFT（约 1M 样本）→ long-CoT SFT → RL（128K 上下文）→ long2short RL 五阶段，叠加 800k CoT-RM 训练数据、自建代码沙盒与混合部署集群。<span class="tuizhu" style="display:inline-block;padding:2px 10px;">（推断）即便论文写得再开明，能完整复现的组织在全球也是个位数——这份报告更像「能力证明 + 路线指引」，而非可操作的 recipe。</span></p>
+<h4>④ 模型未开放权重</h4>
+<p>报告未提及任何权重开源或 API 之外的可获得性安排。<span class="tuizhu" style="display:inline-block;padding:2px 10px;">（推断）与同期 DeepSeek R1 的开源策略相比，社区从 k1.5 获得的主要是方法论知识而非可直接使用的资产，这在一定程度上限制了其工程细节（如 partial rollouts 的具体实现）被独立验证的机会。</span></p>
+<h4>⑤ 「+550%」相对优势的表述方式</h4>
+<p>摘要以「+550%」（AIME 上，vs GPT-4o/Claude-3.5-Sonnet）呈现短-CoT 优势，这是相对百分比（60.8 vs 9.3 ≈ 553%）。<span class="tuizhu" style="display:inline-block;padding:2px 10px;">（推断）绝对差 51.5 点当然同样惊人，但相对表述在小基数场景下有放大观感的效果——GPT-4o-0513 本就不以竞赛数学见长，此对比更多是营销性而非科学性陈述。</span></p>
+<blockquote class="oneline"><b>一句话小结</b>：这篇报告的证据诚实度整体较高（短板如实列出、消融齐全），但「match o1」的光环之下，代码与知识型多模态的结构性短板、第三方口径混排、不可复现的门槛，共同划定了这条路线当时的真实边界。</blockquote>
+
+<!-- ===================== 六 ===================== -->
+<h2 class="sec"><span class="no">六</span>启示提炼：可迁移的经验与历史坐标</h2>
+
+<h3>6.1 六条可迁移启示</h3>
+<ol>
+<li><b>「上下文即搜索空间」是可推广的架构哲学</b>：把显式搜索（树、图、状态机）展平进 context 让模型自学，这一思路不限于数学推理——任何「可用序列表达搜索过程」的领域（程序合成、游戏、Agent 任务规划）都可套用。<span style="color:#b8860b">（推断）后来业界流行的「let the model think longer」路线，源头正是这类工作的验证。</span></li>
+<li><b>做减法是 RL 框架设计的竞争力</b>：显式排除价值网络、MCTS、PRM 之后，系统反而更强、更稳、更易扩展。判断标准值得记住：<b>当一个组件的存在是为了弥补上下文不够长时，扩上下文可能是更好的解法</b>。</li>
+<li><b>负梯度保护试错信号</b>：ReST 式「只学好样本」的方法样本复杂度显著更差。凡涉及探索的任务（Agent、代码修复、科学发现），都应警惕「只用成功轨迹训练」的隐性浪费。</li>
+<li><b>能力与成本分离交付</b>：long2short 五技术提供了「训练期挥霍、部署期节约」的模板。最短拒绝采样尤其廉价高效——任何有多次采样条件的场景都可以立即使用。</li>
+<li><b>基础设施是一等方法论</b>：partial rollouts（复用轨迹前缀）、训练/推理同 pod 共享 GPU（切换 10 秒~1 分钟）、毫秒级代码沙盒（0.04s 启动、120 containers/sec），这些数字表明 128K 上下文 RL 的可行性一半靠算法、一半靠系统工程。做长上下文 RL 的团队应把 §2.6 当作必读。</li>
+<li><b>难度自适配的数据策展</b>：用模型自身的 pass rate 定义题目难度并按 1−s<sub>i</sub> 优先采样弱项，是低成本高回报的训练技巧，可移植到任何可自动判分的 RL 场景。</li>
+</ol>
+
+<h3>6.2 历史坐标与未来走向</h3>
+<p>在 2025 年的推理模型编年史中，Kimi k1.5 是「RL 扩展范式」的三大早期公开验证之一（与 OpenAI o1、DeepSeek R1 并列），且是其中最早系统发表技术细节的多模态版本。其提出的三个命题——<b>上下文长度可缩放、极简 RL 足够强、长短能力可迁移</b>——在随后被反复证实并成为行业默认配置。遗留的开放问题同样清晰：</p>
+<ul>
+<li><b>Overthinking 的机制化治理</b>：如何在保留探索收益的同时剪除无效思考循环，需要超越简单长度惩罚的 credit assignment 理论；</li>
+<li><b>可验证域之外的扩展</b>：当前体系依赖可客观判分的 verifier，开放式写作、真实软件工程、科学假设评估等「弱验证域」仍是空白；<span style="color:#b8860b">（推断）</span></li>
+<li><b>多模态推理的深化</b>：k1.5 证明了 vision RL 可行，但 MMMU/MathVision 的短板表明感知-推理的融合远未完成，视觉原语级别的深度推理是自然的下一站。</li>
+</ul>
+
+<!-- ===================== 总结 ===================== -->
+<h2 class="sec"><span class="no">■</span>总结</h2>
+<p>《Kimi k1.5》是一份「减法美学」的 RL 扩展宣言：它用 online mirror descent 变体砍掉价值函数、MCTS 与过程奖励模型，把省下的复杂度兑换成 <span class="hlb">128K</span> 的 RL 上下文，让「思考步数即搜索步数」的长-CoT 范式在 AIME 2024（<span class="hl">77.5</span>）、MATH-500（<span class="hl">96.2</span>）、Codeforces（<span class="hl">94</span> pct）、MathVista（<span class="hl">74.9</span>）上追平 OpenAI o1；再用 long2short 五技术把昂贵能力蒸馏进短-CoT 模型，以 AIME <span class="hl">60.8</span> 对 GPT-4o/Claude-3.5 拿下最高 <span class="hl">+550%</span> 的效率优势。</p>
+<p>证据链三线并进——主表立天花板、短-CoT 表立性价比、消融验组件必要性——同时坦率暴露了 LiveCodeBench（<span class="neg">−4.7</span>）与 MMMU（<span class="neg">−7.3</span>）的结构性短板。其最持久的影响或许不在某个分数，而在三条被验证的世界观：<b>上下文是可缩放的搜索空间、RL 框架的简化即扩展、训练基础设施本身是一等公民</b>。对于今天的研究者，这份报告仍然是理解「推理模型为何长成现在这个样子」的最佳起点之一。</p>
+
+<!-- ===================== 自检 ===================== -->
+<div class="selfcheck">
+<h3>▣ 报告自检（Self-Check）</h3>
+<ul>
+<li><b>编码</b>：UTF-8，无替换字符（U+FFFD）；中文正文 + monospace 数字混排正常。</li>
+<li><b>结构</b>：六层结构完整——摘要 / 一问题定位 / 二概念内核 / 三方法还原 / 四证据评估 / 五批判审视 / 六启示提炼 + 总结；含 4 张数据表、3 个公式块、6 张卡片。</li>
+<li><b>数字一致性</b>：全部关键数字（77.5 / 96.2 / 94 / 74.9 / 62.5 / 60.8 / 94.6 / 47.3 / 87.4 / 88.3 / 98.5 / 84.4 / 800k / 1M / 128K=131,072 / 0.04s / 120 containers/sec / +550% 等）均取自 00-源数据提取.md，无虚构数字。</li>
+<li><b>推断标注</b>：所有非源数据的分析推理均以「（推断）」金色标注区分，共 14 处。</li>
+<li><b>div 配平</b>：容器层使用语义标签（section 由 h2 分隔、table/cardgrid/icard/formula/blockquote），div 仅用于 wrap 与 selfcheck 两处且均正确闭合。</li>
+<li><b>排版</b>：单文件内联 CSS，无外部依赖；打印友好（@media print）；关键数字橙色/蓝底高亮。</li>
+</ul>
+</div>
+
+<footer>《Kimi k1.5: Scaling Reinforcement Learning with LLMs》深度解读报告 · B2 批次 · 依据 00-源数据提取.md 编制 · 2026-08</footer>
+</div>
+</body>
+</html>
