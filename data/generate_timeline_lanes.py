@@ -374,7 +374,7 @@ a{{color:var(--acc);text-decoration:none}}a:hover{{text-decoration:underline}}
 .node-title{{font-size:11.5px;line-height:1.32;display:block;word-break:break-word;overflow:hidden}}
 .node-org{{font-size:10px;color:var(--mut);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 .node-ana{{margin-top:auto;padding-top:4px}}.node-ana a{{font-size:10px;color:#c084fc;font-weight:600}}
-.relation-layer{{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}}
+.relation-layer{{position:absolute;top:0;left:0;overflow:visible;pointer-events:none;z-index:2}}
 .rel-line{{pointer-events:auto;cursor:pointer;opacity:.38;stroke-width:1.2}}
 .rel-line.found{{stroke:#3fb950}}.rel-line.inherit{{stroke:#58a6ff}}.rel-line.branch{{stroke:#bc8cff}}.rel-line.compete{{stroke:#f85149}}
 .rel-line:hover,.rel-line.hl{{opacity:.95;stroke-width:2.5}}
@@ -392,8 +392,8 @@ a{{color:var(--acc);text-decoration:none}}a:hover{{text-decoration:underline}}
 <div class="lane-scroll">
   <div class="axis-row"><div class="axis-spacer"></div><div class="axis-grid">{axis_html}</div></div>
   {lanes_html}
+  <svg class="relation-layer" id="relLayer"></svg>
 </div>
-<svg class="relation-layer" id="relLayer"></svg>
 </section>
 <div style="text-align:center;margin:22px 0"><a href="list.html" style="border:1px solid var(--bd);border-radius:99px;padding:6px 20px;font-size:13px">📋 切换到卡片列表视图</a></div>
 <footer class="page-foot"><p>数据口径：verified=联网一手核验 · 共 {total} 篇；本地PDF 112 篇 · 仅索引 21 篇</p><p>生成日期：{sys.argv[0].split("/")[-1]} 脚本驱动 · 禁止手抄数据</p></footer>
@@ -409,20 +409,22 @@ a{{color:var(--acc);text-decoration:none}}a:hover{{text-decoration:underline}}
     layer.setAttribute('width',W.scrollWidth);
     layer.setAttribute('height',W.scrollHeight);
     layer.innerHTML='';
+    var wsr=W.getBoundingClientRect();
     R.forEach(function(r){{
       var sn=document.querySelector('.node[data-slug="'+r.slug+'"]');
       var tn=document.querySelector('.node[data-slug="'+r.tgt+'"]');
       if(!sn||!tn) return;
       var sr=sn.getBoundingClientRect(), tr=tn.getBoundingClientRect();
-      var wsr=W.getBoundingClientRect();
+      // 相对 lane-scroll content 原点（SVG 坐标系）
       var x1=sr.left-wsr.left+sr.width/2, y1=sr.top-wsr.top+sr.height/2;
       var x2=tr.left-wsr.left+tr.width/2, y2=tr.top-wsr.top+tr.height/2;
-      // 若两点太近(y相同泳道或相近)，用贝塞尔
+      var dx=x2-x1, dy=y2-y1;
+      // 贝塞尔：控制点沿 y 方向（泳道间纵向连接）, 避免横穿泳道；同泳道近距离用平滑曲线
+      var c1y=y1+dy*0.5, c2y=y2-dy*0.5;
       var path=document.createElementNS('http://www.w3.org/2000/svg','path');
-      path.setAttribute('d','M'+x1+','+y1+' C'+x1+','+(y1+ (y2-y1)/2) + ' '+x2+','+(y2-(y2-y1)/2)+' '+x2+','+y2);
+      path.setAttribute('d','M'+x1+','+y1+' C'+x1+','+c1y+' '+x2+','+c2y+' '+x2+','+y2);
       path.setAttribute('class','rel-line '+r.type);
       path.setAttribute('vector-effect','non-scaling-stroke');
-      path.setAttribute('stroke-width','1.5');
       path.setAttribute('fill','none');
       path.setAttribute('data-from',r.slug);path.setAttribute('data-to',r.tgt);path.setAttribute('data-type',r.type);
       path.addEventListener('click',function(e){{
