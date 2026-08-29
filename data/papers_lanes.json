@@ -1,0 +1,3159 @@
+{
+  "total": 133,
+  "lanes": [
+    {
+      "slug": "Attention_Is_All_You_Need",
+      "line": "arch",
+      "tags": [
+        "pretrain",
+        "longctx",
+        "eng"
+      ],
+      "related": [
+        {
+          "target": "BERT",
+          "type": "inherit"
+        },
+        {
+          "target": "Switch_Transformers",
+          "type": "inherit"
+        },
+        {
+          "target": "RoPE_RoFormer",
+          "type": "inherit"
+        },
+        {
+          "target": "CLIP",
+          "type": "inherit"
+        }
+      ],
+      "d": "2017-06",
+      "era": "E1",
+      "t": "Attention Is All You Need",
+      "org": "Google Brain/Research",
+      "p": "P3",
+      "c": "纯自注意力Transformer架构，完全弃用RNN/CNN"
+    },
+    {
+      "slug": "ELMo",
+      "line": "pretrain",
+      "tags": [],
+      "related": [
+        {
+          "target": "BERT",
+          "type": "found"
+        },
+        {
+          "target": "GPT-1",
+          "type": "found"
+        }
+      ],
+      "d": "2018-02",
+      "era": "E1",
+      "t": "Deep Contextualized Word Representations",
+      "org": "AI2",
+      "p": "P2",
+      "c": "双向LSTM深度上下文词表示，动态嵌入替代静态向量"
+    },
+    {
+      "slug": "GPT-1",
+      "line": "pretrain",
+      "tags": [
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "Attention_Is_All_You_Need",
+          "type": "inherit"
+        },
+        {
+          "target": "BERT",
+          "type": "branch"
+        },
+        {
+          "target": "GPT-2",
+          "type": "found"
+        }
+      ],
+      "d": "2018-06",
+      "era": "E1",
+      "t": "Improving Language Understanding by Generative Pre-Training",
+      "org": "OpenAI",
+      "p": "P2",
+      "c": "确立生成式预训练+判别式微调两阶段范式"
+    },
+    {
+      "slug": "BERT",
+      "line": "pretrain",
+      "tags": [
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "Attention_Is_All_You_Need",
+          "type": "inherit"
+        },
+        {
+          "target": "GPT-1",
+          "type": "branch"
+        }
+      ],
+      "d": "2018-10",
+      "era": "E1",
+      "t": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+      "org": "Google",
+      "p": "P3",
+      "c": "双向编码器+MLM预训练，理解类任务全面刷新"
+    },
+    {
+      "slug": "GPT-2",
+      "line": "pretrain",
+      "tags": [
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "GPT-1",
+          "type": "inherit"
+        },
+        {
+          "target": "BERT",
+          "type": "compete"
+        },
+        {
+          "target": "GPT-3_Few-Shot_Learners",
+          "type": "found"
+        }
+      ],
+      "d": "2019-02",
+      "era": "E1",
+      "t": "Language Models are Unsupervised Multitask Learners",
+      "org": "OpenAI",
+      "p": "P2",
+      "c": "论证语言模型天然是多任务学习者，zero-shot可用"
+    },
+    {
+      "slug": "Sparse_Transformers",
+      "line": "arch",
+      "tags": [
+        "longctx"
+      ],
+      "related": [
+        {
+          "target": "Attention_Is_All_You_Need",
+          "type": "inherit"
+        }
+      ],
+      "d": "2019-04",
+      "era": "E1",
+      "t": "Generating Long Sequences with Sparse Transformers",
+      "org": "OpenAI",
+      "p": "P2",
+      "c": "strided/fixed稀疏注意力，复杂度O(L√L)"
+    },
+    {
+      "slug": "Megatron_LM",
+      "line": "eng",
+      "tags": [],
+      "related": [
+        {
+          "target": "DeepSpeed",
+          "type": "compete"
+        },
+        {
+          "target": "GPT-3_Few-Shot_Learners",
+          "type": "found"
+        }
+      ],
+      "d": "2019-09",
+      "era": "E1",
+      "t": "Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism",
+      "org": "NVIDIA",
+      "p": "P2",
+      "c": "模型并行+张量切分，可训练多亿级参数LLM"
+    },
+    {
+      "slug": "T5",
+      "line": "pretrain",
+      "tags": [
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "Attention_Is_All_You_Need",
+          "type": "inherit"
+        },
+        {
+          "target": "BERT",
+          "type": "branch"
+        },
+        {
+          "target": "FLAN",
+          "type": "found"
+        }
+      ],
+      "d": "2019-10",
+      "era": "E1",
+      "t": "Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer",
+      "org": "Google",
+      "p": "P2",
+      "c": "text-to-text统一框架+系统消融预训练配方+C4语料"
+    },
+    {
+      "slug": "DeepSpeed",
+      "line": "eng",
+      "tags": [
+        "pretrain"
+      ],
+      "related": [
+        {
+          "target": "GShard",
+          "type": "compete"
+        }
+      ],
+      "d": "2019-10",
+      "era": "E1",
+      "t": "ZeRO: Memory Optimizations Toward Training Trillion Parameter Models",
+      "org": "Microsoft",
+      "p": "P2",
+      "c": "ZeRO优化器分片，显存开销随GPU数线性下降，支撑万亿参"
+    },
+    {
+      "slug": "MQA",
+      "line": "longctx",
+      "tags": [
+        "eng",
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "Attention_Is_All_You_Need",
+          "type": "inherit"
+        }
+      ],
+      "d": "2019-11",
+      "era": "E1",
+      "t": "Fast Transformer Decoding: One Write-Head is All You Need",
+      "org": "Google",
+      "p": "P2",
+      "c": "多query头共享单组KV，压缩KV cache"
+    },
+    {
+      "slug": "Kaplan_Scaling_Laws",
+      "line": "pretrain",
+      "tags": [],
+      "related": [
+        {
+          "target": "Chinchilla",
+          "type": "compete"
+        },
+        {
+          "target": "GPT-3_Few-Shot_Learners",
+          "type": "found"
+        }
+      ],
+      "d": "2020-01",
+      "era": "E2",
+      "t": "Scaling Laws for Neural Language Models",
+      "org": "OpenAI",
+      "p": "P3",
+      "c": "幂律刻画损失随参数/数据/算力可预测下降"
+    },
+    {
+      "slug": "REALM",
+      "line": "pretrain",
+      "tags": [
+        "agent"
+      ],
+      "related": [
+        {
+          "target": "RAG",
+          "type": "branch"
+        }
+      ],
+      "d": "2020-02",
+      "era": "E2",
+      "t": "REALM: Retrieval-Augmented Language Model Pre-Training",
+      "org": "Google",
+      "p": "P2",
+      "c": "将MIPS检索嵌入预训练目标端到端训练"
+    },
+    {
+      "slug": "GPT-3_Few-Shot_Learners",
+      "line": "pretrain",
+      "tags": [
+        "arch",
+        "reason"
+      ],
+      "related": [
+        {
+          "target": "Kaplan_Scaling_Laws",
+          "type": "inherit"
+        },
+        {
+          "target": "Chain-of-Thought",
+          "type": "found"
+        },
+        {
+          "target": "InstructGPT_RLHF",
+          "type": "found"
+        }
+      ],
+      "d": "2020-05",
+      "era": "E2",
+      "t": "Language Models are Few-Shot Learners",
+      "org": "OpenAI",
+      "p": "P3",
+      "c": "175B下few-shot/in-context learning系统实证"
+    },
+    {
+      "slug": "RAG",
+      "line": "arch",
+      "tags": [
+        "pretrain"
+      ],
+      "related": [
+        {
+          "target": "T5",
+          "type": "inherit"
+        },
+        {
+          "target": "REALM",
+          "type": "branch"
+        }
+      ],
+      "d": "2020-05",
+      "era": "E2",
+      "t": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+      "org": "Meta AI",
+      "p": "P3",
+      "c": "参数记忆+非参数检索的seq2seq生成，命名RAG范式"
+    },
+    {
+      "slug": "GShard",
+      "line": "arch",
+      "tags": [
+        "eng"
+      ],
+      "related": [
+        {
+          "target": "Switch_Transformers",
+          "type": "found"
+        },
+        {
+          "target": "DeepSpeed",
+          "type": "compete"
+        }
+      ],
+      "d": "2020-06",
+      "era": "E2",
+      "t": "GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding",
+      "org": "Google",
+      "p": "P1",
+      "c": "MoE稀疏+自动分片，600B+多语翻译T5"
+    },
+    {
+      "slug": "ViT",
+      "line": "multi",
+      "tags": [
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "Attention_Is_All_You_Need",
+          "type": "inherit"
+        },
+        {
+          "target": "CLIP",
+          "type": "inherit"
+        }
+      ],
+      "d": "2020-10",
+      "era": "E2",
+      "t": "An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
+      "org": "Google Brain",
+      "p": "P3",
+      "c": "纯Transformer做图像分类，patch序列化"
+    },
+    {
+      "slug": "Switch_Transformers",
+      "line": "arch",
+      "tags": [
+        "pretrain",
+        "eng"
+      ],
+      "related": [
+        {
+          "target": "Attention_Is_All_You_Need",
+          "type": "inherit"
+        },
+        {
+          "target": "Mixtral",
+          "type": "found"
+        }
+      ],
+      "d": "2021-01",
+      "era": "E2",
+      "t": "Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity",
+      "org": "Google",
+      "p": "P3",
+      "c": "top-1路由极简MoE，首次训到万亿参数"
+    },
+    {
+      "slug": "CLIP",
+      "line": "multi",
+      "tags": [
+        "pretrain",
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "ViT",
+          "type": "inherit"
+        },
+        {
+          "target": "LLaVA",
+          "type": "found"
+        },
+        {
+          "target": "Flamingo",
+          "type": "found"
+        }
+      ],
+      "d": "2021-02",
+      "era": "E2",
+      "t": "Learning Transferable Visual Models From Natural Language Supervision",
+      "org": "OpenAI",
+      "p": "P3",
+      "c": "4亿图文对比学习，零样本分类"
+    },
+    {
+      "slug": "RoPE_RoFormer",
+      "line": "longctx",
+      "tags": [
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "ALiBi",
+          "type": "compete"
+        },
+        {
+          "target": "Position_Interpolation",
+          "type": "inherit"
+        },
+        {
+          "target": "LongRoPE",
+          "type": "inherit"
+        }
+      ],
+      "d": "2021-04",
+      "era": "E2",
+      "t": "RoFormer: Enhanced Transformer with Rotary Position Embedding",
+      "org": "追一科技",
+      "p": "P3",
+      "c": "旋转位置编码：绝对位置实现相对内积"
+    },
+    {
+      "slug": "LoRA",
+      "line": "eng",
+      "tags": [
+        "align"
+      ],
+      "related": [],
+      "d": "2021-06",
+      "era": "E2",
+      "t": "LoRA: Low-Rank Adaptation of Large Language Models",
+      "org": "Microsoft",
+      "p": "P3",
+      "c": "冻结权重训低秩增量矩阵，可训练参数骤降"
+    },
+    {
+      "slug": "ALiBi",
+      "line": "longctx",
+      "tags": [
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "Attention_Is_All_You_Need",
+          "type": "inherit"
+        },
+        {
+          "target": "RoPE_RoFormer",
+          "type": "compete"
+        }
+      ],
+      "d": "2021-08",
+      "era": "E2",
+      "t": "Train Short, Test Long: Attention with Linear Biases Enables Input Length Extrapolation",
+      "org": "MosaicML",
+      "p": "P2",
+      "c": "线性位置偏置(ALiBi)让模型外推远超训练长度"
+    },
+    {
+      "slug": "FLAN",
+      "line": "align",
+      "tags": [
+        "pretrain"
+      ],
+      "related": [
+        {
+          "target": "InstructGPT_RLHF",
+          "type": "found"
+        },
+        {
+          "target": "GPT-3_Few-Shot_Learners",
+          "type": "inherit"
+        }
+      ],
+      "d": "2021-09",
+      "era": "E2",
+      "t": "Finetuned Language Models Are Zero-Shot Learners",
+      "org": "Google",
+      "p": "P3",
+      "c": "提出指令微调：多任务指令化微调激发零样本泛化"
+    },
+    {
+      "slug": "Chain-of-Thought",
+      "line": "reason",
+      "tags": [
+        "align"
+      ],
+      "related": [
+        {
+          "target": "GPT-3_Few-Shot_Learners",
+          "type": "inherit"
+        },
+        {
+          "target": "Self-Consistency",
+          "type": "branch"
+        },
+        {
+          "target": "o1_Learning_to_Reason",
+          "type": "found"
+        }
+      ],
+      "d": "2022-01",
+      "era": "E2",
+      "t": "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models",
+      "org": "Google",
+      "p": "P3",
+      "c": "中间推理步骤示例大幅提升复杂推理"
+    },
+    {
+      "slug": "Grokking",
+      "line": "pretrain",
+      "tags": [],
+      "related": [],
+      "d": "2022-01",
+      "era": "E2",
+      "t": "Grokking: Generalization Beyond Overfitting on Small Algorithmic Datasets",
+      "org": "OpenAI",
+      "p": "P2",
+      "c": "发现长时训练后从记忆到泛化的延迟突变现象"
+    },
+    {
+      "slug": "Chinchilla",
+      "line": "pretrain",
+      "tags": [
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "Kaplan_Scaling_Laws",
+          "type": "compete"
+        },
+        {
+          "target": "LLaMA",
+          "type": "found"
+        }
+      ],
+      "d": "2022-03",
+      "era": "E2",
+      "t": "Training Compute-Optimal Large Language Models",
+      "org": "DeepMind",
+      "p": "P3",
+      "c": "证明Kaplan低估数据：算力最优应参数数据约等比扩"
+    },
+    {
+      "slug": "InstructGPT_RLHF",
+      "line": "align",
+      "tags": [
+        "adapt"
+      ],
+      "related": [
+        {
+          "target": "FLAN",
+          "type": "inherit"
+        },
+        {
+          "target": "DPO",
+          "type": "branch"
+        }
+      ],
+      "d": "2022-03",
+      "era": "E2",
+      "t": "Training language models to follow instructions with human feedback",
+      "org": "OpenAI",
+      "p": "P3",
+      "c": "SFT+奖励模型+PPO三段RLHF，1.3B胜175B"
+    },
+    {
+      "slug": "Self-Consistency",
+      "line": "reason",
+      "tags": [],
+      "related": [
+        {
+          "target": "Chain-of-Thought",
+          "type": "inherit"
+        },
+        {
+          "target": "Scaling_TestTime_Compute",
+          "type": "found"
+        }
+      ],
+      "d": "2022-03",
+      "era": "E2",
+      "t": "Self-Consistency Improves Chain of Thought Reasoning in Language Models",
+      "org": "Google",
+      "p": "P2",
+      "c": "多条CoT采样+多数投票，并行测试时扩展开山之作"
+    },
+    {
+      "slug": "PaLM",
+      "line": "pretrain",
+      "tags": [
+        "arch",
+        "eng"
+      ],
+      "related": [
+        {
+          "target": "GPT-3_Few-Shot_Learners",
+          "type": "inherit"
+        }
+      ],
+      "d": "2022-04",
+      "era": "E2",
+      "t": "PaLM: Scaling Language Modeling with Pathways",
+      "org": "Google",
+      "p": "P2",
+      "c": "540B dense稳定训练实证+跨任务涌现能力评估体系"
+    },
+    {
+      "slug": "Flamingo",
+      "line": "multi",
+      "tags": [
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "CLIP",
+          "type": "inherit"
+        },
+        {
+          "target": "LLaVA",
+          "type": "found"
+        }
+      ],
+      "d": "2022-04",
+      "era": "E2",
+      "t": "Flamingo: a Visual Language Model for Few-Shot Learning",
+      "org": "DeepMind",
+      "p": "P2",
+      "c": "Perceiver Resampler桥接冻结LLM，少样本多模态"
+    },
+    {
+      "slug": "FlashAttention",
+      "line": "longctx",
+      "tags": [
+        "eng",
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "MQA",
+          "type": "inherit"
+        },
+        {
+          "target": "EAGLE",
+          "type": "branch"
+        },
+        {
+          "target": "DeepSeek-V2_MLA",
+          "type": "inherit"
+        }
+      ],
+      "d": "2022-05",
+      "era": "E2",
+      "t": "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness",
+      "org": "Stanford/UC Berkeley等",
+      "p": "P3",
+      "c": "IO感知分块tiling+online softmax精确加速"
+    },
+    {
+      "slug": "ReAct",
+      "line": "agent",
+      "tags": [
+        "reason"
+      ],
+      "related": [
+        {
+          "target": "Chain-of-Thought",
+          "type": "inherit"
+        },
+        {
+          "target": "Toolformer",
+          "type": "branch"
+        },
+        {
+          "target": "Kimi_K2",
+          "type": "found"
+        }
+      ],
+      "d": "2022-10",
+      "era": "E3",
+      "t": "ReAct: Synergizing Reasoning and Acting in Language Models",
+      "org": "Google Brain+Princeton",
+      "p": "P3",
+      "c": "推理轨迹与动作交替生成的Agent范式"
+    },
+    {
+      "slug": "GPTQ",
+      "line": "eng",
+      "tags": [],
+      "related": [
+        {
+          "target": "AWQ",
+          "type": "compete"
+        }
+      ],
+      "d": "2022-10",
+      "era": "E3",
+      "t": "GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers",
+      "org": "IST Austria+HF",
+      "p": "P2",
+      "c": "基于OBQ的逐层权重量化，4bit近无损"
+    },
+    {
+      "slug": "GLM-130B",
+      "line": "opensrc",
+      "tags": [
+        "arch",
+        "pretrain"
+      ],
+      "related": [
+        {
+          "target": "GPT-3_Few-Shot_Learners",
+          "type": "inherit"
+        },
+        {
+          "target": "GLM-4.5",
+          "type": "found"
+        }
+      ],
+      "d": "2022-10",
+      "era": "E3",
+      "t": "GLM-130B: An Open Bilingual Pre-trained Model",
+      "org": "清华KEG×智谱AI",
+      "p": "P2",
+      "c": "千亿级开源中英双语稠密模型，自回归填空架构"
+    },
+    {
+      "slug": "Speculative_Decoding",
+      "line": "eng",
+      "tags": [],
+      "related": [
+        {
+          "target": "EAGLE",
+          "type": "found"
+        }
+      ],
+      "d": "2022-11",
+      "era": "E2",
+      "t": "Fast Inference from Transformers via Speculative Decoding",
+      "org": "Google Research",
+      "p": "P2",
+      "c": "小模型草稿+大模型并行验证的无损加速解码"
+    },
+    {
+      "slug": "CoT_Distillation",
+      "line": "reason",
+      "tags": [
+        "align"
+      ],
+      "related": [
+        {
+          "target": "Chain-of-Thought",
+          "type": "inherit"
+        },
+        {
+          "target": "DeepSeek-R1",
+          "type": "found"
+        }
+      ],
+      "d": "2022-12",
+      "era": "E3",
+      "t": "Teaching Small Language Models to Reason",
+      "org": "Google",
+      "p": "P2",
+      "c": "最早系统化CoT蒸馏：教师CoT微调小学生模型"
+    },
+    {
+      "slug": "Constitutional_AI",
+      "line": "align",
+      "tags": [],
+      "related": [
+        {
+          "target": "InstructGPT_RLHF",
+          "type": "branch"
+        },
+        {
+          "target": "DPO",
+          "type": "compete"
+        }
+      ],
+      "d": "2022-12",
+      "era": "E3",
+      "t": "Constitutional AI: Harmlessness from AI Feedback",
+      "org": "Anthropic",
+      "p": "P3",
+      "c": "用原则驱动AI自我批评修订，RLAIF替代人工标注"
+    },
+    {
+      "slug": "Self-Instruct",
+      "line": "align",
+      "tags": [],
+      "related": [
+        {
+          "target": "FLAN",
+          "type": "inherit"
+        },
+        {
+          "target": "Alpaca",
+          "type": "found"
+        }
+      ],
+      "d": "2022-12",
+      "era": "E3",
+      "t": "Self-Instruct: Aligning Language Models with Self-Generated Instructions",
+      "org": "UW/Microsoft",
+      "p": "P3",
+      "c": "LLM自举生成指令数据，175种子扩至52K"
+    },
+    {
+      "slug": "BLIP-2",
+      "line": "multi",
+      "tags": [
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "CLIP",
+          "type": "inherit"
+        },
+        {
+          "target": "LLaVA",
+          "type": "branch"
+        },
+        {
+          "target": "Flamingo",
+          "type": "compete"
+        }
+      ],
+      "d": "2023-01",
+      "era": "E3",
+      "t": "BLIP-2: Bootstrapping Language-Image Pre-training with Frozen Image Encoders and Large Language Models",
+      "org": "Salesforce",
+      "p": "P2",
+      "c": "Q-Former轻量桥接视觉与冻结LLM"
+    },
+    {
+      "slug": "LLaMA",
+      "line": "opensrc",
+      "tags": [
+        "pretrain",
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "Chinchilla",
+          "type": "inherit"
+        },
+        {
+          "target": "LLaMA_2",
+          "type": "found"
+        },
+        {
+          "target": "Alpaca",
+          "type": "branch"
+        }
+      ],
+      "d": "2023-02",
+      "era": "E3",
+      "t": "LLaMA: Open and Efficient Foundation Language Models",
+      "org": "Meta",
+      "p": "P3",
+      "c": "7-65B开源权重，公开数据训练逼近GPT-3"
+    },
+    {
+      "slug": "Toolformer",
+      "line": "agent",
+      "tags": [
+        "reason"
+      ],
+      "related": [
+        {
+          "target": "ReAct",
+          "type": "branch"
+        }
+      ],
+      "d": "2023-02",
+      "era": "E3",
+      "t": "Toolformer: Language Models Can Teach Themselves to Use Tools",
+      "org": "Meta AI",
+      "p": "P2",
+      "c": "自监督生成API调用数据教会LLM用工具"
+    },
+    {
+      "slug": "Self-Refine",
+      "line": "reason",
+      "tags": [
+        "agent"
+      ],
+      "related": [
+        {
+          "target": "Reflexion",
+          "type": "branch"
+        },
+        {
+          "target": "DeepSeek-R1",
+          "type": "found"
+        }
+      ],
+      "d": "2023-03",
+      "era": "E3",
+      "t": "Self-Refine: Iterative Refinement with Self-Feedback",
+      "org": "CMU+AI2",
+      "p": "P2",
+      "c": "同一模型生成-自评-修改循环，无需外部奖励"
+    },
+    {
+      "slug": "Reflexion",
+      "line": "agent",
+      "tags": [
+        "reason"
+      ],
+      "related": [
+        {
+          "target": "ReAct",
+          "type": "inherit"
+        },
+        {
+          "target": "Self-Refine",
+          "type": "branch"
+        },
+        {
+          "target": "Voyager",
+          "type": "found"
+        }
+      ],
+      "d": "2023-03",
+      "era": "E3",
+      "t": "Reflexion: Language Agents with Verbal Reinforcement Learning",
+      "org": "Northeastern+MIT",
+      "p": "P2",
+      "c": "失败后生成语言化反思存入记忆，下轮重试"
+    },
+    {
+      "slug": "GPT-4_Technical_Report",
+      "line": "multi",
+      "tags": [
+        "align",
+        "reason"
+      ],
+      "related": [
+        {
+          "target": "InstructGPT_RLHF",
+          "type": "inherit"
+        },
+        {
+          "target": "GPT-3_Few-Shot_Learners",
+          "type": "inherit"
+        }
+      ],
+      "d": "2023-03",
+      "era": "E3",
+      "t": "GPT-4 Technical Report",
+      "org": "OpenAI",
+      "p": "P3",
+      "c": "首个商用强多模态(图像输入)LLM技术报告"
+    },
+    {
+      "slug": "Alpaca",
+      "line": "align",
+      "tags": [
+        "opensrc"
+      ],
+      "related": [
+        {
+          "target": "LLaMA",
+          "type": "inherit"
+        },
+        {
+          "target": "Self-Instruct",
+          "type": "inherit"
+        }
+      ],
+      "d": "2023-03",
+      "era": "E3",
+      "t": "Stanford Alpaca: An Instruction-following LLaMA Model",
+      "org": "Stanford",
+      "p": "P2",
+      "c": "52K Self-Instruct数据+LLaMA低成本复刻指令能力"
+    },
+    {
+      "slug": "LLaVA",
+      "line": "multi",
+      "tags": [
+        "align"
+      ],
+      "related": [
+        {
+          "target": "CLIP",
+          "type": "inherit"
+        },
+        {
+          "target": "LLaMA",
+          "type": "inherit"
+        },
+        {
+          "target": "BLIP-2",
+          "type": "compete"
+        }
+      ],
+      "d": "2023-04",
+      "era": "E3",
+      "t": "Visual Instruction Tuning",
+      "org": "UW/Microsoft/Wisconsin",
+      "p": "P2",
+      "c": "语言模型指令微调对齐视觉，通用多模态助手"
+    },
+    {
+      "slug": "Emergent_Abilities_Mirage",
+      "line": "pretrain",
+      "tags": [],
+      "related": [
+        {
+          "target": "Grokking",
+          "type": "branch"
+        }
+      ],
+      "d": "2023-04",
+      "era": "E3",
+      "t": "Are Emergent Abilities of Large Language Models a Mirage?",
+      "org": "Stanford",
+      "p": "P2",
+      "c": "论证涌现多为非线性不连续指标造成的测量伪象"
+    },
+    {
+      "slug": "DPO",
+      "line": "align",
+      "tags": [
+        "reason"
+      ],
+      "related": [
+        {
+          "target": "InstructGPT_RLHF",
+          "type": "compete"
+        },
+        {
+          "target": "Constitutional_AI",
+          "type": "compete"
+        }
+      ],
+      "d": "2023-05",
+      "era": "E3",
+      "t": "Direct Preference Optimization: Your Language Model is Secretly a Reward Model",
+      "org": "Stanford",
+      "p": "P3",
+      "c": "奖励重参数化进目标，偏好优化变监督分类损失"
+    },
+    {
+      "slug": "Voyager",
+      "line": "agent",
+      "tags": [
+        "reason"
+      ],
+      "related": [
+        {
+          "target": "ReAct",
+          "type": "inherit"
+        },
+        {
+          "target": "Self-Refine",
+          "type": "inherit"
+        }
+      ],
+      "d": "2023-05",
+      "era": "E3",
+      "t": "Voyager: An Open-Ended Embodied Agent with Large Language Models",
+      "org": "NVIDIA+Caltech等",
+      "p": "P2",
+      "c": "技能库+自动课程+迭代提示的终身学习Agent"
+    },
+    {
+      "slug": "GQA",
+      "line": "longctx",
+      "tags": [
+        "arch",
+        "eng"
+      ],
+      "related": [
+        {
+          "target": "MQA",
+          "type": "inherit"
+        },
+        {
+          "target": "LLaMA_2",
+          "type": "found"
+        }
+      ],
+      "d": "2023-05",
+      "era": "E3",
+      "t": "GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints",
+      "org": "Google Research",
+      "p": "P2",
+      "c": "分组共享KV，MQA效率与MHA质量折中"
+    },
+    {
+      "slug": "LIMA",
+      "line": "align",
+      "tags": [
+        "pretrain"
+      ],
+      "related": [
+        {
+          "target": "InstructGPT_RLHF",
+          "type": "compete"
+        },
+        {
+          "target": "FLAN",
+          "type": "inherit"
+        }
+      ],
+      "d": "2023-05",
+      "era": "E3",
+      "t": "LIMA: Less Is More for Alignment",
+      "org": "Meta",
+      "p": "P2",
+      "c": "仅1000条精选样本SFT即获强对齐"
+    },
+    {
+      "slug": "Tree_of_Thoughts",
+      "line": "reason",
+      "tags": [],
+      "related": [
+        {
+          "target": "Chain-of-Thought",
+          "type": "inherit"
+        },
+        {
+          "target": "Self-Consistency",
+          "type": "branch"
+        }
+      ],
+      "d": "2023-05",
+      "era": "E3",
+      "t": "Tree of Thoughts: Deliberate Problem Solving with Large Language Models",
+      "org": "Princeton+DeepMind",
+      "p": "P2",
+      "c": "将推理组织为树搜索，支持分支回溯与多步前瞻"
+    },
+    {
+      "slug": "Position_Interpolation",
+      "line": "longctx",
+      "tags": [
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "RoPE_RoFormer",
+          "type": "inherit"
+        },
+        {
+          "target": "LongRoPE",
+          "type": "found"
+        },
+        {
+          "target": "NTK-aware_RoPE",
+          "type": "branch"
+        }
+      ],
+      "d": "2023-06",
+      "era": "E3",
+      "t": "Extending Context Window of Large Language Models via Positional Interpolation",
+      "org": "Meta",
+      "p": "P2",
+      "c": "训练时线性内插位置索引，低成本扩窗至32k"
+    },
+    {
+      "slug": "AWQ",
+      "line": "longctx",
+      "tags": [
+        "eng"
+      ],
+      "related": [],
+      "d": "2023-06",
+      "era": "E3",
+      "t": "AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration",
+      "org": "MIT韩松组",
+      "p": "P2",
+      "c": "按激活分布识别保护约1%关键权重通道"
+    },
+    {
+      "slug": "H2O",
+      "line": "longctx",
+      "tags": [
+        "eng"
+      ],
+      "related": [
+        {
+          "target": "MQA",
+          "type": "inherit"
+        }
+      ],
+      "d": "2023-06",
+      "era": "E3",
+      "t": "H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models",
+      "org": "斯坦福",
+      "p": "P2",
+      "c": "重锤词元理论+KV动态驱逐，保留5%缓存近无损"
+    },
+    {
+      "slug": "NTK-aware_RoPE",
+      "line": "longctx",
+      "tags": [
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "RoPE_RoFormer",
+          "type": "inherit"
+        },
+        {
+          "target": "YaRN",
+          "type": "found"
+        },
+        {
+          "target": "Position_Interpolation",
+          "type": "compete"
+        }
+      ],
+      "d": "2023-07",
+      "era": "E3",
+      "t": "NTK-aware Scaled RoPE（社区方案）",
+      "org": "r/LocalLLaMA社区",
+      "p": "P1",
+      "c": "按NTK理论非线性缩放RoPE高频维度免微调扩窗"
+    },
+    {
+      "slug": "FlashAttention-2",
+      "line": "longctx",
+      "tags": [
+        "eng",
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "FlashAttention",
+          "type": "inherit"
+        }
+      ],
+      "d": "2023-07",
+      "era": "E3",
+      "t": "FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning",
+      "org": "Princeton/Together AI",
+      "p": "P2",
+      "c": "沿序列维并行+warp级分工重排"
+    },
+    {
+      "slug": "LLaMA_2",
+      "line": "opensrc",
+      "tags": [
+        "align",
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "LLaMA",
+          "type": "inherit"
+        },
+        {
+          "target": "GPT-4_Technical_Report",
+          "type": "compete"
+        },
+        {
+          "target": "InstructGPT_RLHF",
+          "type": "inherit"
+        }
+      ],
+      "d": "2023-07",
+      "era": "E3",
+      "t": "Llama 2: Open Foundation and Fine-Tuned Chat Models",
+      "org": "Meta",
+      "p": "P3",
+      "c": "开源7B-70B基础+RLHF聊天模型，开放商用"
+    },
+    {
+      "slug": "vLLM_PagedAttention",
+      "line": "eng",
+      "tags": [
+        "longctx",
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "MQA",
+          "type": "inherit"
+        },
+        {
+          "target": "FlashAttention",
+          "type": "inherit"
+        },
+        {
+          "target": "Speculative_Decoding",
+          "type": "inherit"
+        }
+      ],
+      "d": "2023-09",
+      "era": "E4",
+      "t": "Efficient Memory Management for Large Language Model Serving with PagedAttention",
+      "org": "UC Berkeley",
+      "p": "P3",
+      "c": "KV缓存分页管理+连续批处理服务引擎vLLM"
+    },
+    {
+      "slug": "LongLoRA",
+      "line": "longctx",
+      "tags": [
+        "eng",
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "LoRA",
+          "type": "inherit"
+        },
+        {
+          "target": "RoPE_RoFormer",
+          "type": "inherit"
+        }
+      ],
+      "d": "2023-09",
+      "era": "E4",
+      "t": "LongLoRA: Efficient Fine-tuning of Long-Context Large Language Models",
+      "org": "上海交大等",
+      "p": "P2",
+      "c": "Shifted Sparse Attention+放宽LoRA，低成本训100k窗口"
+    },
+    {
+      "slug": "Qwen_Technical_Report",
+      "line": "opensrc",
+      "tags": [
+        "pretrain",
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "LLaMA",
+          "type": "inherit"
+        },
+        {
+          "target": "Qwen2",
+          "type": "found"
+        }
+      ],
+      "d": "2023-09",
+      "era": "E4",
+      "t": "Qwen Technical Report",
+      "org": "阿里云通义千问",
+      "p": "P2",
+      "c": "初代中英双语1.8B-72B全尺寸开源基座"
+    },
+    {
+      "slug": "StreamingLLM",
+      "line": "longctx",
+      "tags": [
+        "eng"
+      ],
+      "related": [
+        {
+          "target": "vLLM_PagedAttention",
+          "type": "inherit"
+        }
+      ],
+      "d": "2023-09",
+      "era": "E4",
+      "t": "Efficient Streaming Language Models with Attention Sinks",
+      "org": "MIT",
+      "p": "P2",
+      "c": "attention sink机制让LLM稳定流式4M+超长对话"
+    },
+    {
+      "slug": "YaRN",
+      "line": "longctx",
+      "tags": [],
+      "related": [
+        {
+          "target": "RoPE_RoFormer",
+          "type": "inherit"
+        },
+        {
+          "target": "Position_Interpolation",
+          "type": "branch"
+        }
+      ],
+      "d": "2023-09",
+      "era": "E4",
+      "t": "YaRN: Efficient Context Window Extension of Large Language Models",
+      "org": "Nous Research等",
+      "p": "P2",
+      "c": "NTK式插值+注意力温度修正，400 token微调扩至128k"
+    },
+    {
+      "slug": "Mamba",
+      "line": "arch",
+      "tags": [
+        "longctx"
+      ],
+      "related": [
+        {
+          "target": "Attention_Is_All_You_Need",
+          "type": "compete"
+        },
+        {
+          "target": "Jamba",
+          "type": "inherit"
+        },
+        {
+          "target": "Mamba-2",
+          "type": "inherit"
+        }
+      ],
+      "d": "2023-12",
+      "era": "E4",
+      "t": "Mamba: Linear-Time Sequence Modeling with Selective State Spaces",
+      "org": "CMU/Princeton",
+      "p": "P3",
+      "c": "选择性SSM：数据依赖参数+硬件感知扫描"
+    },
+    {
+      "slug": "InternVL",
+      "line": "multi",
+      "tags": [
+        "pretrain",
+        "opensrc"
+      ],
+      "related": [
+        {
+          "target": "CLIP",
+          "type": "inherit"
+        },
+        {
+          "target": "LLaVA",
+          "type": "compete"
+        }
+      ],
+      "d": "2023-12",
+      "era": "E4",
+      "t": "InternVL: Scaling up Vision Foundation Models and Aligning for Generic Visual-Linguistic Tasks",
+      "org": "上海AI实验室等",
+      "p": "P1",
+      "c": "6B视觉编码器对齐LLM的V1系列开端"
+    },
+    {
+      "slug": "Gemini_Technical_Report",
+      "line": "multi",
+      "tags": [
+        "longctx",
+        "pretrain",
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "PaLM",
+          "type": "inherit"
+        },
+        {
+          "target": "GPT-4_Technical_Report",
+          "type": "compete"
+        },
+        {
+          "target": "Gemini_2.5_Report",
+          "type": "found"
+        }
+      ],
+      "d": "2023-12",
+      "era": "E4",
+      "t": "Gemini: A Family of Highly Capable Multimodal Models",
+      "org": "Google DeepMind",
+      "p": "P2",
+      "c": "原生多模态预训练，超长上下文"
+    },
+    {
+      "slug": "Gated_Linear_Attention",
+      "line": "arch",
+      "tags": [
+        "longctx"
+      ],
+      "related": [
+        {
+          "target": "Mamba",
+          "type": "compete"
+        },
+        {
+          "target": "Qwen3.5",
+          "type": "found"
+        }
+      ],
+      "d": "2023-12",
+      "era": "E4",
+      "t": "Gated Linear Attention Transformers with Hardware-Efficient Training",
+      "org": "UIUC等",
+      "p": "P2",
+      "c": "门控数据依赖遗忘的线性注意力并行化"
+    },
+    {
+      "slug": "DeepSeekMoE",
+      "line": "arch",
+      "tags": [
+        "opensrc",
+        "pretrain"
+      ],
+      "related": [
+        {
+          "target": "Mixtral",
+          "type": "inherit"
+        },
+        {
+          "target": "DeepSeek-V2_MLA",
+          "type": "found"
+        },
+        {
+          "target": "DeepSeek-V3",
+          "type": "found"
+        }
+      ],
+      "d": "2024-01",
+      "era": "E4",
+      "t": "DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models",
+      "org": "DeepSeek-AI",
+      "p": "P2",
+      "c": "细粒度专家切分+共享专家隔离双机制"
+    },
+    {
+      "slug": "EAGLE",
+      "line": "eng",
+      "tags": [
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "Speculative_Decoding",
+          "type": "inherit"
+        }
+      ],
+      "d": "2024-01",
+      "era": "E4",
+      "t": "EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty",
+      "org": "中科大+微软",
+      "p": "P2",
+      "c": "在特征层自回归的轻量草稿头，利用目标模型特征"
+    },
+    {
+      "slug": "DeepSeek_LLM",
+      "line": "pretrain",
+      "tags": [
+        "opensrc"
+      ],
+      "related": [
+        {
+          "target": "Chinchilla",
+          "type": "inherit"
+        },
+        {
+          "target": "LLaMA_2",
+          "type": "compete"
+        },
+        {
+          "target": "DeepSeek-V3",
+          "type": "found"
+        }
+      ],
+      "d": "2024-01",
+      "era": "E4",
+      "t": "DeepSeek LLM: Scaling Open-Source Language Models with Longtermism",
+      "org": "DeepSeek-AI",
+      "p": "P2",
+      "c": "67B稠密开源，重估缩放定律提出数据参数新配比"
+    },
+    {
+      "slug": "Mixtral",
+      "line": "opensrc",
+      "tags": [
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "Switch_Transformers",
+          "type": "inherit"
+        },
+        {
+          "target": "Qwen2",
+          "type": "compete"
+        }
+      ],
+      "d": "2024-01",
+      "era": "E4",
+      "t": "Mixtral of Experts",
+      "org": "Mistral AI",
+      "p": "P2",
+      "c": "开源8专家top-2稀疏MoE大模型"
+    },
+    {
+      "slug": "LongRoPE",
+      "line": "longctx",
+      "tags": [
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "RoPE_RoFormer",
+          "type": "inherit"
+        },
+        {
+          "target": "Position_Interpolation",
+          "type": "inherit"
+        }
+      ],
+      "d": "2024-02",
+      "era": "E4",
+      "t": "LongRoPE: Extending LLM Context Window Beyond 2 Million Tokens",
+      "org": "微软亚洲",
+      "p": "P2",
+      "c": "非均匀维度插值+进化搜索，三阶段扩至2048k"
+    },
+    {
+      "slug": "KTO",
+      "line": "align",
+      "tags": [],
+      "related": [
+        {
+          "target": "DPO",
+          "type": "branch"
+        },
+        {
+          "target": "InstructGPT_RLHF",
+          "type": "compete"
+        }
+      ],
+      "d": "2024-02",
+      "era": "E4",
+      "t": "KTO: Model Alignment as Prospect Theoretic Optimization",
+      "org": "ContextualAI/MIT",
+      "p": "P1",
+      "c": "基于前景理论，仅需二元好坏信号免配对偏好"
+    },
+    {
+      "slug": "GRPO_DeepSeekMath",
+      "line": "align",
+      "tags": [
+        "reason"
+      ],
+      "related": [
+        {
+          "target": "InstructGPT_RLHF",
+          "type": "compete"
+        },
+        {
+          "target": "DeepSeek-R1",
+          "type": "found"
+        }
+      ],
+      "d": "2024-02",
+      "era": "E4",
+      "t": "DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models",
+      "org": "DeepSeek-AI",
+      "p": "P3",
+      "c": "GRPO：去Critic组内相对优势估计，省显存且稳定的RL算法"
+    },
+    {
+      "slug": "Jamba",
+      "line": "arch",
+      "tags": [
+        "longctx"
+      ],
+      "related": [
+        {
+          "target": "Mamba",
+          "type": "inherit"
+        },
+        {
+          "target": "Attention_Is_All_You_Need",
+          "type": "inherit"
+        }
+      ],
+      "d": "2024-03",
+      "era": "E4",
+      "t": "Jamba: A Hybrid Transformer-Mamba Language Model",
+      "org": "AI21 Labs",
+      "p": "P2",
+      "c": "Mamba-Attention-MoE层间混合生产级架构"
+    },
+    {
+      "slug": "Mamba-2",
+      "line": "arch",
+      "tags": [
+        "longctx"
+      ],
+      "related": [
+        {
+          "target": "Mamba",
+          "type": "inherit"
+        },
+        {
+          "target": "Attention_Is_All_You_Need",
+          "type": "compete"
+        }
+      ],
+      "d": "2024-05",
+      "era": "E4",
+      "t": "Transformers are SSMs: Generalized Models and Efficient Algorithms Through Structured State Space Duality",
+      "org": "Princeton/CMU",
+      "p": "P2",
+      "c": "SSD框架统一SSM与线性注意力对偶视角"
+    },
+    {
+      "slug": "DeepSeek-V2_MLA",
+      "line": "arch",
+      "tags": [
+        "longctx",
+        "eng"
+      ],
+      "related": [
+        {
+          "target": "MQA",
+          "type": "inherit"
+        },
+        {
+          "target": "DeepSeek-V3",
+          "type": "found"
+        }
+      ],
+      "d": "2024-05",
+      "era": "E4",
+      "t": "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model",
+      "org": "DeepSeek-AI",
+      "p": "P3",
+      "c": "多头潜在注意力MLA：KV压入低秩潜向量"
+    },
+    {
+      "slug": "DeepSeek-Coder-V2",
+      "line": "opensrc",
+      "tags": [
+        "arch",
+        "pretrain"
+      ],
+      "related": [
+        {
+          "target": "DeepSeekMoE",
+          "type": "inherit"
+        },
+        {
+          "target": "DeepSeek-V3",
+          "type": "found"
+        }
+      ],
+      "d": "2024-06",
+      "era": "E4",
+      "t": "DeepSeek-Coder-V2: Breaking the Barrier of Closed-Source Models in Code Intelligence",
+      "org": "DeepSeek-AI",
+      "p": "P2",
+      "c": "236B MoE代码模型(21B激活)，338语言128K上下文"
+    },
+    {
+      "slug": "ChatGLM_Family",
+      "line": "opensrc",
+      "tags": [
+        "agent",
+        "align"
+      ],
+      "related": [
+        {
+          "target": "GLM-130B",
+          "type": "inherit"
+        },
+        {
+          "target": "GLM-4.5",
+          "type": "found"
+        },
+        {
+          "target": "Qwen_Technical_Report",
+          "type": "compete"
+        }
+      ],
+      "d": "2024-06",
+      "era": "E4",
+      "t": "ChatGLM: A Family of Large Language Models from GLM-130B to GLM-4 All Tools",
+      "org": "智谱AI×清华",
+      "p": "P1",
+      "c": "GLM对话系三代演进与全工具能力总结"
+    },
+    {
+      "slug": "FineWeb",
+      "line": "pretrain",
+      "tags": [
+        "opensrc"
+      ],
+      "related": [],
+      "d": "2024-06",
+      "era": "E4",
+      "t": "The FineWeb Datasets: Decanting the Web for the Finest Text Data at Scale",
+      "org": "HuggingFace",
+      "p": "P2",
+      "c": "15T开放语料+全程消融清洗流水线，FineWeb-Edu质量分级"
+    },
+    {
+      "slug": "FlashAttention-3",
+      "line": "longctx",
+      "tags": [
+        "eng",
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "FlashAttention",
+          "type": "inherit"
+        },
+        {
+          "target": "FlashAttention-2",
+          "type": "inherit"
+        }
+      ],
+      "d": "2024-07",
+      "era": "E4",
+      "t": "FlashAttention-3: Fast and Accurate Attention with Asynchrony and Low-precision",
+      "org": "Together AI/Princeton等",
+      "p": "P2",
+      "c": "Hopper异步流水(warp专用/tma)+FP8量化"
+    },
+    {
+      "slug": "Llama_3",
+      "line": "align",
+      "tags": [
+        "opensrc",
+        "pretrain"
+      ],
+      "related": [
+        {
+          "target": "LLaMA_2",
+          "type": "inherit"
+        },
+        {
+          "target": "Llama_4",
+          "type": "found"
+        }
+      ],
+      "d": "2024-07",
+      "era": "E4",
+      "t": "The Llama 3 Herd of Models",
+      "org": "Meta",
+      "p": "P3",
+      "c": "系统化后训练：SFT+拒绝采样+DPO多轮迭代"
+    },
+    {
+      "slug": "Qwen2",
+      "line": "opensrc",
+      "tags": [
+        "arch",
+        "pretrain"
+      ],
+      "related": [
+        {
+          "target": "LLaMA",
+          "type": "inherit"
+        },
+        {
+          "target": "Qwen2.5",
+          "type": "found"
+        }
+      ],
+      "d": "2024-07",
+      "era": "E4",
+      "t": "Qwen2 Technical Report",
+      "org": "阿里云通义千问",
+      "p": "P2",
+      "c": "0.5B-72B全谱系升级，57B-A14B MoE首秀"
+    },
+    {
+      "slug": "Scaling_TestTime_Compute",
+      "line": "reason",
+      "tags": [],
+      "related": [
+        {
+          "target": "o1_Learning_to_Reason",
+          "type": "found"
+        },
+        {
+          "target": "Chain-of-Thought",
+          "type": "inherit"
+        }
+      ],
+      "d": "2024-08",
+      "era": "E4",
+      "t": "Scaling LLM Test-Time Compute Optimally can be More Effective than Scaling Model Parameters",
+      "org": "OpenAI/UMD",
+      "p": "P3",
+      "c": "测试时计算可更高效，小模型+test-time超14x大模型"
+    },
+    {
+      "slug": "o1_Learning_to_Reason",
+      "line": "reason",
+      "tags": [
+        "align"
+      ],
+      "related": [
+        {
+          "target": "Chain-of-Thought",
+          "type": "inherit"
+        },
+        {
+          "target": "DeepSeek-R1",
+          "type": "found"
+        }
+      ],
+      "d": "2024-09",
+      "era": "E4",
+      "t": "Learning to Reason with LLMs (OpenAI o1)",
+      "org": "OpenAI",
+      "p": "P3",
+      "c": "官方宣告大规模RL驱动长思维链范式，o1首秀"
+    },
+    {
+      "slug": "Scaling_Laws_for_Precision",
+      "line": "pretrain",
+      "tags": [],
+      "related": [
+        {
+          "target": "Chinchilla",
+          "type": "inherit"
+        },
+        {
+          "target": "Kaplan_Scaling_Laws",
+          "type": "inherit"
+        }
+      ],
+      "d": "2024-11",
+      "era": "E4",
+      "t": "Scaling Laws for Precision",
+      "org": "Harvard/MIT/Stanford/Databricks",
+      "p": "P2",
+      "c": "精度感知scaling law：低精度训练折损有效参数量"
+    },
+    {
+      "slug": "Tulu_3",
+      "line": "align",
+      "tags": [
+        "opensrc",
+        "reason"
+      ],
+      "related": [
+        {
+          "target": "Llama_3",
+          "type": "inherit"
+        },
+        {
+          "target": "DPO",
+          "type": "inherit"
+        }
+      ],
+      "d": "2024-11",
+      "era": "E4",
+      "t": "Tülu 3: Pushing Frontiers in Open Language Model Post-Training",
+      "org": "AI2",
+      "p": "P2",
+      "c": "全开放SFT+DPO+RLVR三阶段配方与数据，首创RLVR术语"
+    },
+    {
+      "slug": "DeepSeek-V3",
+      "line": "arch",
+      "tags": [
+        "opensrc",
+        "pretrain",
+        "eng"
+      ],
+      "related": [
+        {
+          "target": "DeepSeek-V2_MLA",
+          "type": "inherit"
+        },
+        {
+          "target": "Kimi_K2",
+          "type": "compete"
+        },
+        {
+          "target": "GLM-5",
+          "type": "compete"
+        }
+      ],
+      "d": "2024-12",
+      "era": "E4",
+      "t": "DeepSeek-V3 Technical Report",
+      "org": "DeepSeek-AI",
+      "p": "P3",
+      "c": "无辅助损失负载均衡+MTP+FP8训练的671B细粒度MoE"
+    },
+    {
+      "slug": "DeepSeek-VL2",
+      "line": "multi",
+      "tags": [
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "LLaVA",
+          "type": "inherit"
+        },
+        {
+          "target": "DeepSeek-V3",
+          "type": "inherit"
+        }
+      ],
+      "d": "2024-12",
+      "era": "E4",
+      "t": "DeepSeek-VL2: Mixture-of-Experts Vision-Language Models for Advanced Multimodal Understanding",
+      "org": "DeepSeek-AI",
+      "p": "P1",
+      "c": "MoE稀疏VLM家族，动态分辨率切片视觉编码"
+    },
+    {
+      "slug": "Qwen2.5",
+      "line": "opensrc",
+      "tags": [
+        "pretrain",
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "Qwen2",
+          "type": "inherit"
+        },
+        {
+          "target": "Qwen3",
+          "type": "found"
+        }
+      ],
+      "d": "2024-12",
+      "era": "E4",
+      "t": "Qwen2.5 Technical Report",
+      "org": "阿里云通义千问",
+      "p": "P2",
+      "c": "18T token预训练，Math/Coder专项衍生最丰富"
+    },
+    {
+      "slug": "UI-TARS",
+      "line": "agent",
+      "tags": [
+        "multi"
+      ],
+      "related": [
+        {
+          "target": "ReAct",
+          "type": "inherit"
+        }
+      ],
+      "d": "2025-01",
+      "era": "E5",
+      "t": "UI-TARS: Pioneering Automated GUI Interaction with Native Agents",
+      "org": "字节跳动Seed",
+      "p": "P2",
+      "c": "纯视觉GUI Agent，截图进动作出免系统层API"
+    },
+    {
+      "slug": "s1",
+      "line": "reason",
+      "tags": [
+        "align"
+      ],
+      "related": [
+        {
+          "target": "o1_Learning_to_Reason",
+          "type": "inherit"
+        },
+        {
+          "target": "Chain-of-Thought",
+          "type": "inherit"
+        }
+      ],
+      "d": "2025-01",
+      "era": "E5",
+      "t": "s1: Simple test-time scaling",
+      "org": "Stanford+UW+AI2",
+      "p": "P2",
+      "c": "1000样本SFT+budget forcing，最小代价复现o1测试时扩展曲线"
+    },
+    {
+      "slug": "MiniMax-01",
+      "line": "arch",
+      "tags": [
+        "longctx",
+        "pretrain"
+      ],
+      "related": [
+        {
+          "target": "Gated_Linear_Attention",
+          "type": "inherit"
+        },
+        {
+          "target": "NSA",
+          "type": "compete"
+        },
+        {
+          "target": "MiniMax-M1",
+          "type": "found"
+        }
+      ],
+      "d": "2025-01",
+      "era": "E5",
+      "t": "MiniMax-01: Scaling Foundation Models with Lightning Attention",
+      "org": "MiniMax",
+      "p": "P2",
+      "c": "456B-A45.9B闪电注意力混合MoE，原生1M上下文"
+    },
+    {
+      "slug": "Kimi_k1.5",
+      "line": "reason",
+      "tags": [
+        "align"
+      ],
+      "related": [
+        {
+          "target": "Scaling_TestTime_Compute",
+          "type": "inherit"
+        },
+        {
+          "target": "o1_Learning_to_Reason",
+          "type": "compete"
+        },
+        {
+          "target": "Kimi_K2",
+          "type": "found"
+        }
+      ],
+      "d": "2025-01",
+      "era": "E5",
+      "t": "Kimi k1.5: Scaling Reinforcement Learning with LLMs",
+      "org": "Moonshot AI",
+      "p": "P2",
+      "c": "长短链联合RL与long2short，非MoE达o1级"
+    },
+    {
+      "slug": "DeepSeek-R1",
+      "line": "reason",
+      "tags": [
+        "align"
+      ],
+      "related": [
+        {
+          "target": "o1_Learning_to_Reason",
+          "type": "inherit"
+        },
+        {
+          "target": "GRPO_DeepSeekMath",
+          "type": "inherit"
+        }
+      ],
+      "d": "2025-01",
+      "era": "E5",
+      "t": "DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning",
+      "org": "DeepSeek-AI",
+      "p": "P3",
+      "c": "纯RL涌现长CoT反思验证，GRPO+规则可验证奖励"
+    },
+    {
+      "slug": "NSA",
+      "line": "arch",
+      "tags": [
+        "longctx"
+      ],
+      "related": [
+        {
+          "target": "Sparse_Transformers",
+          "type": "inherit"
+        },
+        {
+          "target": "DeepSeek-V3.2_DSA",
+          "type": "found"
+        },
+        {
+          "target": "MoBA",
+          "type": "compete"
+        }
+      ],
+      "d": "2025-02",
+      "era": "E5",
+      "t": "Native Sparse Attention: Hardware-Aligned and Natively Trainable Sparse Attention",
+      "org": "DeepSeek-AI+北大/UW",
+      "p": "P2",
+      "c": "压缩+选择+滑窗三分支原生可训练稀疏注意力"
+    },
+    {
+      "slug": "MoBA",
+      "line": "arch",
+      "tags": [
+        "longctx"
+      ],
+      "related": [
+        {
+          "target": "Attention_Is_All_You_Need",
+          "type": "inherit"
+        },
+        {
+          "target": "DeepSeek-V2_MLA",
+          "type": "inherit"
+        }
+      ],
+      "d": "2025-02",
+      "era": "E5",
+      "t": "MoBA: Mixture of Block Attention for Long-Context LLMs",
+      "org": "Moonshot AI+清华",
+      "p": "P2",
+      "c": "块级top-k门控路由，把MoE思想引入注意力"
+    },
+    {
+      "slug": "Qwen2.5-VL",
+      "line": "multi",
+      "tags": [
+        "agent",
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "CLIP",
+          "type": "inherit"
+        },
+        {
+          "target": "Qwen2",
+          "type": "inherit"
+        }
+      ],
+      "d": "2025-02",
+      "era": "E5",
+      "t": "Qwen2.5-VL Technical Report",
+      "org": "阿里Qwen团队",
+      "p": "P1",
+      "c": "原生动态分辨率+文档解析+GUI Agent能力"
+    },
+    {
+      "slug": "QwQ-32B",
+      "line": "reason",
+      "tags": [
+        "align",
+        "opensrc"
+      ],
+      "related": [
+        {
+          "target": "DeepSeek-R1",
+          "type": "inherit"
+        },
+        {
+          "target": "Qwen3",
+          "type": "found"
+        },
+        {
+          "target": "Kimi_k1.5",
+          "type": "compete"
+        }
+      ],
+      "d": "2025-03",
+      "era": "E5",
+      "t": "QwQ-32B: Embracing the Power of Reinforcement Learning",
+      "org": "阿里Qwen团队",
+      "p": "P1",
+      "c": "官方博客：32B两阶段RL(规则验证器+通用RM)逼近R1并集成工具调用"
+    },
+    {
+      "slug": "Long_CoT_Survey",
+      "line": "reason",
+      "tags": [],
+      "related": [
+        {
+          "target": "Chain-of-Thought",
+          "type": "inherit"
+        },
+        {
+          "target": "o1_Learning_to_Reason",
+          "type": "inherit"
+        }
+      ],
+      "d": "2025-03",
+      "era": "E5",
+      "t": "Towards Reasoning Era: A Survey of Long Chain-of-Thought",
+      "org": "哈工大/中南/HKU/复旦",
+      "p": "P1",
+      "c": "Long CoT首个系统综述：分类法+overthinking/test-time scaling梳理"
+    },
+    {
+      "slug": "Llama_4",
+      "line": "arch",
+      "tags": [
+        "opensrc",
+        "longctx",
+        "multi"
+      ],
+      "related": [
+        {
+          "target": "RoPE_RoFormer",
+          "type": "inherit"
+        },
+        {
+          "target": "LLaMA_2",
+          "type": "inherit"
+        }
+      ],
+      "d": "2025-04",
+      "era": "E5",
+      "t": "The Llama 4 Herd (Scout/Maverick)",
+      "org": "Meta",
+      "p": "P2",
+      "c": "iRoPE交错位置编码原生10M上下文，MoE原生多模态"
+    },
+    {
+      "slug": "Qwen3",
+      "line": "opensrc",
+      "tags": [
+        "reason",
+        "arch",
+        "pretrain"
+      ],
+      "related": [
+        {
+          "target": "Qwen2.5",
+          "type": "inherit"
+        },
+        {
+          "target": "Qwen3.5",
+          "type": "found"
+        }
+      ],
+      "d": "2025-05",
+      "era": "E5",
+      "t": "Qwen3 Technical Report",
+      "org": "阿里通义",
+      "p": "P2",
+      "c": "128K上下文，MoE+稠密多尺寸，思考模式"
+    },
+    {
+      "slug": "MiniMax-M1",
+      "line": "reason",
+      "tags": [
+        "arch",
+        "eng",
+        "opensrc"
+      ],
+      "related": [
+        {
+          "target": "MiniMax-01",
+          "type": "inherit"
+        },
+        {
+          "target": "DeepSeek-R1",
+          "type": "compete"
+        },
+        {
+          "target": "Forge_RL_Framework",
+          "type": "found"
+        }
+      ],
+      "d": "2025-06",
+      "era": "E5",
+      "t": "MiniMax-M1: Scaling Test-Time Compute Efficiently with Lightning Attention",
+      "org": "MiniMax",
+      "p": "P2",
+      "c": "首个开源混合注意力推理模型，CISPO算法80K思考预算"
+    },
+    {
+      "slug": "Gemini_2.5_Report",
+      "line": "reason",
+      "tags": [
+        "multi",
+        "longctx"
+      ],
+      "related": [
+        {
+          "target": "Gemini_Technical_Report",
+          "type": "inherit"
+        },
+        {
+          "target": "o1_Learning_to_Reason",
+          "type": "inherit"
+        },
+        {
+          "target": "GPT-5_System_Card",
+          "type": "compete"
+        }
+      ],
+      "d": "2025-06",
+      "era": "E5",
+      "t": "Gemini 2.5 Technical Report",
+      "org": "Google DeepMind",
+      "p": "P2",
+      "c": "思考预算+原生多模态+1M上下文全档家族"
+    },
+    {
+      "slug": "Kimi_K2",
+      "line": "arch",
+      "tags": [
+        "opensrc",
+        "agent"
+      ],
+      "related": [
+        {
+          "target": "ReAct",
+          "type": "inherit"
+        },
+        {
+          "target": "DeepSeek-V3",
+          "type": "compete"
+        },
+        {
+          "target": "Kimi_k1.5",
+          "type": "inherit"
+        }
+      ],
+      "d": "2025-07",
+      "era": "E5",
+      "t": "Kimi K2: Open Agentic Intelligence",
+      "org": "Moonshot AI",
+      "p": "P3",
+      "c": "1.04T总参32B激活MoE，MuonClip优化器+agentic数据合成"
+    },
+    {
+      "slug": "GPT-5_System_Card",
+      "line": "opensrc",
+      "tags": [
+        "align",
+        "reason"
+      ],
+      "related": [
+        {
+          "target": "GPT-4_Technical_Report",
+          "type": "inherit"
+        },
+        {
+          "target": "Claude_Opus_4.5_System_Card",
+          "type": "compete"
+        }
+      ],
+      "d": "2025-08",
+      "era": "E5",
+      "t": "GPT-5 System Card",
+      "org": "OpenAI",
+      "p": "P2",
+      "c": "快慢模型+实时路由统一系统，safe-completions安全训练"
+    },
+    {
+      "slug": "Seed-OSS",
+      "line": "opensrc",
+      "tags": [
+        "longctx",
+        "pretrain"
+      ],
+      "related": [
+        {
+          "target": "LLaMA",
+          "type": "inherit"
+        },
+        {
+          "target": "Seed1.8",
+          "type": "found"
+        },
+        {
+          "target": "Qwen3.6-35B",
+          "type": "compete"
+        }
+      ],
+      "d": "2025-08",
+      "era": "E5",
+      "t": "Seed-OSS-36B Open Source Models",
+      "org": "字节跳动Seed",
+      "p": "P2",
+      "c": "12T token 36B开源，512K原生长上下文"
+    },
+    {
+      "slug": "GLM-4.5",
+      "line": "agent",
+      "tags": [
+        "align",
+        "eng"
+      ],
+      "related": [
+        {
+          "target": "ReAct",
+          "type": "inherit"
+        },
+        {
+          "target": "GLM-5.3-Flash",
+          "type": "found"
+        }
+      ],
+      "d": "2025-08",
+      "era": "E5",
+      "t": "GLM-4.5: Agentic, Reasoning, and Coding (ARC) Foundation Models",
+      "org": "Z.ai/智谱",
+      "p": "P3",
+      "c": "专家迭代+slime异步解耦RL基建的agentic后训练"
+    },
+    {
+      "slug": "WebExplorer",
+      "line": "agent",
+      "tags": [],
+      "related": [
+        {
+          "target": "ReAct",
+          "type": "inherit"
+        }
+      ],
+      "d": "2025-09",
+      "era": "E5",
+      "t": "WebExplorer: Explore Progressive Web Information Acquisition",
+      "org": "MiniMax",
+      "p": "P1",
+      "c": "长程信息搜索Agent数据管线与框架"
+    },
+    {
+      "slug": "HunyuanImage_3.0",
+      "line": "multi",
+      "tags": [
+        "arch",
+        "opensrc"
+      ],
+      "related": [
+        {
+          "target": "CLIP",
+          "type": "inherit"
+        },
+        {
+          "target": "Qwen2.5-VL",
+          "type": "compete"
+        }
+      ],
+      "d": "2025-09",
+      "era": "E5",
+      "t": "HunyuanImage 3.0: Unified Multimodal Understanding and Generation",
+      "org": "腾讯混元",
+      "p": "P2",
+      "c": "原生多模态自回归统一理解+生成，MoE图像生成+原生CoT"
+    },
+    {
+      "slug": "DeepSeek-OCR",
+      "line": "longctx",
+      "tags": [
+        "multi"
+      ],
+      "related": [
+        {
+          "target": "DeepSeek-V3.2_DSA",
+          "type": "compete"
+        }
+      ],
+      "d": "2025-10",
+      "era": "E5",
+      "t": "DeepSeek-OCR: Contexts Optical Compression",
+      "org": "DeepSeek-AI",
+      "p": "P3",
+      "c": "视觉压缩原语：长文本转图像实现上下文光学压缩"
+    },
+    {
+      "slug": "Kimi_Linear",
+      "line": "arch",
+      "tags": [
+        "longctx"
+      ],
+      "related": [
+        {
+          "target": "Gated_Linear_Attention",
+          "type": "inherit"
+        },
+        {
+          "target": "Kimi_K3",
+          "type": "found"
+        },
+        {
+          "target": "DeepSeek-V4",
+          "type": "compete"
+        }
+      ],
+      "d": "2025-10",
+      "era": "E5",
+      "t": "Kimi Linear: An Expressive, Efficient Attention Architecture",
+      "org": "Moonshot AI",
+      "p": "P2",
+      "c": "KDA(Kimi Delta Attention)线性混合架构"
+    },
+    {
+      "slug": "Kimi_K2_Thinking",
+      "line": "reason",
+      "tags": [
+        "agent"
+      ],
+      "related": [
+        {
+          "target": "Kimi_K2",
+          "type": "inherit"
+        },
+        {
+          "target": "ReAct",
+          "type": "inherit"
+        },
+        {
+          "target": "Kimi_K2.5",
+          "type": "found"
+        }
+      ],
+      "d": "2025-11",
+      "era": "E5",
+      "t": "Kimi K2 Thinking（技术博客/模型发布）",
+      "org": "Moonshot AI",
+      "p": "P2",
+      "c": "思考-行动交错推理，连续两百余步工具调用，原生INT4"
+    },
+    {
+      "slug": "Claude_Opus_4.5_System_Card",
+      "line": "align",
+      "tags": [
+        "agent",
+        "reason"
+      ],
+      "related": [
+        {
+          "target": "InstructGPT_RLHF",
+          "type": "inherit"
+        },
+        {
+          "target": "o1_Learning_to_Reason",
+          "type": "compete"
+        }
+      ],
+      "d": "2025-11",
+      "era": "E5",
+      "t": "System Card: Claude Opus 4.5",
+      "org": "Anthropic",
+      "p": "P2",
+      "c": "SWE-bench首破80%，ARC-AGI-2 37.6%"
+    },
+    {
+      "slug": "DeepSeek-V3.2_DSA",
+      "line": "arch",
+      "tags": [
+        "longctx",
+        "eng",
+        "opensrc"
+      ],
+      "related": [
+        {
+          "target": "DeepSeek-V3",
+          "type": "inherit"
+        },
+        {
+          "target": "NSA",
+          "type": "compete"
+        },
+        {
+          "target": "MoBA",
+          "type": "compete"
+        }
+      ],
+      "d": "2025-12",
+      "era": "E5",
+      "t": "DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models (DSA)",
+      "org": "DeepSeek-AI",
+      "p": "P2",
+      "c": "DSA：lightning索引器+细粒度top-k token选择"
+    },
+    {
+      "slug": "Forge_RL_Framework",
+      "line": "agent",
+      "tags": [
+        "align",
+        "eng"
+      ],
+      "related": [
+        {
+          "target": "MiniMax-M1",
+          "type": "inherit"
+        },
+        {
+          "target": "MiniMax-M2_Series",
+          "type": "found"
+        }
+      ],
+      "d": "2026-02",
+      "era": "E5",
+      "t": "Forge: Scalable Agent RL Framework and CISPO",
+      "org": "MiniMax",
+      "p": "P2",
+      "c": "白盒黑盒Agent统一RL环+CISPO复合奖励"
+    },
+    {
+      "slug": "GLM-5",
+      "line": "arch",
+      "tags": [
+        "arch",
+        "agent",
+        "opensrc"
+      ],
+      "related": [
+        {
+          "target": "GLM-4.5",
+          "type": "inherit"
+        },
+        {
+          "target": "DeepSeek-V3.2_DSA",
+          "type": "inherit"
+        },
+        {
+          "target": "DeepSeek-V4",
+          "type": "compete"
+        }
+      ],
+      "d": "2026-02",
+      "era": "E5",
+      "t": "GLM-5: from Vibe Coding to Agentic Engineering",
+      "org": "Z.ai/智谱",
+      "p": "P3",
+      "c": "744B-A40B MoE，引入DSA稀疏注意力+异步Agent RL"
+    },
+    {
+      "slug": "Kimi_K2.5",
+      "line": "agent",
+      "tags": [
+        "multi",
+        "reason"
+      ],
+      "related": [
+        {
+          "target": "Kimi_K2_Thinking",
+          "type": "inherit"
+        },
+        {
+          "target": "Kimi_K2",
+          "type": "inherit"
+        }
+      ],
+      "d": "2026-02",
+      "era": "E5",
+      "t": "Kimi K2.5: Visual Agentic Intelligence",
+      "org": "Moonshot AI",
+      "p": "P2",
+      "c": "文视联合训练+Agent Swarm并行编排(PARL)"
+    },
+    {
+      "slug": "Qwen3.5",
+      "line": "arch",
+      "tags": [
+        "opensrc",
+        "agent",
+        "multi"
+      ],
+      "related": [
+        {
+          "target": "Gated_Linear_Attention",
+          "type": "inherit"
+        },
+        {
+          "target": "Qwen3",
+          "type": "inherit"
+        },
+        {
+          "target": "GLM-5.3-Flash",
+          "type": "compete"
+        }
+      ],
+      "d": "2026-02",
+      "era": "E5",
+      "t": "Qwen3.5: Towards Native Multimodal Agents",
+      "org": "阿里通义",
+      "p": "P2",
+      "c": "Gated DeltaNet线性注意力+稀疏MoE 397B-A17B原生多模态智能体旗舰"
+    },
+    {
+      "slug": "IndexShare",
+      "line": "longctx",
+      "tags": [
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "DeepSeek-V3.2_DSA",
+          "type": "inherit"
+        },
+        {
+          "target": "GLM-5.2",
+          "type": "found"
+        }
+      ],
+      "d": "2026-03",
+      "era": "E5",
+      "t": "IndexShare: Sharing the Indexer of Sparse Attention",
+      "org": "智谱",
+      "p": "P1",
+      "c": "DSA索引器每4层共享一次"
+    },
+    {
+      "slug": "Seed1.8",
+      "line": "agent",
+      "tags": [
+        "multi"
+      ],
+      "related": [
+        {
+          "target": "Kimi_K2",
+          "type": "compete"
+        },
+        {
+          "target": "ReAct",
+          "type": "inherit"
+        }
+      ],
+      "d": "2026-03",
+      "era": "E5",
+      "t": "Seed1.8 Model Card",
+      "org": "字节跳动Seed",
+      "p": "P2",
+      "c": "搜索/GUI/视频工具统一单体Agent"
+    },
+    {
+      "slug": "GLM-5.1",
+      "line": "opensrc",
+      "tags": [
+        "agent"
+      ],
+      "related": [
+        {
+          "target": "GLM-5",
+          "type": "inherit"
+        },
+        {
+          "target": "Kimi_K3",
+          "type": "compete"
+        },
+        {
+          "target": "Claude_Opus_4.5_System_Card",
+          "type": "compete"
+        }
+      ],
+      "d": "2026-04",
+      "era": "E5",
+      "t": "GLM-5.1（迭代版，无独立技术报告）",
+      "org": "智谱Z.ai",
+      "p": "P1",
+      "c": "SWE-Bench Pro 58.4全球最佳，长程8小时闭环"
+    },
+    {
+      "slug": "mHC",
+      "line": "arch",
+      "tags": [],
+      "related": [
+        {
+          "target": "DeepSeek-V4",
+          "type": "found"
+        }
+      ],
+      "d": "2026-04",
+      "era": "E5",
+      "t": "Manifold-Constrained Hyper-Connections (mHC)",
+      "org": "DeepSeek-AI",
+      "p": "P1",
+      "c": "流形约束的超连接升级残差结构，随V4报告发表"
+    },
+    {
+      "slug": "DeepSeek-V4",
+      "line": "arch",
+      "tags": [
+        "opensrc",
+        "longctx",
+        "eng"
+      ],
+      "related": [
+        {
+          "target": "DeepSeek-V3",
+          "type": "inherit"
+        },
+        {
+          "target": "DeepSeek-V3.2_DSA",
+          "type": "inherit"
+        },
+        {
+          "target": "mHC",
+          "type": "inherit"
+        }
+      ],
+      "d": "2026-04",
+      "era": "E5",
+      "t": "DeepSeek-V4 Technical Report (Pro/Flash)",
+      "org": "DeepSeek-AI",
+      "p": "P3",
+      "c": "CSA+HCA混合注意力+mHC超连接+Muon优化器+FP4量化感知训练，1M上下文"
+    },
+    {
+      "slug": "Qwen3.5-Omni",
+      "line": "multi",
+      "tags": [
+        "agent",
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "Flamingo",
+          "type": "inherit"
+        },
+        {
+          "target": "Kimi_K2.5",
+          "type": "compete"
+        }
+      ],
+      "d": "2026-04",
+      "era": "E5",
+      "t": "Qwen3.5-Omni Technical Report",
+      "org": "阿里通义",
+      "p": "P2",
+      "c": "Thinker/Talker双MoE+ARIA文语流对齐，全模态实时交互"
+    },
+    {
+      "slug": "Thinking_with_Visual_Primitives",
+      "line": "multi",
+      "tags": [
+        "reason",
+        "longctx"
+      ],
+      "related": [
+        {
+          "target": "Chain-of-Thought",
+          "type": "inherit"
+        },
+        {
+          "target": "Qwen2.5-VL",
+          "type": "inherit"
+        }
+      ],
+      "d": "2026-04",
+      "era": "E5",
+      "t": "Thinking with Visual Primitives",
+      "org": "DeepSeek-AI+北大+清华",
+      "p": "P3",
+      "c": "点框空间标记作为最小思维单位嵌入CoT，弥合Reference Gap；CSA视觉KV压缩7056倍"
+    },
+    {
+      "slug": "Qwen3.6-35B",
+      "line": "opensrc",
+      "tags": [
+        "agent"
+      ],
+      "related": [
+        {
+          "target": "Qwen3.5",
+          "type": "inherit"
+        }
+      ],
+      "d": "2026-04",
+      "era": "E5",
+      "t": "Qwen3.6 (35B-A3B)",
+      "org": "阿里通义",
+      "p": "P1",
+      "c": "小激活开源Agentic Coding钢炮"
+    },
+    {
+      "slug": "MiniMax-M2_Series",
+      "line": "opensrc",
+      "tags": [
+        "agent",
+        "arch"
+      ],
+      "related": [
+        {
+          "target": "MiniMax-01",
+          "type": "inherit"
+        },
+        {
+          "target": "MiniMax-M1",
+          "type": "inherit"
+        },
+        {
+          "target": "Kimi_K3",
+          "type": "compete"
+        }
+      ],
+      "d": "2026-05",
+      "era": "E5",
+      "t": "The MiniMax-M2 Series Technical Report",
+      "org": "MiniMax",
+      "p": "P2",
+      "c": "230B总参/A10B激活极致轻旗舰系列+Forge大规模Agent RL"
+    },
+    {
+      "slug": "GLM-5.2",
+      "line": "arch",
+      "tags": [
+        "opensrc",
+        "longctx",
+        "agent"
+      ],
+      "related": [
+        {
+          "target": "GLM-5",
+          "type": "inherit"
+        },
+        {
+          "target": "Kimi_K2",
+          "type": "compete"
+        },
+        {
+          "target": "GLM-5.3",
+          "type": "found"
+        }
+      ],
+      "d": "2026-06",
+      "era": "E5",
+      "t": "GLM-5.2: Built for Long-Horizon Tasks",
+      "org": "智谱Z.ai",
+      "p": "P2",
+      "c": "IndexShare/KVShare改进DSA，Solid 1M无损上下文，critic-based PPO"
+    },
+    {
+      "slug": "Seed2.0",
+      "line": "align",
+      "tags": [
+        "reason"
+      ],
+      "related": [
+        {
+          "target": "InstructGPT_RLHF",
+          "type": "inherit"
+        }
+      ],
+      "d": "2026-06",
+      "era": "E5",
+      "t": "Seed 2.0 Model Card",
+      "org": "字节跳动Seed",
+      "p": "P2",
+      "c": "长尾知识+复杂指令遵循系统性增强"
+    },
+    {
+      "slug": "Kimi_K3",
+      "line": "opensrc",
+      "tags": [
+        "arch",
+        "eng"
+      ],
+      "related": [
+        {
+          "target": "Kimi_K2",
+          "type": "inherit"
+        },
+        {
+          "target": "GLM-5",
+          "type": "compete"
+        },
+        {
+          "target": "DeepSeek-V4",
+          "type": "compete"
+        }
+      ],
+      "d": "2026-07",
+      "era": "E5",
+      "t": "Kimi K3: Open Frontier Intelligence",
+      "org": "Moonshot AI",
+      "p": "P3",
+      "c": "2.8T总参/104B激活首个开源3T级，KDA+AttnRes+MoonClip二阶优化器"
+    },
+    {
+      "slug": "Qwen3.8-Max",
+      "line": "opensrc",
+      "tags": [
+        "arch",
+        "agent"
+      ],
+      "related": [
+        {
+          "target": "Qwen3.5",
+          "type": "inherit"
+        },
+        {
+          "target": "GLM-5.2",
+          "type": "compete"
+        },
+        {
+          "target": "Kimi_K3",
+          "type": "compete"
+        }
+      ],
+      "d": "2026-08",
+      "era": "E5",
+      "t": "Qwen3.8-Max: A New Bar for Coding and Cowork",
+      "org": "阿里通义",
+      "p": "P2",
+      "c": "编程与协同办公新旗舰；宣布开源 Max 本尊(2.4T总参/A95B激活)"
+    },
+    {
+      "slug": "GLM-5.3",
+      "line": "align",
+      "tags": [
+        "reason",
+        "agent"
+      ],
+      "related": [
+        {
+          "target": "GLM-5.2",
+          "type": "inherit"
+        },
+        {
+          "target": "o1_Learning_to_Reason",
+          "type": "inherit"
+        }
+      ],
+      "d": "2026-08",
+      "era": "E5",
+      "t": "GLM-5.3：Frontier Foundation Model（文本旗舰）",
+      "org": "智谱Z.ai",
+      "p": "P2",
+      "c": "基座同GLM-5.2、能力全来自后训练：SAO结合上下文压缩的RL+端到端环境合成流水线，强制思考档位"
+    },
+    {
+      "slug": "GLM-5.3-Flash",
+      "line": "arch",
+      "tags": [
+        "opensrc",
+        "multi",
+        "longctx"
+      ],
+      "related": [
+        {
+          "target": "GLM-4.5",
+          "type": "inherit"
+        },
+        {
+          "target": "Qwen3.5",
+          "type": "compete"
+        }
+      ],
+      "d": "2026-08",
+      "era": "E5",
+      "t": "GLM-5.3-Flash（ox-alpha/牛来，原生多模态低延迟版）",
+      "org": "智谱Z.ai",
+      "p": "P2",
+      "c": "320B/18B激活、45层原生多模态(text+image+video)，首个稀疏注意力+线性注意力混合开源前沿模型(linear局部递归+DSA/IndexShare全局索引+mHC流形超连接+IndexPool索引缓存压缩)，1M上下文，INT4/fp8，MIT"
+    }
+  ]
+}
