@@ -327,7 +327,7 @@ a{{color:var(--acc);text-decoration:none}}a:hover{{text-decoration:underline}}
 
 /* 节点卡片 */
 .node{{position:relative;background:var(--panel);border:1px solid var(--bd);border-radius:8px;padding:6px 8px;width:100%;min-height:80px;display:flex;flex-direction:column;transition:.16s}}
-.node:hover{{transform:translateY(-2px);box-shadow:0 6px 16px #00000066;border-color:#3d4c60;z-index:8}}
+.node:hover{{transform:translateY(-2px);box-shadow:0 6px 16px #00000066;border-color:#3d4c60;z-index:100}}
 .node-P3{{border-color:var(--gold);border-width:2px;background:linear-gradient(180deg,#242012,#141019);box-shadow:0 0 14px #e8b93e44;z-index:4}}
 .node-P3 .node-title{{color:var(--gold);font-weight:800}}
 .node-P3 .pri-chip{{background:var(--gold);color:#14100a;font-weight:800}}
@@ -348,7 +348,7 @@ a{{color:var(--acc);text-decoration:none}}a:hover{{text-decoration:underline}}
 .node.sel{{box-shadow:0 0 0 2px var(--acc),0 6px 16px #00000066;z-index:9}}
 
 /* 悬停概要浮层 */
-.node-tip{{position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);width:230px;background:#131c2b;border:1px solid #33415a;border-radius:10px;padding:10px 12px;z-index:30;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .15s,visibility .15s;text-align:left;box-shadow:0 10px 28px #00000088}}
+.node-tip{{position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);width:230px;background:#131c2b;border:1px solid #33415a;border-radius:10px;padding:10px 12px;z-index:200;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .15s,visibility .15s;text-align:left;box-shadow:0 10px 28px #00000088}}
 .node:hover .node-tip{{opacity:1;visibility:visible;pointer-events:auto}}
 .node-tip .tip-title{{font-size:12px;font-weight:700;color:#eaf2fb;line-height:1.35;word-break:break-word}}
 .node-tip .tip-org{{font-size:10.5px;color:var(--mut);margin-top:4px}}
