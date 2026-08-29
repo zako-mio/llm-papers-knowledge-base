@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LLM 关键节点论文全集 · 任务报告</title><style>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LLM 关键节点论文全集 · 任务报告</title><style>
 *{box-sizing:border-box}
 body{font-family:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;background:#0f1420;color:#e6e9f0;line-height:1.8;margin:0}
 .wrap{max-width:880px;margin:0 auto;padding:36px 20px 80px}
@@ -16,8 +14,7 @@ th,td{border:1px solid #24304a;padding:6px 10px;text-align:left;vertical-align:t
 th{background:#161d2e;color:#7cb3ff}
 tr:nth-child(even){background:#141b2c}
 hr{border:none;border-top:1px solid #24304a;margin:24px 0}
-</style></head><body><div class="wrap">
-<h2>0825 LLM 关键节点论文全集 + 全量深度解读 · 任务报告</h2>
+</style></head><body><div class="wrap"><h2>0825 LLM 关键节点论文全集 + 全量深度解读 · 任务报告</h2>
 <p>生成日期：2026-08-25 · 双版本留档（本 MD 为 AI 友好镜像，report.html 为人类可读入口，同目录唯一权威数据源为 data/papers_master.json）</p>
 <h2>一、当时情况</h2>
 <p>用户计划全面学习现代大语言模型发展知识体系，需要<strong>全量收集关键节点论文 PDF</strong>（2017-06《Attention Is All You Need》→ 最新 DeepSeek 视觉原语、GLM 系后训练、Kimi/Qwen/MiniMax 等 2026 前沿），并逐篇做<strong>参照级深度解读</strong>。任务经历三轮需求升级：</p>
@@ -126,4 +123,52 @@ hr{border:none;border-top:1px solid #24304a;margin:24px 0}
 <li><strong>泳道图视觉迭代</strong>：初版优先级三档坍缩成"黄色统一框"（CSS 边界对比不足）、短名截断、连线过密；经 vision-worker 三轮检测反馈逐轮修复。<strong>结论：交付前必做视觉验证</strong>，纯结构门控不足以发现视觉坍缩。</li>
 <li><strong>改进建议</strong>：①可加"技术线点击联动"（点某条泳道高亮其全部节点）；②泳道图可加"缩放聚焦近期"交互；③后续可把 lane_labeling 规范沉淀为可复用 skill 供其他知识图谱复用。</li>
 </ol>
-</div></body></html>
+<hr>
+<h2>0830 泳道图转置重构（X/Y 轴转置 + 图例筛选联动 + 悬停概要）· 任务报告</h2>
+<p>生成日期：2026-08-30 · 本报告为 0829 泳道图重构后的<strong>第二次演进</strong>（布局转置+交互升级），沿用同一留档目录。</p>
+<h2>一、当时情况</h2>
+<p>0829 交付的横向泳道图上线后，用户反馈核心体验问题：</p>
+<ol>
+<li><strong>滚动方向不顺手</strong>：横向泳道图靠 X 轴（左右）拉时间，Y 轴（上下）看技术线，但用户希望<strong>上下拉为主看时间</strong>，且时间轴稳定在左侧。建议"X/Y 轴转置"——时间变纵轴、技术线变横轴。</li>
+<li><strong>图线高亮难触发</strong>：关系线太细点不到，建议<strong>图例可点击</strong>联动高亮对应线。</li>
+<li><strong>缺筛选</strong>：希望只想看哪几条技术线，设计<strong>可交互动态变换</strong>的筛选。</li>
+<li><strong>节点空间不足</strong>：P3 级方格太小导致论文发表组织（机构名）截断。</li>
+<li><strong>需求</strong>：借鉴卡片列表视图的下拉概要，在泳道图实现<strong>鼠标停留出现概要</strong>。</li>
+</ol>
+<p>用户明确要求：<strong>先计划对齐再动手</strong>，且验收方式为"我改完后用户先人工验收，用户发现问题就不必自动化验收"。</p>
+<h2>二、制定计划</h2>
+<ol>
+<li><strong>需求分批对齐</strong>（高细粒度）：确认布局拓扑（左时间纵轴+顶技术线横轴）、主滚动方向（上下为主看时间）、滚动机制（页面级滚动+sticky 双轴）、时间轴密度（自适应分段）、关系线高亮触发（图例点击联动，解决线细点不到）、技术线筛选（图例即筛选器多选+动态收缩重排）、筛选维度（技术线+关系类型双图例）、节点交互（保留悬停/点击）、关系线绘制（智能路由避让）、节点形态（维持卡片）。</li>
+<li><strong>技术方案</strong>：重写 <code>generate_timeline_lanes.py</code> 为转置布局（grid 转置 + sticky 双轴），新增图例筛选/高亮/悬停概要的 JS 交互。</li>
+<li><strong>分步实施</strong>：转置布局 → sticky 双轴 → 图例筛选联动 → 节点加宽+机构两行 → 悬停概要浮层 → 浮层置顶。</li>
+</ol>
+<h2>三、执行情况</h2>
+<ul>
+<li><strong>布局转置</strong>：<code>.tl-grid</code> 改为 <code>grid-template-columns:120px repeat(9,minmax(150px,1fr))</code>（列=技术线）、<code>grid-template-rows:88px {时间分段行}</code>（行=时间），左侧列 sticky left、顶行 sticky top、左上角十字双 sticky。节点按（时间分段 × 技术线）落格。</li>
+<li><strong>sticky 双轴</strong>：时间轴列 <code>sticky;left:0</code>、技术线行 <code>sticky;top:0</code>、corner 双 sticky（z-index 10/15/20）。实测滚动到 2500/4000 深度技术线行 top 恒 282 固定。</li>
+<li><strong>图例筛选联动</strong>：技术线图例（lane-tab）单击=聚焦高亮该线（其他淡化），Ctrl/Shift+点击=多选筛选；关系类型图例（rel-tab）点击切换（奠基/继承/分支/竞争）。drawRel 重建时按 activeLanes/activeRels 状态给节点/线加 dim。</li>
+<li><strong>节点修复</strong>：节点宽度改 <code>width:100%</code>（自适应列宽，避免溢出）；<code>.node-org</code> 改两行显示（<code>-webkit-line-clamp:2</code>），解决机构名截断；行高 NODE_H 92→102 给两行机构留空间。</li>
+<li><strong>悬停概要浮层</strong>：<code>.node-tip</code>（精炼版：完整标题+机构+贡献），<code>node:hover</code> 时显示；初期 z-index 30 被邻接节点（P3=4/hover=8/9）的堆叠上下文盖住 → 修复为 <code>.node:hover</code> z-index 100 + <code>.node-tip</code> z-index 200 置顶。</li>
+<li><strong>交互验证</strong>：agent-browser 实测——点击"架构革命"聚焦→108 节点淡化、剩余全为 arch；Ctrl+点击取消预训练线→15 节点淡化；关系类型筛选生效；sticky 滚动固定。</li>
+</ul>
+<h2>四、完成情况</h2>
+<p><strong>交付物</strong>（<code>docs/timeline.html</code> 转置版，自包含/离线/暗色科技风）：</p>
+<table>
+<tr><th>功能</th><th>说明</th></tr>
+<tr><td>---</td><td>---</td></tr>
+<tr><td>转置布局</td><td>左=时间纵轴（18 分段），顶=9 技术线横轴，中间画布，上下为主看时间</td></tr>
+<tr><td>sticky 双轴</td><td>时间轴列/技术线行/左上角十字，滚动时轴保持固定，只动中间图</td></tr>
+<tr><td>图例筛选联动</td><td>技术线图例单击聚焦高亮（其余淡化）、Ctrl+点击多选筛选；关系类型图例可点击</td></tr>
+<tr><td>节点交互</td><td>悬停概要浮层（完整标题/机构/贡献，置顶不被遮挡）；点击进深度解读</td></tr>
+<tr><td>节点修复</td><td>自适应列宽 + 机构两行显示（解决 P3 截断）</td></tr>
+<tr><td>双视图</td><td>与 list.html 卡片列表双向互切</td></tr>
+</table>
+<p><strong>验证</strong>：133 节点 / 18 时间分段 / 9 技术线 / 283 关系线；div 平衡、无替换字符、JS 语法通过；agent-browser 实测筛选/聚焦/sticky/悬停浮层全部正常；4 页面线上 HTTP 200；Pages 部署 success。用户人工验收浮层置顶通过。</p>
+<h2>五、反思/分析/建议</h2>
+<ol>
+<li><strong>需求对齐先行</strong>：用户要求"先计划对齐再动手"，本次通过多轮分批 question 把布局拓扑/滚动方向/交互/筛选全部确认后才实施，避免了返工。<strong>结论：信息架构类改动必须大幅对齐后动手</strong>。</li>
+<li><strong>z-index 堆叠上下文陷阱</strong>：<code>.node-tip</code> 初版 z-index 30 看似高，但作为 <code>.node</code> 子元素，受父节点堆叠上下文限制（P3=4/hover=8/9），浮层仍被邻接节点盖住。<strong>教训：子元素 z-index 受父堆叠上下文约束，置顶需同时提高父元素 z-index</strong>。最终 <code>.node:hover</code> z-index 100 + <code>.node-tip</code> 200 解决。</li>
+<li><strong>grid 转置 vs width 溢出</strong>：grid 列宽 minmax(150px) 但节点固定 150px+padding 会溢出列，改 <code>width:100%</code> 自适应后才不溢出。<strong>教训：grid/border-box 布局中，元素宽度应自适应容器而非写死，否则溢出</strong>。</li>
+<li><strong>f-string 嵌入 JS 花括号</strong>：Python f-string 中嵌入含单大括号的 JS（如注释 <code>{lane:true}</code>、对象字面量）会触发 ValueError，需全部转义为 <code>{{}}</code> 或拆分。<strong>教训：大段 JS 注入 f-string 时，所有非格式化花括号必须双写</strong>。</li>
+<li><strong>改进建议</strong>：①可加泳道悬浮时整行高亮、时间轴缩放聚焦近期；②关系线可加方向箭头/类型标签；③悬停概要可扩展显示四维背景档案（当时主流/痛点/为何胜出/后续影响）。</li>
+</ol></div></body></html>
