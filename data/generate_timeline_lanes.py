@@ -170,6 +170,12 @@ def node_pin(n):
         f'title="{esc(n["t"])}">{esc(short_name(n))}</a>'
         f'<div class="node-org">{esc(n["org"])}</div>'
         f'<div class="node-ana"><a href="{quote(ana, safe="/")}">深度解读</a></div>'
+        f'<div class="node-tip">'
+        f'<div class="tip-title">{esc(n["t"])}</div>'
+        f'<div class="tip-org">{esc(n["org"])}</div>'
+        f'<div class="tip-contrib"><b>贡献：</b>{esc(n.get("c", ""))}</div>'
+        f'<div class="tip-meta"><span>{esc(n["d"])}</span>·<span>{esc(short_name(n))}</span></div>'
+        f'</div>'
         f'</div>'
     )
 
@@ -251,7 +257,7 @@ def build_html():
         for lane in LANE_KEYS:
             cnt = len(sl.get(lane, []))
             if cnt > mx: mx = cnt
-        row_heights.append(mx * 92 + 14)
+        row_heights.append(mx * 102 + 14)
     # 用显式 grid-template-rows
     rows_vals = [str(h) + 'px' for h in row_heights]
     grid_template_rows = ' '.join(rows_vals)
@@ -320,7 +326,7 @@ a{{color:var(--acc);text-decoration:none}}a:hover{{text-decoration:underline}}
 .cll:nth-child(odd){{background:#0d1219}}
 
 /* 节点卡片 */
-.node{{position:relative;background:var(--panel);border:1px solid var(--bd);border-radius:8px;padding:6px 8px;width:132px;min-height:80px;display:flex;flex-direction:column;transition:.16s}}
+.node{{position:relative;background:var(--panel);border:1px solid var(--bd);border-radius:8px;padding:6px 8px;width:100%;min-height:80px;display:flex;flex-direction:column;transition:.16s}}
 .node:hover{{transform:translateY(-2px);box-shadow:0 6px 16px #00000066;border-color:#3d4c60;z-index:8}}
 .node-P3{{border-color:var(--gold);border-width:2px;background:linear-gradient(180deg,#242012,#141019);box-shadow:0 0 14px #e8b93e44;z-index:4}}
 .node-P3 .node-title{{color:var(--gold);font-weight:800}}
@@ -336,10 +342,18 @@ a{{color:var(--acc);text-decoration:none}}a:hover{{text-decoration:underline}}
 .node-date{{font-family:ui-monospace,Consolas,monospace;font-size:10px;color:var(--mut)}}
 .cross-badge{{font-size:9px;background:#2c3a4d;color:#cddaea;border-radius:99px;padding:0 5px;font-weight:700}}
 .node-title{{font-size:11.5px;line-height:1.32;display:block;word-break:break-word}}
-.node-org{{font-size:10px;color:var(--mut);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+.node-org{{font-size:10px;color:var(--mut);margin-top:3px;line-height:1.25;word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}}
 .node-ana{{margin-top:auto;padding-top:4px}}.node-ana a{{font-size:10px;color:#c084fc;font-weight:600}}
 .node.dim{{opacity:.18;pointer-events:none}}
 .node.sel{{box-shadow:0 0 0 2px var(--acc),0 6px 16px #00000066;z-index:9}}
+
+/* 悬停概要浮层 */
+.node-tip{{position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);width:230px;background:#131c2b;border:1px solid #33415a;border-radius:10px;padding:10px 12px;z-index:30;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .15s,visibility .15s;text-align:left;box-shadow:0 10px 28px #00000088}}
+.node:hover .node-tip{{opacity:1;visibility:visible;pointer-events:auto}}
+.node-tip .tip-title{{font-size:12px;font-weight:700;color:#eaf2fb;line-height:1.35;word-break:break-word}}
+.node-tip .tip-org{{font-size:10.5px;color:var(--mut);margin-top:4px}}
+.node-tip .tip-contrib{{font-size:11px;color:#c3cedb;margin-top:6px;line-height:1.45;word-break:break-word}}
+.node-tip .tip-contrib b{{color:var(--acc)}}
 
 /* 关系线 SVG overlay */
 .relation-layer{{position:absolute;top:0;left:0;overflow:visible;pointer-events:none;z-index:1}}
@@ -365,7 +379,8 @@ a{{color:var(--acc);text-decoration:none}}a:hover{{text-decoration:underline}}
 .page-foot{{margin-top:40px;padding:24px 16px 40px;text-align:center;color:var(--mut);font-size:12px;border-top:1px solid var(--bd);background:#0d1219}}
 @media(max-width:760px){{
   .tl-grid{{grid-template-columns:88px repeat({len(LANE_KEYS)},minmax(120px,1fr))}}
-  .node{{width:112px}}
+  .node{{width:100%}}
+  .node-tip{{width:200px}}
 }}
 </style>
 </head>
