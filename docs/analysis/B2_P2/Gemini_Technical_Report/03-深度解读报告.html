@@ -40,6 +40,12 @@ ul.plain li{margin-bottom:10px;text-align:justify;}
 .ok{color:var(--lp-ink-058);font-weight:700;}
 footer{text-align:center;font-family:sans-serif;font-size:.78rem;color:var(--muted);margin-top:44px;}
 @media(max-width:640px){main section,.abs,.checker{padding:26px 20px;}header.hero h1{font-size:1.55rem;}body{font-size:15.5px;}}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -54,8 +60,21 @@ footer{text-align:center;font-family:sans-serif;font-size:.78rem;color:var(--mut
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="《Gemini: A Family of Highly Capable Multimodal Models》深度解读报告——本文解读 Google（Gemini Team，Google DeepMind 多方署名）于 2023 年 12 月发布的 90 页技术报告。核心论断：从零以多模态方式联合预训练的 Transf…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Gemini 技术报告 · 深度解读">
+<meta property="og:description" content="《Gemini: A Family of Highly Capable Multimodal Models》深度解读报告——本文解读 Google（Gemini Team，Google DeepMind 多方署名）于 2023 年 12 月发布的 90 页技术报告。核心论断：从零以多模态方式联合预训练的 Transf…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/Gemini_Technical_Report/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/Gemini_Technical_Report/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>Gemini_Technical_Report</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
@@ -72,7 +91,7 @@ footer{text-align:center;font-family:sans-serif;font-size:.78rem;color:var(--mut
 <p>本文解读 Google（Gemini Team，Google DeepMind 多方署名）于 2023 年 12 月发布的 90 页技术报告。核心论断：从零以多模态方式联合预训练的 Transformer 家族（Ultra / Pro / Nano 三档），能在几乎全部主流学术基准上重建领先地位——Ultra 在 <span class="hl">32 个基准中的 30 个</span>取得 SOTA，并成为首个在 MMLU 上突破 90%（实测 <span class="hl">90.04%</span>，CoT@32）超过人类专家水平（89.8%）的模型；原生多模态设计使图像理解（MMMU <span class="hl">62.4%</span>，超前 SOTA 5 个百分点以上）、视频理解、音频理解在同一模型内贯通。报告的另一条隐藏主线是工程基础设施：TPUv4 SuperPod（<span class="hl">4096 芯片</span>）+ 光交换机 + JAX/Pathways 软件栈支撑下的训练 goodput 从 <span class="gold">85% 提升至 97%</span>。本报告按"问题—概念—方法—证据—批判—启示"六层结构拆解，并指出该报告"结果详尽但过程保密"的文体对行业评测文化的深远影响。</p>
 <span class="tag">原生多模态</span><span class="tag">模型家族化</span><span class="tag">TPUv4 SuperPod</span><span class="tag">RLHF 四步</span><span class="tag">AlphaCode 2</span>
 </div>
-<main>
+<main id="main">
 <section id="s1">
 <h2>一、问题定位：追赶者的全面反攻与两条路线之争</h2>
 <h3>1.1 论文要解决的问题</h3>

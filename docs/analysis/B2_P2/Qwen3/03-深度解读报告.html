@@ -18,6 +18,12 @@ tr:nth-child(even){background:var(--lp-bg-004)}
 code{background:var(--lp-bg-002);padding:1px 5px;border-radius:4px;font-size:13px}
 hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 .selfcheck{font-size:11px;color:var(--lp-ink-007);margin-top:40px;border-top:1px solid var(--lp-line-003);padding-top:12px;font-family:ui-monospace,monospace}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -31,11 +37,25 @@ hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 .lp-back:hover{text-decoration:underline}
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
-</style></head><body>
+</style><!-- LP:HEAD:BEGIN -->
+<meta name="description" content="《Qwen3 Technical Report》深度解读报告——本文解读阿里通义千问团队于 2025 年 5 月发布的 《Qwen3 Technical Report》 （arXiv: 2505.09388 ）。这是一篇标志性的技术报告，其价值不在&quot;又出了一个更强的模型&quot;，而在它把过去两年各自为战…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="《Qwen3 Technical Report》深度解读报告 · 深度解读">
+<meta property="og:description" content="《Qwen3 Technical Report》深度解读报告——本文解读阿里通义千问团队于 2025 年 5 月发布的 《Qwen3 Technical Report》 （arXiv: 2505.09388 ）。这是一篇标志性的技术报告，其价值不在&quot;又出了一个更强的模型&quot;，而在它把过去两年各自为战…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/Qwen3/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/Qwen3/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
+</head><body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>Qwen3</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
-<!-- LP:NAV:END --><div class="wrap">
+<!-- LP:NAV:END -->
+<main id="main" class="wrap">
 <h1>《Qwen3 Technical Report》深度解读报告</h1>
 <blockquote> 数据依据：<span class="num">00</span>-源数据提取.md（arXiv:<span class="num">2505.09388</span>v1），全部数字与原文一致；文中标注"<span class="infer">（推断）</span>"处为分析者推理补充。</blockquote>
 <hr>
@@ -248,4 +268,4 @@ hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 <hr>
 <p>*报告完。数据出处：arXiv:<span class="num">2505.09388</span>v1；分析采用 <span class="num">00</span>-源数据提取.md（<span class="num">2026-08</span> 归档版）。*</p>
 <div class="selfcheck">数据依据：本页 00-源数据提取.md | 推断处已标注（推断）| 生成：批量转换脚本</div>
-</div></body></html>
+</main></body></html>

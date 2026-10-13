@@ -96,6 +96,12 @@
     table{font-size:13px;}
     th,td{padding:6px;}
   }
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -110,13 +116,26 @@
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="UI-TARS：原生 GUI 智能体模型的深度解读报告——arXiv:2501.12326v1 [cs.AI] · 2025-01-21 · 44 页 · ByteDance Seed + 清华大学">
+<meta property="og:type" content="website">
+<meta property="og:title" content="UI-TARS：原生 GUI 智能体模型的深度解读报告">
+<meta property="og:description" content="UI-TARS：原生 GUI 智能体模型的深度解读报告——arXiv:2501.12326v1 [cs.AI] · 2025-01-21 · 44 页 · ByteDance Seed + 清华大学">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/UI-TARS/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/UI-TARS/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>UI-TARS</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
 <!-- LP:NAV:END -->
-<div class="container">
+<main id="main" class="container">
 
 <header>
   <h1>UI-TARS：原生 GUI 智能体模型的深度解读报告</h1>
@@ -344,7 +363,7 @@
 
 <footer>报告完 · 数字与事实均溯源至 00-源数据提取.md · 推断内容已逐处标注</footer>
 
-</div><!-- /.container -->
+</main><!-- /.container -->
 <!-- 自检：UTF-8 无 U+FFFD 替换字符；div 仅 .container 1 对严格配平；表格 3 张（能力闭环/表3/表9）；关键数字 span.num 高亮；内联 CSS 无外部依赖；内容忠实源 MD（含 §4.6 半角括号原样保留） -->
 </body>
 </html>

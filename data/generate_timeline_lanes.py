@@ -22,6 +22,18 @@ DATA_DIR = Path(__file__).resolve().parent
 BASE_DIR = DATA_DIR.parent
 OUT_PATH = BASE_DIR / 'docs' / 'timeline.html'
 
+# ★ 批 J：站点级常量（规范 URL 基址 / 仓名）与无障碍样式。
+#   ⛔ 下列 CSS **不含任何色值字面量**：本站 gate_tokens.py 的 G3（Q3=A 等值注入）硬判
+#   「页面 CSS 语料不得出现改动前基线之外的新色值」⇒ 用 currentColor ＋ 系统色
+#   Canvas/CanvasText 拿到可见焦点环与可读的 skip link，同时保持 G3 全绿。
+REPO_NAME = 'llm-papers-knowledge-base'
+BASE_URL = 'https://zako-mio.github.io/%s/' % REPO_NAME
+A11Y_CSS = (':focus-visible{outline:2px solid currentColor;outline-offset:2px}\n'
+            '.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;\n'
+            '  background:Canvas;color:CanvasText;border:1px solid CanvasText;'
+            'border-radius:0 0 6px 0}\n'
+            '.skip-link:focus{left:0}')
+
 DATA = json.loads((DATA_DIR / 'papers_lanes.json').read_text(encoding='utf-8'))
 lanes = DATA['lanes']
 
@@ -287,12 +299,23 @@ def build_html():
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>现代大语言模型发展史 · 多技术线泳道图（转置）</title>
+<meta name="description" content="现代大语言模型发展史 · 多技术线泳道图（转置）：{total} 个关键节点按 9 条技术线（架构/预训练/对齐/推理/长上下文/多模态/Agent/工程/开源）泳道化排布，左=时间纵轴、顶=技术线横轴，图例即筛选器、关系线可高亮。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="现代大语言模型发展史 · 多技术线泳道图（转置）">
+<meta property="og:description" content="现代大语言模型发展史 · 多技术线泳道图（转置）：{total} 个关键节点按 9 条技术线泳道化排布，左=时间纵轴、顶=技术线横轴。">
+<meta property="og:url" content="{BASE_URL}timeline.html">
+<meta property="og:image" content="{BASE_URL}og.png">
+<link rel="canonical" href="{BASE_URL}timeline.html">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <style>
 :root{{--bg:#0b0f14;--panel:#11161d;--bd:#232b36;--tx:#dbe4ee;--mut:#7d8b9d;--acc:#4cc2ff;--gold:#e8b93e}}
 *{{box-sizing:border-box;margin:0;padding:0}}
 html{{scroll-behavior:smooth}}
 body{{background:var(--bg);color:var(--tx);line-height:1.6;font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}}
 a{{color:var(--acc);text-decoration:none}}a:hover{{text-decoration:underline}}
+/* ★ 批 J：无障碍两件（键盘焦点可见 ＋ skip link）。⛔ 不写任何色值字面量
+   —— gate_tokens.py 的 G3（等值注入）硬判「页面不得出现改动前基线外的新色值」。 */
+{A11Y_CSS}
 .page-head{{text-align:center;padding:36px 16px 20px;background:radial-gradient(ellipse 80% 65% at 50% -10%,#12304a66,transparent),linear-gradient(180deg,#0e141b,var(--bg))}}
 .page-head h1{{font-size:clamp(20px,3vw,30px);letter-spacing:.02em;background:linear-gradient(90deg,#9ecbff,#eef6ff 45%,#7fd4ff);-webkit-background-clip:text;background-clip:text;color:transparent}}
 .page-head .sub{{color:var(--mut);margin-top:6px;font-family:ui-monospace,Consolas,monospace;font-size:12px}}
@@ -391,6 +414,7 @@ a{{color:var(--acc);text-decoration:none}}a:hover{{text-decoration:underline}}
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main">跳到主要内容</a>
 <header class="page-head"><h1>现代大语言模型发展史 · 多技术线泳道图</h1>
 <p class="sub">{lanes[0]['d'] if lanes else ''} → {lanes[-1]['d'] if lanes else ''} · {total} 个关键节点 · 9 条技术线 · 左=时间纵轴 / 顶=技术线横轴</p>
 <div class="stat-badges">{stat}</div></header>
@@ -401,15 +425,20 @@ a{{color:var(--acc);text-decoration:none}}a:hover{{text-decoration:underline}}
 </div>
 <div class="hint">🖱️ 上下滚动浏览时间；图例点击高亮关系线/筛选技术线；节点悬停看详情</div>
 
-<div class="timeline-wrap">
+<main id="main" class="timeline-wrap">
 <div class="tl-grid" id="tlGrid">
   <div class="corner">⚡</div>
   {lane_head_cells_html}
   {seg_cells_html}
   {grid_html}
-  <svg class="relation-layer" id="relLayer"></svg>
+  <!-- ★ 批 J · A5：图件文本等价。本站 gate_a11y.py 的 A5 实现是 `SVG.findall()` 取**捕获组**
+       （即 `<svg>` 的**内层内容**）再找 `role="img"` ＋ `aria-label`/`<title>` ⇒ 标签载体必须
+       落在内层。故把关系线画布做成一个**带标签的 `<g>`**（外层 `<svg>` 同时标同一标签，
+       两层信息一致、⛔ 不出现两套说法）。JS 只清 `<g>` 下的 path，⛔ 不清空 `<g>` 自身
+       ⇒ 运行期标签不会丢。 -->
+  <svg class="relation-layer" id="relLayer" role="img" aria-label="论文关系连线层（由脚本按筛选状态实时绘制）"><g id="relGroup" role="img" aria-label="论文关系连线层（由脚本按筛选状态实时绘制）"><title>论文关系连线层</title></g></svg>
 </div>
-</div>
+</main>
 
 <div class="view-switch"><a href="list.html">📋 切换到卡片列表视图</a></div>
 <footer class="page-foot"><p>数据口径：verified=联网一手核验 · 共 {total} 篇 · 9 条技术线 · 转置布局(左时间/顶技术线)</p><p>生成：data/generate_timeline_lanes.py 脚本驱动 · 禁止手抄数据</p></footer>
@@ -418,6 +447,11 @@ a{{color:var(--acc);text-decoration:none}}a:hover{{text-decoration:underline}}
 (function(){{
   function $$(s,c){{return Array.prototype.slice.call((c||document).querySelectorAll(s));}}
   var layer=document.getElementById('relLayer');
+  // ★ 批 J：关系线只画进 <g id="relGroup">，且每次重绘**只删 path**——
+  //   ⛔ 若沿用 `layer.innerHTML=''`，A5 的文本等价载体（g 的 role/aria-label 与 <title>）
+  //   会在第一次筛选/缩放后整体消失（静态判据绿、运行期却退化）。
+  var group=document.getElementById('relGroup');
+  function clearLines(){{ Array.prototype.slice.call(group.querySelectorAll('path')).forEach(function(p){{ p.parentNode.removeChild(p); }}); }}
   var R={conns_json};
   var NODES={lanes_json};
   var W=document.querySelector('.tl-grid');
@@ -428,7 +462,7 @@ a{{color:var(--acc);text-decoration:none}}a:hover{{text-decoration:underline}}
     var gridRect=W.getBoundingClientRect();
     layer.setAttribute('width',W.scrollWidth);
     layer.setAttribute('height',W.scrollHeight);
-    layer.innerHTML='';
+    clearLines();
     R.forEach(function(r){{
       var sn=document.querySelector('.node[data-slug="'+r.slug+'"]');
       var tn=document.querySelector('.node[data-slug="'+r.tgt+'"]');
@@ -443,7 +477,7 @@ a{{color:var(--acc);text-decoration:none}}a:hover{{text-decoration:underline}}
       path.setAttribute('class','rel-line '+r.type);
       path.setAttribute('vector-effect','non-scaling-stroke');
       path.setAttribute('data-from',r.slug);path.setAttribute('data-to',r.tgt);path.setAttribute('data-type',r.type);
-      layer.appendChild(path);
+      group.appendChild(path);
     }});
   }}
 
@@ -452,7 +486,7 @@ a{{color:var(--acc);text-decoration:none}}a:hover{{text-decoration:underline}}
     var gridRect=W.getBoundingClientRect();
     layer.setAttribute('width',W.scrollWidth);
     layer.setAttribute('height',W.scrollHeight);
-    layer.innerHTML='';
+    clearLines();
     R.forEach(function(r){{
       var sn=document.querySelector('.node[data-slug="'+r.slug+'"]');
       var tn=document.querySelector('.node[data-slug="'+r.tgt+'"]');
@@ -469,7 +503,7 @@ a{{color:var(--acc);text-decoration:none}}a:hover{{text-decoration:underline}}
       path.setAttribute('class','rel-line '+r.type+(bothOn&&typeOn?'':' dim'));
       path.setAttribute('vector-effect','non-scaling-stroke');
       path.setAttribute('data-from',r.slug);path.setAttribute('data-to',r.tgt);path.setAttribute('data-type',r.type);
-      layer.appendChild(path);
+      group.appendChild(path);
     }});
   }}
 

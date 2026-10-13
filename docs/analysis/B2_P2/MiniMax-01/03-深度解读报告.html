@@ -41,6 +41,12 @@ li{margin:7px 0;text-align:justify;}
 blockquote{border-left:3px solid var(--accent2);background:var(--lp-bg-293);padding:10px 16px;margin:14px 0;color:var(--lp-ink-154);font-size:14.5px;}
 footer{ text-align:center;color:var(--muted);font-size:12.5px;margin-top:30px;font-family:"PingFang SC","Microsoft YaHei",sans-serif;}
 @media(max-width:640px){.wrap{padding:16px 12px;}section.card{padding:22px 18px;}}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -55,13 +61,26 @@ footer{ text-align:center;color:var(--muted);font-size:12.5px;margin-top:30px;fo
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="《MiniMax-01: Scaling Foundation Models with Lightning Attention》深度解读报告——本文解读 MiniMax 于 2025 年 1 月发布的技术报告《MiniMax-01: Scaling Foundation Models with Lightning A…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="《MiniMax-01: Scaling Foundation Models with Lightning Attention》深度解读报告">
+<meta property="og:description" content="《MiniMax-01: Scaling Foundation Models with Lightning Attention》深度解读报告——本文解读 MiniMax 于 2025 年 1 月发布的技术报告《MiniMax-01: Scaling Foundation Models with Lightning A…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/MiniMax-01/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/MiniMax-01/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>MiniMax-01</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
 <!-- LP:NAV:END -->
-<div class="wrap">
+<main id="main" class="wrap">
 
 <header class="hero">
 <h1>《MiniMax-01: Scaling Foundation Models with Lightning Attention》深度解读报告</h1>
@@ -287,7 +306,7 @@ footer{ text-align:center;color:var(--muted);font-size:12.5px;margin-top:30px;fo
 
 <footer>《MiniMax-01》深度解读报告 · B2 批次 · 数据依据：00-源数据提取.md · 分析者推断处均已标注（推断）</footer>
 
-</div>
+</main>
 <!--
 [末尾自检]
 1. UTF-8 编码，无 U+FFFD 替换字符：通过

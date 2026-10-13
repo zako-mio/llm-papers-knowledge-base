@@ -54,6 +54,12 @@ li{margin:7px 0;text-align:justify;}
 .pass{color:var(--lp-ink-178);font-weight:700;}
 footer{text-align:center;color:var(--tag);font-size:12.5px;margin-top:36px;font-family:ui-monospace,monospace;}
 @media(max-width:640px){section{padding:26px 20px;}.grid2{grid-template-columns:1fr;}}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -68,8 +74,21 @@ footer{text-align:center;color:var(--tag);font-size:12.5px;margin-top:36px;font-
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="《Kimi K3: Open Frontier Intelligence》 深度解读报告——首个开放 3T 级模型如何在&quot;参数规模 × 交互规模&quot;两条缩放轴上同时推进——以混合线性注意力、稳定化 MoE、九专家 RL 与全栈基建，把开源前沿推至闭源双雄的射程之内。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="《Kimi K3: Open Frontier Intelligence》深度解读报告">
+<meta property="og:description" content="《Kimi K3: Open Frontier Intelligence》 深度解读报告——首个开放 3T 级模型如何在&quot;参数规模 × 交互规模&quot;两条缩放轴上同时推进——以混合线性注意力、稳定化 MoE、九专家 RL 与全栈基建，把开源前沿推至闭源双雄的射程之内。">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/Kimi_K3/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/Kimi_K3/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>Kimi_K3</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
@@ -81,7 +100,7 @@ footer{text-align:center;color:var(--tag);font-size:12.5px;margin-top:36px;font-
 <p class="lede">首个开放 3T 级模型如何在"参数规模 × 交互规模"两条缩放轴上同时推进——以混合线性注意力、稳定化 MoE、九专家 RL 与全栈基建，把开源前沿推至闭源双雄的射程之内。</p>
 </header>
 
-<div class="wrap">
+<main id="main" class="wrap">
 
 <section id="abstract">
 <h2>摘要</h2>
@@ -323,6 +342,6 @@ footer{text-align:center;color:var(--tag);font-size:12.5px;margin-top:36px;font-
 </section>
 
 <footer>Kimi K3 Deep Reading Report · generated 2026-08-26 · B1_P3 analysis series</footer>
-</div>
+</main>
 </body>
 </html>

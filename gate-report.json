@@ -31,6 +31,18 @@
    "exit": 0,
    "gate": "manifest-check",
    "summary": "=== 门控清单双向校验：6 项判据，0 FAIL ==="
+  },
+  {
+   "cmd": "python3 gate_a11y.py --site-root . --profile build/profile.json",
+   "exit": 0,
+   "gate": "a11y",
+   "summary": "=== 无障碍门控（mode=hard）：7 项判据，0 FAIL（blind 0 / hard 0）==="
+  },
+  {
+   "cmd": "python3 gate_seo_meta.py --site-root . --profile build/profile.json",
+   "exit": 0,
+   "gate": "metadata",
+   "summary": "=== 元数据门控（mode=hard）：11 项判据，0 FAIL（blind 0 / hard 0）==="
   }
  ],
  "generated_by": "data/build_all.py",
@@ -40,7 +52,7 @@
    "exit": 0,
    "step": "gen_home",
    "tail": [
-    "首页已生成：<repo>/docs/index.html（3563 B；133 个节点 / P3×38 P2×81 P1×14 / 9 条技术线；cta=report）"
+    "首页已生成：<repo>/docs/index.html（4886 B；133 个节点 / P3×38 P2×81 P1×14 / 9 条技术线；cta=report）"
    ],
    "target": "docs/index.html"
   },
@@ -69,7 +81,7 @@
    "exit": 0,
    "step": "analysis-index",
    "tail": [
-    "index.html written: 27665 bytes, 133 entries linked"
+    "index.html written: 28957 bytes, 133 entries linked"
    ],
    "target": "docs/analysis/index.html"
   },
@@ -92,7 +104,7 @@
    "exit": 0,
    "step": "annotate",
    "tail": [
-    "扫描 139 页 · 本次变更 4 页 · 注入令牌 2297 枚 · 加着陆结构 134 页 · 未声明值 0 个",
+    "扫描 139 页 · 本次变更 4 页 · 注入令牌 2297 枚 · 加着陆结构 134 页 · 主地标 135 页 · 未声明值 0 个",
     "=== annotate_products：OK ==="
    ],
    "target": "docs/**/*.html（139 页）"
@@ -101,6 +113,6 @@
  "result": "PASS",
  "schema": "llm-papers-gate-report/1",
  "site": "llm-papers-knowledge-base",
- "tree_digest": "d310b3b7276261c0353ed6075703657a13b22c030e6a9ac9fbe66425089645ce",
- "tree_digest_files": 565
+ "tree_digest": "886d4f4c4e1607eb8ed2db08ad199122502023eb08f80de91af6f25648444b7f",
+ "tree_digest_files": 572
 }

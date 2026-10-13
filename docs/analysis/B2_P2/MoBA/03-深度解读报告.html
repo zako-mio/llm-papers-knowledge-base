@@ -114,6 +114,12 @@
   .toc-title { font-weight: 700; color: var(--accent); margin-bottom: 8px; font-family: "Helvetica Neue", Arial, sans-serif; }
   .toc a { color: var(--lp-ink-026); text-decoration: none; }
   .toc a:hover { color: var(--accent); text-decoration: underline; }
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -128,13 +134,26 @@
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="《MoBA: Mixture of Block Attention for Long-Context LLMs》深度解读报告——本文解读 Moonshot AI（Kimi）联合清华大学、浙江实验室/浙江大学提出的《MoBA》。论文的核心论断是：长上下文建模不必在「全注意力的高成本」与「固定稀疏模式的低灵活性」之间二选…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="《MoBA》深度解读报告">
+<meta property="og:description" content="《MoBA: Mixture of Block Attention for Long-Context LLMs》深度解读报告——本文解读 Moonshot AI（Kimi）联合清华大学、浙江实验室/浙江大学提出的《MoBA》。论文的核心论断是：长上下文建模不必在「全注意力的高成本」与「固定稀疏模式的低灵活性」之间二选…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/MoBA/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/MoBA/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>MoBA</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
 <!-- LP:NAV:END -->
-<div class="wrap">
+<main id="main" class="wrap">
 
 <header class="hero">
   <h1>《MoBA: Mixture of Block Attention for Long-Context LLMs》深度解读报告</h1>
@@ -333,6 +352,6 @@ block 放大到 <span class="num">2048</span>、top-3 保持；前 <span class="
   </ul>
 </footer>
 
-</div>
+</main>
 </body>
 </html>

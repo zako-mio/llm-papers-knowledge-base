@@ -64,6 +64,12 @@
   footer.selfcheck b{color:var(--lp-ink-057)}
   .pass{color:var(--lp-ink-027)}
   @media print{body{background:var(--card)}section.card{border:none;page-break-inside:avoid}}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -78,13 +84,26 @@
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="《DeepSeek-V3 Technical Report》深度解读报告——本文解读 DeepSeek-AI 的《DeepSeek-V3 Technical Report》。论文的核心论断是：开源模型可以在不牺牲性能的前提下，通过架构创新（ MLA + DeepSeekMoE ）、训练目标创新（ Multi-Toke…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="《DeepSeek-V3 Technical Report》深度解读报告">
+<meta property="og:description" content="《DeepSeek-V3 Technical Report》深度解读报告——本文解读 DeepSeek-AI 的《DeepSeek-V3 Technical Report》。论文的核心论断是：开源模型可以在不牺牲性能的前提下，通过架构创新（ MLA + DeepSeekMoE ）、训练目标创新（ Multi-Toke…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/DeepSeek-V3/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/DeepSeek-V3/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>DeepSeek-V3</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
 <!-- LP:NAV:END -->
-<div class="wrap">
+<main id="main" class="wrap">
 
 <header class="hero">
   <h1>《DeepSeek-V3 Technical Report》深度解读报告</h1>
@@ -310,6 +329,6 @@
   [PASS] 数据依据：00-源数据提取.md，推断处均以「（推断）」样式标注
 </footer>
 
-</div>
+</main>
 </body>
 </html>

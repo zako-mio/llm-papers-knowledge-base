@@ -18,6 +18,12 @@ tr:nth-child(even){background:var(--lp-bg-004)}
 code{background:var(--lp-bg-002);padding:1px 5px;border-radius:4px;font-size:13px}
 hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 .selfcheck{font-size:11px;color:var(--lp-ink-007);margin-top:40px;border-top:1px solid var(--lp-line-003);padding-top:12px;font-family:ui-monospace,monospace}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -31,11 +37,25 @@ hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 .lp-back:hover{text-decoration:underline}
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
-</style></head><body>
+</style><!-- LP:HEAD:BEGIN -->
+<meta name="description" content="《QWEN Technical Report》深度解读——《QWEN Technical Report》是阿里巴巴通义千问（Qwen）团队在 2023 年 9 月发布的初代中文基座技术报告，属于国产开源大模型的第一梯队标志性发布物。报告以一张&quot;通用强基座 + 全链路对齐 + 领域专用模型&quot;三位一体…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="《QWEN Technical Report》深度解读 · 深度解读">
+<meta property="og:description" content="《QWEN Technical Report》深度解读——《QWEN Technical Report》是阿里巴巴通义千问（Qwen）团队在 2023 年 9 月发布的初代中文基座技术报告，属于国产开源大模型的第一梯队标志性发布物。报告以一张&quot;通用强基座 + 全链路对齐 + 领域专用模型&quot;三位一体…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/Qwen_Technical_Report/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/Qwen_Technical_Report/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
+</head><body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>Qwen_Technical_Report</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
-<!-- LP:NAV:END --><div class="wrap">
+<!-- LP:NAV:END -->
+<main id="main" class="wrap">
 <h1>《QWEN Technical Report》深度解读</h1>
 <blockquote> <strong>论文</strong>：QWEN Technical Report（Qwen Team, Alibaba Group）</blockquote>
 <blockquote> <strong>发表</strong>：arXiv:<span class="num">2309.16609</span>v1 [cs.CL]，<span class="num">2023-09-28</span>（技术报告）</blockquote>
@@ -263,4 +283,4 @@ hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 </ol>
 <blockquote> <strong>一句话总评</strong>：Qwen 用一份高密度的工程档案，证明了"中文强基座 + 全链路对齐 + 领域延展"路径的可行性，同时以自认差距与消融缺失为读者划出了需要理性评估的边界——它是理解中国开源大模型早期生态绕不开的一页。</blockquote>
 <div class="selfcheck">数据依据：本页 00-源数据提取.md | 推断处已标注（推断）| 生成：批量转换脚本</div>
-</div></body></html>
+</main></body></html>

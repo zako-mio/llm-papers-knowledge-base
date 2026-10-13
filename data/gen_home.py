@@ -43,9 +43,43 @@ OUT_PATH = os.path.join(REPO, "docs", "index.html")
 TAGLINE_HEAD = "从《Attention Is All You Need》(2017) 到 GLM-5.3-Flash / DeepSeek-V4 / Kimi K3 (2026)"
 TAGLINE_TAIL = "关键节点论文全集 + 全量深度解读 + 多技术线泳道图"
 
+# ★ 批 J：首页自身也是**判据对象**（发布根下每一个 .html）⇒ 外壳生成器必须自带
+#   ① head 8 行（description ＋ og 元组 5 项 ＋ canonical ＋ favicon）、
+#   ② skip link、③ `<main id="main">`、④ `:focus-visible`。
+REPO_NAME = "llm-papers-knowledge-base"
+SITE_TITLE = "现代大语言模型发展史 · 知识库"
+ABS_URL = "https://zako-mio.github.io/%s/" % REPO_NAME   # 根 index.html ⇒ 基址自身
+# ★ 无障碍样式：⛔ 一个色值字面量都不写（否则 gate_tokens.py 的 G3「等值注入」必红）——
+#   用 `currentColor` ＋ 系统色 `Canvas`/`CanvasText` 拿到可见焦点环与可读的 skip link。
+#   ★ 这里是**独立字符串**（经 `{a11y_css}` 占位符代入 TEMPLATE），⛔ 不写双花括号：
+#     `.format()` 只解析 TEMPLATE 自身的花括号，代入值不会被二次解析 ⇒ 写 `{{` 会原样落盘成
+#     非法 CSS（实测踩到：`.skip-link{{…}}` 令 skip link 恒显）。
+A11Y_CSS = """
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+"""
+
+
+def desc_of(f):
+    """首页 description：**派生量驱动**（⛔ 不写死数字），且不与任一解读页同句。"""
+    return ("现代大语言模型发展史知识库 —— 从《Attention Is All You Need》(2017) 到 "
+            "GLM-5.3-Flash / DeepSeek-V4 / Kimi K3 (2026)：%d 个关键节点论文全集 · "
+            "%d 条技术线泳道图 · 全量六层深度解读。" % (f["total"], f["lanes"]))
+
+
 TEMPLATE = """<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>现代大语言模型发展史 · 知识库</title>
+<meta name="description" content="{desc}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="现代大语言模型发展史 · 知识库">
+<meta property="og:description" content="{desc}">
+<meta property="og:url" content="{abs_url}">
+<meta property="og:image" content="{abs_url}og.png">
+<link rel="canonical" href="{abs_url}">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <style>
 *{{box-sizing:border-box}}body{{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#0f1420;color:#e6e9f0;margin:0;line-height:1.7}}
 .wrap{{max-width:1000px;margin:0 auto;padding:56px 22px 90px}}
@@ -60,7 +94,9 @@ h1{{font-size:32px;margin:0;background:linear-gradient(90deg,#7cb3ff,#c084fc);-w
 .note{{background:#1a2233;border-radius:12px;padding:16px 20px;font-size:13px;color:#aeb9cc;margin-top:36px}}
 .note b{{color:#e6e9f0}}
 a{{color:#7cb3ff}}
-</style></head><body><div class="wrap">
+{a11y_css}</style></head><body>
+<a class="skip-link" href="#main">跳到主要内容</a>
+<main id="main" class="wrap">
 <h1>现代大语言模型发展史 · 知识库</h1>
 <p class="sub">{tagline_head} —— {tagline_tail}</p>
 <div class="badges">
@@ -76,7 +112,7 @@ a{{color:#7cb3ff}}
 <a class="card" href="{cta_href}"><div class="ic">📁</div><h2>论文库 README</h2><p>全量索引（{total} 篇论文表 + 五时代综述 + 技术线说明 + 信源口径）、命名规则、Git LFS 克隆与数据获取说明</p></a>
 </div>
 <div class="note"><b>克隆说明：</b>本仓库论文 PDF 使用 <b>Git LFS</b> 托管，克隆需先安装 <code>git-lfs</code> 并执行 <code>git lfs pull</code> 才能拉取 PDF。<b>在线下载：</b>在泳道图/列表图或任意深度解读页的「PDF下载」链接（media.githubusercontent.com 直链）可直接获取完整论文；纯解读与索引文件（HTML/MD）无需 LFS，可直接浏览本 Pages 站点。</div>
-</div></body></html>
+</main></body></html>
 """
 
 CTA = {"legacy": "../README.md", "report": "report.html"}
@@ -117,7 +153,8 @@ def generate(repo, cta="report"):
         raise GuardError("未知的 --cta 取值：%r（可选 %s）" % (cta, sorted(CTA)))
     f = home_facts(repo)
     return TEMPLATE.format(tagline_head=TAGLINE_HEAD, tagline_tail=TAGLINE_TAIL,
-                           cta_href=CTA[cta], **f), f
+                           cta_href=CTA[cta], desc=desc_of(f), abs_url=ABS_URL,
+                           a11y_css=A11Y_CSS, **f), f
 
 
 def deannotate(text):
@@ -168,6 +205,22 @@ def selftest():
          'href="../README.md"' in legacy)
     case("两版仅差 1 处（Q5 的那条 href）",
          legacy.replace('href="../README.md"', 'href="report.html"') == body)
+    # ★ 批 J：首页也是判据对象（发布根下每一个 .html）——下列四项防「生成器漏写/写坏」
+    case("批 J：head 8 行齐备（description ＋ og×5 ＋ canonical ＋ icon）",
+         all(h in body for h in ('<meta name="description"', 'property="og:type"',
+                                 'property="og:title"', 'property="og:description"',
+                                 'property="og:url"', 'property="og:image"',
+                                 'rel="canonical"', 'rel="icon"')))
+    case("批 J：skip link ＋ 恰 1 个 <main id=\"main\">（A2/A3）",
+         '<a class="skip-link" href="#main">跳到主要内容</a>' in body
+         and '<main id="main" class="wrap">' in body and body.count("<main") == 1)
+    case("批 J：:focus-visible 是**合法单花括号**规则（⛔ 双花括号会原样落盘成非法 CSS）",
+         ":focus-visible{outline:2px solid currentColor;outline-offset:2px}" in body
+         and "{{" not in body and "}}" not in body)
+    case("批 J：canonical 自指站点基址（根 index.html ⇒ 基址自身）",
+         '<link rel="canonical" href="%s">' % ABS_URL in body)
+    case("批 J：favicon 用发布根相对路径（LK2 可达）",
+         '<link rel="icon" type="image/svg+xml" href="favicon.svg">' in body)
     # 负例：未知 cta 必须护栏拒跑，⛔ 不静默回落
     try:
         generate(repo, "nope")

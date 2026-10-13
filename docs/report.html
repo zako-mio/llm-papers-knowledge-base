@@ -14,7 +14,27 @@ th,td{border:1px solid var(--lp-line-006);padding:6px 10px;text-align:left;verti
 th{background:var(--lp-bg-019);color:var(--lp-ink-011)}
 tr:nth-child(even){background:var(--lp-bg-155)}
 hr{border:none;border-top:1px solid var(--lp-line-006);margin:24px 0}
-</style></head><body><div class="wrap"><h2>0825 LLM 关键节点论文全集 + 全量深度解读 · 任务报告</h2>
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
+</style><!-- LP:HEAD:BEGIN -->
+<meta name="description" content="0825 LLM 关键节点论文全集 + 全量深度解读 · 任务报告——生成日期：2026-08-25 · 双版本留档（本 MD 为 AI 友好镜像，report.html 为人类可读入口，同目录唯一权威数据源为 data/papers_master.json）">
+<meta property="og:type" content="website">
+<meta property="og:title" content="LLM 关键节点论文全集 · 任务报告">
+<meta property="og:description" content="0825 LLM 关键节点论文全集 + 全量深度解读 · 任务报告——生成日期：2026-08-25 · 双版本留档（本 MD 为 AI 友好镜像，report.html 为人类可读入口，同目录唯一权威数据源为 data/papers_master.json）">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/report.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/report.html">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<!-- LP:HEAD:END -->
+</head><body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
+<main id="main" class="wrap"><h2>0825 LLM 关键节点论文全集 + 全量深度解读 · 任务报告</h2>
 <p>生成日期：2026-08-25 · 双版本留档（本 MD 为 AI 友好镜像，report.html 为人类可读入口，同目录唯一权威数据源为 data/papers_master.json）</p>
 <h2>一、当时情况</h2>
 <p>用户计划全面学习现代大语言模型发展知识体系，需要<strong>全量收集关键节点论文 PDF</strong>（2017-06《Attention Is All You Need》→ 最新 DeepSeek 视觉原语、GLM 系后训练、Kimi/Qwen/MiniMax 等 2026 前沿），并逐篇做<strong>参照级深度解读</strong>。任务经历三轮需求升级：</p>
@@ -171,4 +191,4 @@ hr{border:none;border-top:1px solid var(--lp-line-006);margin:24px 0}
 <li><strong>grid 转置 vs width 溢出</strong>：grid 列宽 minmax(150px) 但节点固定 150px+padding 会溢出列，改 <code>width:100%</code> 自适应后才不溢出。<strong>教训：grid/border-box 布局中，元素宽度应自适应容器而非写死，否则溢出</strong>。</li>
 <li><strong>f-string 嵌入 JS 花括号</strong>：Python f-string 中嵌入含单大括号的 JS（如注释 <code>{lane:true}</code>、对象字面量）会触发 ValueError，需全部转义为 <code>{{}}</code> 或拆分。<strong>教训：大段 JS 注入 f-string 时，所有非格式化花括号必须双写</strong>。</li>
 <li><strong>改进建议</strong>：①可加泳道悬浮时整行高亮、时间轴缩放聚焦近期；②关系线可加方向箭头/类型标签；③悬停概要可扩展显示四维背景档案（当时主流/痛点/为何胜出/后续影响）。</li>
-</ol></div></body></html>
+</ol></main></body></html>

@@ -57,6 +57,12 @@ td.down{color:var(--warn);font-weight:700}
 .mini h4{font-size:.95rem;color:var(--lp-mix-011);margin-bottom:8px}
 footer{max-width:860px;margin:0 auto 60px;text-align:center;font-size:.82rem;color:var(--sub)}
 .selfcheck{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 16px;font-family:Consolas,monospace;font-size:.78rem;text-align:left}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -71,13 +77,25 @@ footer{max-width:860px;margin:0 auto 60px;text-align:center;font-size:.82rem;col
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="GPT-1：生成式预训练如何改写 NLP 的迁移范式——GPT-1（2018-06）是首个完整验证“生成式预训练 + 判别式微调”范式的工作，也是 Transformer decoder 首次充当通用自然语言理解骨干。论文在 BooksCorpus（ 7000+ 本未出版书籍）上以标准语言建模目标训练 12 层 ma…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="GPT-1 深度解读 — Improving Language Understanding by Generative Pre-Training">
+<meta property="og:description" content="GPT-1：生成式预训练如何改写 NLP 的迁移范式——GPT-1（2018-06）是首个完整验证“生成式预训练 + 判别式微调”范式的工作，也是 Transformer decoder 首次充当通用自然语言理解骨干。论文在 BooksCorpus（ 7000+ 本未出版书籍）上以标准语言建模目标训练 12 层 ma…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/GPT-1/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/GPT-1/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>GPT-1</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
 <!-- LP:NAV:END -->
-
 <header class="hero">
   <div class="kicker">LLM 关键节点论文 · 深度解读 B2_P2</div>
   <h1>GPT-1：生成式预训练如何改写 NLP 的迁移范式</h1>
@@ -85,7 +103,7 @@ footer{max-width:860px;margin:0 auto 60px;text-align:center;font-size:.82rem;col
   <div class="meta"><span>Radford · Narasimhan · Salimans · Sutskever（OpenAI）</span><span>2018 年 6 月 · Preprint (Work in progress) · 12 页</span></div>
 </header>
 
-<div class="wrap">
+<main id="main" class="wrap">
 
 <div class="provenance">
   <strong>数据依据</strong>：本报告全部数字唯一取自同目录 <code>00-源数据提取.md</code>（OpenAI 官方 CDN 直链 PDF 全文提取，SHA256=eb81a65e0856bd38…d0），关键数字随文标注页码/表号。GLUE 总分按稿内注记处理双口径：表格直比 <span class="num">72.8 − 68.9 = +3.9</span>；摘要处 “+5.5%” 为相对 GenSen 口径的粗算。<strong><span class="tag ext">非本文出处</span></strong>参数量 <span class="num">117M</span> 为 OpenAI 后续资料/GPT-2 对比表通行口径，论文正文仅载架构规格。
@@ -286,7 +304,7 @@ L₃(C) = L₂(C) + λ·L₁(C)，λ = 0.5</pre>
   <p>GPT-1 的历史角色是“承前启后的第一块多米诺”：向前，它终结了“每任务一套架构”的手工时代；向后，它埋下了 zero-shot 与 scaling 两条主线。以今天的眼光看，它的绝对分数早已被超越，但它回答的那个问题——<strong>无标注文本中的语言知识能否被一个通用模型统一承载并廉价迁移</strong>——的答案至今仍是整个大语言模型产业的地基。困惑度 <span class="num">18.4</span>、GLUE <span class="num">72.8</span> 这些数字会被遗忘，而两阶段范式不会。</p>
 </section>
 
-</div><!-- /wrap -->
+</main><!-- /wrap -->
 
 <footer>
   本报告数字唯一依据同目录 <code>00-源数据提取.md</code>（提取于 2026-08-26，pdf-reader-core 3.1.1）；除显式标注“非本文出处/推断”外均可在论文对应页码复核。<br>解读报告生成日期：2026-08-26 · B2_P2 GPT-1

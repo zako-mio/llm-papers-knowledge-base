@@ -9,6 +9,9 @@ name: Deploy GitHub Pages
 #   本件因此把门控放在 `Rebuild` 之后、`upload-pages-artifact` 之前，并由
 #   `gate_ci_contract.py` 的 CI2 机械断言 `Rebuild < Gate < Publish`（该件同时**显式声明**
 #   「回写 master」在本站 N/A，⛔ 不新建回写步）。
+# ★ 批 J：Gate 步**就地追加**两条门控（a11y / metadata），落点仍在「重生成之后 / 发布步之前」。
+#   ★ 声明：本站**无**「回写 master」步 ⇒ §4.1 的「回写之前」等价物＝**发布步之前**，
+#     即 upload-pages-artifact / deploy-pages 之前 —— 本条 N/A 声明与批 I 一致，⛔ 未改 job 结构。
 on:
   push:
     branches: [main]
@@ -41,6 +44,8 @@ jobs:
           python3 gate_census.py --site-root .
           python3 gate_ci_contract.py --site-root .
           python3 vendor/pipeline/check_gate_manifest.py --manifest gate-manifest.json --profile build/profile.json
+          python3 gate_a11y.py --site-root . --profile build/profile.json
+          python3 gate_seo_meta.py --site-root . --profile build/profile.json
       - name: Upload docs as Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

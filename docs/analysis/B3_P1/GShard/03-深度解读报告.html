@@ -18,6 +18,12 @@ tr:nth-child(even){background:var(--lp-bg-004)}
 code{background:var(--lp-bg-002);padding:1px 5px;border-radius:4px;font-size:13px}
 hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 .selfcheck{font-size:11px;color:var(--lp-ink-007);margin-top:40px;border-top:1px solid var(--lp-line-003);padding-top:12px;font-family:ui-monospace,monospace}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -31,11 +37,25 @@ hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 .lp-back:hover{text-decoration:underline}
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
-</style></head><body>
+</style><!-- LP:HEAD:BEGIN -->
+<meta name="description" content="GShard 深度解读报告——深度学习的「缩放（scaling）」是一种被反复验证有效的提升模型质量的手段——加数据、加计算、加参数，通常就能得到更好的效果。但到了 2020 年，业界撞上了一堵硬墙： 把模型做大这件事，从「收益明确」变成了「成本爆炸且难以优雅实现」 。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="GShard 深度解读报告 · 深度解读">
+<meta property="og:description" content="GShard 深度解读报告——深度学习的「缩放（scaling）」是一种被反复验证有效的提升模型质量的手段——加数据、加计算、加参数，通常就能得到更好的效果。但到了 2020 年，业界撞上了一堵硬墙： 把模型做大这件事，从「收益明确」变成了「成本爆炸且难以优雅实现」 。">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B3_P1/GShard/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B3_P1/GShard/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
+</head><body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P1 · 基础补充</span><span class="lp-sep" aria-hidden="true">›</span><span>GShard</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
-<!-- LP:NAV:END --><div class="wrap">
+<!-- LP:NAV:END -->
+<main id="main" class="wrap">
 <h1>GShard 深度解读报告</h1>
 <h2>Scaling Giant Models with Conditional Computation and Automatic Sharding</h2>
 <blockquote> 论文：Dmitry Lepikhin, HyoukJoong Lee, Yuanzhong Xu, Dehao Chen, Orhan Firat, Yanping Huang, Maxim Krikun, Noam Shazeer, Zhifeng Chen（Google）</blockquote>
@@ -213,4 +233,4 @@ hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 <hr>
 <p>*（本文关键数字出处：arXiv:<span class="num">2006.16668</span>v1 摘要与正文；标注「<span class="infer">（推断）</span>」处为基于论文上下文与领域知识的合理补充，非原文直述。）*</p>
 <div class="selfcheck">数据依据：本页 00-源数据提取.md | 推断处已标注（推断）| 生成：批量转换脚本</div>
-</div></body></html>
+</main></body></html>

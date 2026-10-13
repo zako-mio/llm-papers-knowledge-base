@@ -38,6 +38,7 @@
 """
 import argparse
 import glob
+import html
 import json
 import os
 import re
@@ -55,16 +56,90 @@ import contrast as C  # noqa: E402  ★ 项目唯一对比度实现（HEX 正则
 TB, TE = "/* LP:TOKENS:BEGIN */", "/* LP:TOKENS:END */"
 NCB, NCE = "/* LP:NAVCSS:BEGIN */", "/* LP:NAVCSS:END */"
 NB, NE = "<!-- LP:NAV:BEGIN -->", "<!-- LP:NAV:END -->"
+# ★ 批 J（无障碍 / 元数据面）的三处新写入面，同样**成对标记 + 先剥后写** ⇒ 幂等：
+AB, AE = "/* LP:A11Y:BEGIN */", "/* LP:A11Y:END */"
+HB, HE = "<!-- LP:HEAD:BEGIN -->", "<!-- LP:HEAD:END -->"
+SB, SE = "<!-- LP:SKIP:BEGIN -->", "<!-- LP:SKIP:END -->"
 
 STYLE_RE = re.compile(r"(<style[^>]*>)(.*?)(</style>)", re.S | re.I)
 BODY_RE = re.compile(r"<body[^>]*>", re.I)
+END_HEAD_RE = re.compile(r"</head>", re.I)
+END_BODY_RE = re.compile(r"</body>", re.I)
 ROOT_RE = re.compile(r":root\s*\{([^{}]*)\}")
 TOKEN_DEF = re.compile(r"(--[A-Za-z0-9_-]+)\s*:\s*([^;{}]+)")
 VAR_USE_RE = re.compile(r"var\(\s*(--[A-Za-z0-9_-]+)")
 WHOLE_ROOT_TOKENS_RE = re.compile(r":root\s*\{\s*" + re.escape(TB) + r".*?" + re.escape(TE) + r"\s*\}", re.S)
 TOKENS_RE = re.compile(re.escape(TB) + r".*?" + re.escape(TE), re.S)
 NAVCSS_RE = re.compile(re.escape(NCB) + r".*?" + re.escape(NCE), re.S)
-NAV_RE = re.compile(re.escape(NB) + r".*?" + re.escape(NE), re.S)
+A11YCSS_RE = re.compile(re.escape(AB) + r".*?" + re.escape(AE), re.S)
+# ★ 尾部 `\n?` 是**幂等的关键**：写入时固定为「frag + "\n"」，剥离时连这个换行一起吃掉，
+#   否则每跑一次就地多出一行空行（第 N 次 ≠ 第 1 次）。
+NAV_RE = re.compile(r"\n*" + re.escape(NB) + r".*?" + re.escape(NE) + r"\n*", re.S)
+HEAD_RE = re.compile(re.escape(HB) + r".*?" + re.escape(HE) + r"\n?", re.S)
+SKIP_RE = re.compile(r"\n*" + re.escape(SB) + r".*?" + re.escape(SE) + r"\n*", re.S)
+
+# ---------------------------------------------------------------- 站点常量（批 J）
+# ★ 值来源：站点 brief §1「规范 URL 基址」/「站点名」；⛔ 不含墙钟时间、⛔ 不含作者机路径。
+REPO_NAME = "llm-papers-knowledge-base"
+SITE_NAME = "LLM 论文知识库"
+PUBLISH_DIR = "docs"          # ★ 与 build/profile.json#publish_dir 一致（canonical 拼接用）
+BASE_URL = "https://zako-mio.github.io/%s/" % REPO_NAME
+OG_IMAGE = BASE_URL + "og.png"
+
+
+def favicon_href(rel):
+    """发布根 `favicon.svg` 的**逐页相对路径**。
+
+    ★ 为什么⛔ 不用 `COMMON.md §2.1` 建议的根绝对形式 `/{REPO}/favicon.svg`：本站既有的
+      **hard 门控 `gate_links.py`（LK2）把 `<link href>` 也纳入「站内锚可达」判据**，而 LK2 的
+      解析口径是 `os.path.normpath(os.path.join(页目录, href))` —— 以 `/` 开头的 href 会被
+      `join` 当成**宿主文件系统绝对路径**，在任何仓内布局下都必然判「断链」（LK2/LK5 双红）。
+      该门控属本轮「⛔ 不要动」的四道既有门控之一 ⇒ 判据不改，改用**真的可达**的相对路径。
+      ★ `gate_seo_meta.py` 的 S7 只要求「页内有 `<link rel="icon">`」或「发布根有 favicon 文件」，
+      与 href 形式无关 ⇒ 两套判据同时成立，且部署后都指向同一个 `/REPO/favicon.svg`。
+    """
+    r = rel[len(PUBLISH_DIR) + 1:] if rel.startswith(PUBLISH_DIR + "/") else rel
+    return "../" * r.count("/") + "favicon.svg"
+
+
+FAVICON_HREF = "favicon.svg"          # 发布根页（docs/*.html）用的相对形式
+
+# ★ 生成器拥有面（`build/profile.json#generator_owned_products`）：这 4 页的**外壳**由各自的
+#   生成器产出（本轮同批改为自带 head/骨架/无障碍样式）⇒ 本件**只做** Q3 令牌注入，
+#   ⛔ 不重复写它们的 head / skip link / `<main>`（否则两套写法会漂移）。
+GENERATOR_OWNED = ("docs/index.html", "docs/timeline.html", "docs/list.html",
+                   "docs/analysis/index.html")
+
+# ---------------------------------------------------------------- 批 J：无障碍/元数据
+# ★ 为什么这条 CSS **一个色值字面量都不写**（形态与 `COMMON.md §2.3` 的建议式不同）：
+#   本站门控 `gate_tokens.py` 的 G3（Q3=A 等值注入）**硬判**「页面 CSS 语料里不得出现
+#   改动前基线之外的新色值」⇒ 写入 `#4f8cff` / `#fff` 一类字面量会当场把 G3 判红。
+#   故改用 `currentColor` 与系统色 `Canvas` / `CanvasText`：既拿到「键盘焦点可见」与
+#   「skip link 与底色成对可读」，又**不引入任何新色值**（G3 与 G7 同时保持 0 FAIL）。
+A11YCSS_TMPL = (AB + """
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+""" + AE)
+
+EMPTY_TAG_RE = re.compile(r"<[^>]+>")
+HTML_COMMENT_RE = re.compile(r"<!--.*?-->", re.S)
+SCRIPT_RE = re.compile(r"<script\b.*?</script>", re.S | re.I)
+TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.S | re.I)
+H1_RE = re.compile(r"<h1[^>]*>(.*?)</h1>", re.S | re.I)
+H2_RE = re.compile(r"<h2[^>]*>(.*?)</h2>", re.S | re.I)
+P_RE = re.compile(r"<p\b[^>]*>(.*?)</p>", re.S | re.I)
+SUB_RE = re.compile(r'<div[^>]*\bclass\s*=\s*"[^"]*(?:\bsub\b|\ben\b)[^"]*"[^>]*>(.*?)</div>',
+                    re.S | re.I)
+MAIN_RE = re.compile(r"<main\b[^>]*>", re.I)
+ID_ATTR_RE = re.compile(r"\bid\s*=", re.I)
+DIV_TOKEN_RE = re.compile(r"<!--.*?-->|<script\b.*?</script>|<style\b.*?</style>|</?div\b[^>]*>",
+                          re.S | re.I)
+DIV_OPEN_RE = re.compile(r'<div\b[^>]*\bclass\s*=\s*"([^"]*)"[^>]*>', re.I)
+# ★ `<main>` 的落点候选**按类名逐 token 精确匹配**（⛔ 不用 `\bpage\b` 这类子串口径：
+#   那会把 `class="page-head"` 也当成命中）。优先序：内容容器 → 兜底 hero。
+CONTAINER_CLASSES = (("wrap", "page", "container"), ("hero",))
 
 
 class GuardError(Exception):
@@ -238,11 +313,25 @@ NAVCSS_TMPL = (NCB + """
 """ + NCE)
 
 
-def add_navcss(raw):
+def add_css_regions(raw, with_a11y, with_nav):
+    """把**本件管理的两个 CSS 区**（A11Y ＋ NAVCSS）规范化写入首个 `<style>` 块。
+
+    ★ 为什么两者必须由**同一个函数**一次写完（而不是各写各的）：两个区都追加在块尾，
+      各自「先剥自己、再追加」时，被剥掉的位置会留下空行，而另一个区又在其后 ⇒ 空行
+      逐次累积（实测：第 2 次就多出 2 行空行）。统一「先把两个区都剥掉、`rstrip()` 归一化
+      块尾、再按固定序追加」之后，第 N 次与第 1 次逐字节相同。
+    """
+    if not (with_a11y or with_nav):
+        return raw
     m = STYLE_RE.search(raw)
     if not m:
-        raise GuardError("加导航样式失败：无 <style> 块")
-    txt = NAVCSS_RE.sub("", m.group(2)).rstrip() + "\n" + NAVCSS_TMPL + "\n"
+        raise GuardError("加无障碍/导航样式失败：无 <style> 块")
+    txt = NAVCSS_RE.sub("", A11YCSS_RE.sub("", m.group(2)))
+    txt = txt.rstrip() + "\n"
+    if with_a11y:
+        txt += A11YCSS_TMPL + "\n"
+    if with_nav:
+        txt += NAVCSS_TMPL + "\n"
     return raw[:m.start(2)] + txt + raw[m.end(2):]
 
 
@@ -260,14 +349,201 @@ def nav_markup(rel, labels):
             % (label, slug) + NE)
 
 
-def apply_nav(raw, rel, labels):
-    frag = nav_markup(rel, labels)
-    if NAV_RE.search(raw):
-        return NAV_RE.sub(lambda _m: frag, raw, count=1)
+def skip_markup():
+    """skip link（`gate_a11y.py` A3 三条同时满足）：
+
+    ① `href="#main"` 命中前缀口径；② 目标 `#id` **在同一页里真的存在**（由 `ensure_main`
+    保证每页恰有 1 个 `<main id="main">`）；③ 锚文本含 skip 信号 ＋ class 含 `skip`。
+    """
+    return SB + '\n<a class="skip-link" href="#main">跳到主要内容</a>\n' + SE
+
+
+def apply_landing(raw, rel, labels, is_deep):
+    """着陆结构统一落位：**先剥两区、再按固定序写入**（SKIP 恒在 NAV 之前）。
+
+    ★ 为什么必须「先剥后写、顺序写死」：`apply_nav` 旧实现是「有标记就就地替换、没有就插在
+      `<body>` 后」，一旦插入面从一个变两个（SKIP ＋ NAV），就地替换会让两者的相对次序随
+      历史状态漂移 ⇒ 第 N 次 ≠ 第 1 次。这里改成幂等的不动点写法。
+    ★ 归一化（`\\n*` 剥离 ＋ 插入侧 `lstrip("\\n")`）是幂等性的第二个必要条件：`<body>` 之后
+      原本可能已有换行/缩进，若只「追加」不归一，第一次写入会把原有换行挤到区之后，
+      第二次剥离时又多吃掉一个 ⇒ 每跑一次漂一格（实测踩到过）。⛔ 这里只归并**换行**，
+      不吞缩进空格（那属于页面自有排版）。
+    """
+    raw = SKIP_RE.sub("", raw)
+    raw = NAV_RE.sub("", raw)
+    frag = skip_markup()
+    if is_deep:
+        frag = frag + "\n" + nav_markup(rel, labels)
     m = BODY_RE.search(raw)
     if not m:
         raise GuardError("%s：无 <body> ⇒ 无法插着陆结构" % rel)
-    return raw[:m.end()] + "\n" + frag + raw[m.end():]
+    return raw[:m.end()] + "\n" + frag + "\n" + raw[m.end():].lstrip("\n")
+
+
+# --------------------------------------------------------------------------- 批 J · A2
+def _div_close(raw, start):
+    """返回与 `start` 处 `<div …>` 配对的 `</div>` 的 (start, end)；解析不到返回 (None, None)。
+
+    ★ 口径：整段扫描里 `<script…>…</script>` / `<style…>…</style>` / `<!-- … -->` 先被当成
+      **单个不可分记号**吃掉（否则脚本字符串里的 `</div>` 会把深度数带偏 ⇒ 配错闭合位）。
+    """
+    depth = 0
+    for m in DIV_TOKEN_RE.finditer(raw, start):
+        tok = m.group(0)
+        low = tok[:8].lower()
+        if tok.startswith("<!--") or low.startswith("<script") or low.startswith("<style"):
+            continue
+        if tok.startswith("</"):
+            depth -= 1
+            if depth == 0:
+                return m.start(), m.end()
+        else:
+            depth += 1
+    return None, None
+
+
+def _find_container(raw):
+    """主内容容器：`<div>` 且 class 词表命中 `CONTAINER_CLASSES`（逐 token 精确匹配）。"""
+    for tokens in CONTAINER_CLASSES:
+        for m in DIV_OPEN_RE.finditer(raw):
+            words = set((m.group(1) or "").split())
+            if words & set(tokens):
+                return m
+    return None
+
+
+def ensure_main(raw, rel):
+    """每页**恰 1 个** `<main id="main">`（`gate_a11y.py` A2 ＋ A3 的目标存在性）。
+
+    三条互斥路径（②③ 都只改**一处**容器，⛔ 不新增包裹层 ⇒ 不引入额外布局影响）：
+      ① 已有 `<main>`：只补 `id="main"`（⛔ 不再套一层 —— COMMON.md §2.2 明令）；
+      ② 无 `<main>` 但有内容容器（139 页里 128 页是这种形态，容器类名逐页实测）：
+         把那**一个** `<div class="…">` 就地改名为 `<main id="main" class="…">`，
+         并把与它配对的 `</div>` 改为 `</main>`（`_div_close` 逐层配平）；
+      ③ 既无 `<main>` 又无容器（护栏兜底，例如自检夹具里的最小页）：把 `<body>` 内容整段
+         包进 `<main id="main">…</main>`。
+    """
+    m = MAIN_RE.search(raw)
+    if m:
+        tag = m.group(0)
+        if not ID_ATTR_RE.search(tag):
+            tag = tag[:-1].rstrip() + ' id="main">'
+            raw = raw[:m.start()] + tag + raw[m.end():]
+        return raw, "existing"
+    cm = _find_container(raw)
+    if cm:
+        attrs = cm.group(0)[len("<div"):-1]
+        new_open = "<main id=\"main\"" + attrs + ">"
+        cs, ce = _div_close(raw, cm.start())
+        if cs is None:
+            raise GuardError("%s：容器 <div> 闭合位解析失败 ⇒ 拒写（⛔ 不猜）" % rel)
+        return raw[:cm.start()] + new_open + raw[cm.end():cs] + "</main>" + raw[ce:], "converted"
+    bm = BODY_RE.search(raw)
+    em = END_BODY_RE.search(raw)
+    if not (bm and em and bm.end() <= em.start()):
+        raise GuardError("%s：无 <body>…</body> ⇒ 无法建主地标" % rel)
+    return (raw[:bm.end()] + '\n<main id="main">' + raw[bm.end():em.start()]
+            + "</main>\n" + raw[em.start():]), "wrapped"
+
+
+# --------------------------------------------------------------------------- 批 J · S2–S7
+def _plain(s):
+    s = EMPTY_TAG_RE.sub(" ", s)
+    s = html.unescape(s)
+    return re.sub(r"\s+", " ", s).strip()
+
+
+def page_texts(raw):
+    """取该页**已有**的标题与首段（★ 逐页不同，⛔ 不用全站同一句模板文案）。"""
+    work = HTML_COMMENT_RE.sub("", raw)
+    work = SCRIPT_RE.sub("", work)
+    work = STYLE_RE.sub("", work)
+    tm = TITLE_RE.search(work)
+    title = _plain(tm.group(1)) if tm else ""
+    hm = H1_RE.search(work) or H2_RE.search(work)
+    head = _plain(hm.group(1)) if hm else ""
+    tail = work[hm.end():] if hm else work
+    paras = [p for p in (_plain(x) for x in P_RE.findall(tail)) if p][:6]
+    body = ""
+    for p in paras:
+        if len(p) >= 40:
+            body = p
+            break
+    if not body and paras:
+        body = max(paras, key=len)
+    if not body:
+        sm = SUB_RE.search(tail)
+        if sm:
+            body = _plain(sm.group(1))
+    return title, head, body
+
+
+def _clip_desc(s, limit=160):
+    """把 description 截到 `limit` 以内（★ 按**转义后**的长度算）。
+
+    ★ 为什么按转义后算：`content="…"` 里的 `&`/`"`/`<` 会膨胀成 `&amp;`/`&quot;`/`&lt;`
+      （1 字变 4–6 字）⇒ 只按原文截会在盘上留下 >160 的 content 值（实测 20 页到 180）。
+      判据（S10）虽只报告长度，但 `COMMON.md §2.1` 的「截 60–160 字」应按**落盘形态**成立。
+    """
+    if len(html.escape(s, quote=True)) <= limit:
+        return s
+    out = s
+    while out and len(html.escape(out + "…", quote=True)) > limit:
+        out = out[:-1]
+    return out.rstrip() + "…"
+
+
+def compose_desc(title, head, body):
+    """description = 该页 h1/h2 ＋ 首个实质段落（截 160 字以内，非空）。"""
+    parts = [x for x in (head, body) if x]
+    s = "——".join(parts) if parts else (title or SITE_NAME)
+    if len(s) < 60 and title and title not in s:
+        s = (s + "——" + title) if s else title
+    s = re.sub(r"\s+", " ", s).strip()
+    return _clip_desc(s) or SITE_NAME
+
+
+def page_url(rel):
+    """产物相对路径 → 该页**自身**的规范 URL。
+
+    ★ 口径必须与 `gate_seo_meta.py#page_url` 逐字一致，而两者的**入参基准不同**：
+      门控的 `rel` 相对**发布根**（`docs/`），本件的 `rel` 相对**仓根**（`scan_products`
+      产出 `docs/…`）⇒ 这里先剥掉发布根前缀再套同一条规则，否则 S6「canonical 自指」必红。
+    """
+    prefix = PUBLISH_DIR + "/"
+    r = rel[len(prefix):] if rel.startswith(prefix) else rel
+    if r == "index.html":
+        return BASE_URL
+    if r.endswith("/index.html"):
+        return BASE_URL + r[:-len("index.html")]
+    return BASE_URL + r
+
+
+def head_block(rel, raw):
+    title, head, body = page_texts(raw)
+    desc = html.escape(compose_desc(title, head, body), quote=True)
+    ogt = html.escape(title or head or SITE_NAME, quote=True)
+    url = html.escape(page_url(rel), quote=True)
+    icon = html.escape(favicon_href(rel), quote=True)
+    return (HB + "\n"
+            '<meta name="description" content="%s">\n'
+            '<meta property="og:type" content="website">\n'
+            '<meta property="og:title" content="%s">\n'
+            '<meta property="og:description" content="%s">\n'
+            '<meta property="og:url" content="%s">\n'
+            '<meta property="og:image" content="%s">\n'
+            '<link rel="canonical" href="%s">\n'
+            '<link rel="icon" type="image/svg+xml" href="%s">\n'
+            % (desc, ogt, desc, url, OG_IMAGE, url, icon) + HE)
+
+
+def add_head(raw, rel):
+    frag = head_block(rel, raw)
+    raw = HEAD_RE.sub("", raw)
+    m = END_HEAD_RE.search(raw)
+    if not m:
+        raise GuardError("%s：无 </head> ⇒ 无法注入元数据" % rel)
+    return raw[:m.start()] + frag + "\n" + raw[m.start():]
 
 
 # --------------------------------------------------------------------------- 主流程
@@ -301,21 +577,65 @@ def load_site_tokens(repo, value_file):
 
 def transform(raw, rel, palette, labels, deep_globs, site_tokens=None):
     is_deep = any(glob.fnmatch.fnmatch(rel, g) for g in deep_globs)
+    is_owned = rel in GENERATOR_OWNED
     # ★ 顺序是幂等性的一部分：导航样式必须在**字面值扫描之前**落进首个 <style> 块，
     #   否则第一次跑时导航的 var() 引用还不存在，第二次跑才被算作「在用」⇒ 令牌块漂移。
-    if is_deep:
-        raw = add_navcss(raw)
+    #   批 J 的 A11YCSS 同理（它不含任何色值字面量，但顺序仍固定，便于逐次比对）。
+    if not is_owned:
+        raw = add_css_regions(raw, True, is_deep)
+    elif is_deep:
+        raw = add_css_regions(raw, False, True)
     out, stats = apply_tokens(raw, palette, rel, site_tokens if is_deep else None)
     stats["nav"] = False
-    if is_deep:
-        out = apply_nav(out, rel, labels)
-        stats["nav"] = True
+    stats["main"] = ""
+    if not is_owned:
+        out, main_mode = ensure_main(out, rel)
+        out = apply_landing(out, rel, labels, is_deep)
+        out = add_head(out, rel)
+        stats["nav"] = is_deep
+        stats["main"] = main_mode
     return out, stats
 
 
 def scan_products(repo):
     return sorted(os.path.relpath(p, repo).replace(os.sep, "/")
                   for p in glob.glob(os.path.join(repo, "docs", "**", "*.html"), recursive=True))
+
+
+# ---------------------------------------------------------------- 批 J · S8（站点级两件）
+SITEMAP_HEAD = ('<?xml version="1.0" encoding="UTF-8"?>\n'
+                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n')
+ROBOTS = "User-agent: *\nAllow: /\nSitemap: %ssitemap.xml\n" % BASE_URL
+
+
+def sitemap_xml(pages):
+    """发布根下**全部**产物页（本件扫描面 == 139 页）逐页 `<loc>`。
+
+    ★ `COMMON.md §1.6` 确定性要求：⛔ 不写 `<lastmod>`（墙钟时间戳会破坏「重跑逐字节相同」）。
+    ★ 顺序 = `scan_products()` 的 sorted 顺序（与文件系统枚举顺序无关）。
+    """
+    out = [SITEMAP_HEAD]
+    for rel in pages:
+        out.append(" <url><loc>%s</loc></url>\n" % html.escape(page_url(rel), quote=True))
+    out.append("</urlset>\n")
+    return "".join(out)
+
+
+def write_site_files(repo, pages):
+    """在**发布根**（`profile.publish_dir = docs`）写 `sitemap.xml` 与 `robots.txt`。
+
+    ★ 为什么放在本件收尾（而不是 build_all）：本件是唯一一个**已经遍历过全部 139 个产物页**
+      的步骤（`scan_products`），产物清单天然与站点面一致；`build_all.PIPELINE` 与
+      `profile.build.pipeline` 的表则被 `gate_ci_contract.py` 的 CI5 逐项双向断言，
+      ⛔ 不宜为两件静态文件去动那张表。
+    """
+    docs = os.path.join(repo, "docs")
+    if not os.path.isdir(docs):
+        raise GuardError("发布根不存在：%s" % docs)
+    with open(os.path.join(docs, "sitemap.xml"), "w", encoding="utf-8") as fh:
+        fh.write(sitemap_xml(pages))
+    with open(os.path.join(docs, "robots.txt"), "w", encoding="utf-8") as fh:
+        fh.write(ROBOTS)
 
 
 def run(repo, mode, deep_globs, labels, value_file=VALUE_FILE_DEFAULT):
@@ -343,7 +663,19 @@ def run(repo, mode, deep_globs, labels, value_file=VALUE_FILE_DEFAULT):
             if mode == "apply":
                 with open(p, "w", encoding="utf-8") as fh:
                     fh.write(new)
-    return {"pages": len(pages), "changed": changed, "rows": rows, "errors": errs}
+    site_changed = []
+    if mode == "apply" and not errs:
+        before = {}
+        for fn in ("sitemap.xml", "robots.txt"):
+            fp = os.path.join(repo, "docs", fn)
+            before[fn] = open(fp, encoding="utf-8").read() if os.path.isfile(fp) else None
+        write_site_files(repo, pages)
+        for fn in ("sitemap.xml", "robots.txt"):
+            fp = os.path.join(repo, "docs", fn)
+            if open(fp, encoding="utf-8").read() != before[fn]:
+                site_changed.append("docs/" + fn)
+    return {"pages": len(pages), "changed": changed, "rows": rows, "errors": errs,
+            "site_changed": site_changed}
 
 
 def main():
@@ -368,9 +700,12 @@ def main():
 
     inj = sum(s["injected"] for _r, s in r["rows"])
     nav = sum(1 for _r, s in r["rows"] if s["nav"])
+    n_main = sum(1 for _r, s in r["rows"] if s.get("main"))
     und = sorted({u for _r, s in r["rows"] for u in s["undeclared"]})
-    print("扫描 %d 页 · 本次变更 %d 页 · 注入令牌 %d 枚 · 加着陆结构 %d 页 · 未声明值 %d 个"
-          % (r["pages"], len(r["changed"]), inj, nav, len(und)))
+    print("扫描 %d 页 · 本次变更 %d 页 · 注入令牌 %d 枚 · 加着陆结构 %d 页 · 主地标 %d 页 · 未声明值 %d 个"
+          % (r["pages"], len(r["changed"]), inj, nav, n_main, len(und)))
+    if r.get("site_changed"):
+        print("  站点级两件已更新：%s" % r["site_changed"])
     if und:
         print("  未声明值（不在改动前 palette 内，保持字面值不改）：%s%s"
               % (und[:10], " …" if len(und) > 10 else ""))
@@ -378,8 +713,8 @@ def main():
         print("  [FAIL] %s" % e)
     if a.report or a.json:
         for rel, s in r["rows"]:
-            print("  %-58s inj=%-3d reuse=%-3d nav=%s" %
-                  (rel, s["injected"], s.get("reused_existing", 0), s["nav"]))
+            print("  %-58s inj=%-3d reuse=%-3d nav=%-5s main=%s" %
+                  (rel, s["injected"], s.get("reused_existing", 0), s["nav"], s.get("main") or "-"))
     if r["errors"]:
         print("\n=== annotate_products：%d 页有护栏 FAIL ===" % len(r["errors"]))
         return 1
@@ -403,6 +738,21 @@ FIX = {
                  'body{background:#111111}</style></head>'
                  '<body><a href="#0f1420">#0f1420 不是颜色用法</a></body></html>',
     "nostyle.html": '<!DOCTYPE html><html><head></head><body><p>x</p></body></html>',
+    # ★ 批 J 新增夹具：A2（主地标）与 S2–S7（元数据）的**正/负向**样本
+    "mainid.html": '<!DOCTYPE html><html lang="zh-CN"><head><title>已有地标页</title>'
+                   '<style>:root{--bg:#0f1420}body{background:#0f1420}</style></head><body>'
+                   '<header class="hero">题</header>'
+                   '<main class="content"><p>该页已经自带一个 main 元素，本轮只应补 id="main"，'
+                   '绝不能在其外再套一层（否则 A2 的地标计数会变成 2）。</p></main>'
+                   '</body></html>',
+    "nest.html": '<!DOCTYPE html><html lang="zh-CN"><head><title>嵌套配平页</title>'
+                 '<style>:root{--bg:#0f1420}body{background:#0f1420}</style></head><body>'
+                 '<header class="hero">页眉</header>'
+                 '<div class="wrap"><div class="inner">内层</div>'
+                 '<script>var t="</div>";</script>'
+                 '<p>外层容器里的实质段落，用来验证配对闭合位不会被脚本字符串里的假标签带偏，'
+                 '同时给出足够长度的 description 取材。</p>'
+                 '</div></body></html>',
     "deep/B1_P3/Slug_X/03-深度解读报告.html":
         '<!DOCTYPE html><html lang="zh-CN"><head><style>'
         'body{background:#eef3fa;color:#1f2430}</style></head><body><div class="wrap">t</div></body></html>',
@@ -500,6 +850,93 @@ def selftest():
              all(k not in palette.values() for k in site_tokens))
         case("命名空间：palette 名一律 --lp-{bg|ink|line|mix}-NNN",
              all(re.fullmatch(r"--lp-(bg|ink|line|mix)-\d{3}", v) for v in palette.values()))
+
+        # ---------------------------------------------------------------- 批 J 新增判据
+        def meta_of(out):
+            m = re.search(r'<meta name="description" content="([^"]*)">', out)
+            return m.group(1) if m else ""
+
+        # 10) A2：已有 <main> 只补 id，⛔ 不叠第二层
+        o10, s10 = tf("mainid.html")
+        case("A2：已有 <main> 只补 id=\"main\"（⛔ 不再套一层）",
+             s10["main"] == "existing" and o10.count("<main") == 1
+             and '<main class="content" id="main">' in o10)
+
+        # 11) A2：无 <main> ⇒ 把那**一个**容器就地改名（嵌套/脚本内假标签不误配）
+        o11, s11 = tf("nest.html")
+        case("A2：容器 <div class=\"wrap\"> 就地改名为 <main id=\"main\" class=\"wrap\">",
+             s11["main"] == "converted" and '<main id="main" class="wrap">' in o11)
+        case("A2：嵌套 + 脚本内 </div> 不误配（闭合位正确、div 计数恰减 1）",
+             o11.count("<main") == 1 and o11.count("</main>") == 1
+             and o11.count("</div>") == FIX["nest.html"].count("</div>") - 1
+             and 'var t="</div>";' in o11)
+        case("A2：⛔ 不为不同页新增包裹层（hero 页眉仍留在 main 之外）",
+             '<header class="hero">页眉</header>' in o11
+             and o11.index('<header class="hero">') < o11.index('<main id="main"'))
+
+        # 12) A3：skip link 三条（href 前缀 / 目标 #id 同页存在 / skip 信号）
+        case("A3：skip link 三条同时成立（href=#main ＋ id=main ＋ 信号文本）",
+             'class="skip-link" href="#main"' in o11 and "跳到主要内容" in o11
+             and '<main id="main"' in o11)
+
+        # 13) A4：:focus-visible 落在**内联** CSS 语料里且不在注释/@media 内
+        case("A4：:focus-visible 作为真规则写进首个 <style>",
+             ":focus-visible{outline:2px solid currentColor" in o11)
+        case("A4：条文不在 @media 里（键盘可见性不接受条件生效）",
+             not re.search(r"@media[^{]*\{[^}]*:focus-visible", o11))
+        blk11 = o11[o11.index(AB):o11.index(AE) + len(AE)]
+        case("G3 前置：A11YCSS 不含任何色值字面量（否则 gate_tokens G3 必红）",
+             not re.search(r"#[0-9a-fA-F]{3,8}\b", A11YCSS_TMPL)
+             and not re.search(r"#[0-9a-fA-F]{3,8}\b", blk11))
+
+        # 14) S2–S7：head 8 行齐备 ＋ canonical 绝对且**自指**
+        for prop in ("og:title", "og:description", "og:type", "og:url", "og:image"):
+            case("S5：%s 已注入" % prop, ('property="%s"' % prop) in o11)
+        case("S6：canonical 等于该页自身 URL（绝对且自指）",
+             ('<link rel="canonical" href="%s">' % page_url("docs/nest.html")) in o11)
+        case("S7：link rel=icon 指向发布根 favicon.svg（type=image/svg+xml，相对路径可达）",
+             '<link rel="icon" type="image/svg+xml" href="favicon.svg">' in o11
+             and '<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">'
+             in tf("deep/B1_P3/Slug_X/03-深度解读报告.html")[0])
+        case("S7/LK2 口径：favicon 相对路径逐页深度正确（⛔ 不用根绝对形式）",
+             favicon_href("docs/index.html") == "favicon.svg"
+             and favicon_href("docs/analysis/index.html") == "../favicon.svg"
+             and favicon_href("docs/analysis/B1_P3/S/03-深度解读报告.html")
+             == "../../../favicon.svg")
+        case("S4：description 非空且**逐页不同**（⛔ 不是全站同一句）",
+             bool(meta_of(o11)) and bool(meta_of(o10)) and meta_of(o11) != meta_of(o10))
+        case("S4：description 非空且 ≤160 字（长文截断为单行、按**转义后**长度算）",
+             0 < len(meta_of(o11)) <= 160 and "\n" not in meta_of(o11))
+        case("S4：含 & / \" 的段落截断后仍 ≤160（⛔ 不因转义膨胀越界）",
+             len(html.escape(_clip_desc("A&B" * 60), quote=True)) <= 160
+             and _clip_desc("A&B" * 60).endswith("…"))
+
+        # 15) 幂等：新增写入面（head / skip / main / a11ycss）二次转换逐字节相同
+        case("幂等：新增面二次转换逐字节相同（nest）",
+             transform(o11, "docs/nest.html", palette, labels, deep, site_tokens)[0] == o11)
+        case("幂等：新增面二次转换逐字节相同（已有地标页）",
+             transform(o10, "docs/mainid.html", palette, labels, deep, site_tokens)[0] == o10)
+        case("幂等：解读页（SKIP＋NAV 同页）二次转换逐字节相同",
+             transform(o7, "docs/analysis/B1_P3/Slug_X/03-深度解读报告.html", palette, labels,
+                       deep, site_tokens)[0] == o7)
+
+        # 16) S8：sitemap 逐页 loc 覆盖且**无 lastmod**（确定性）
+        sm = sitemap_xml(["docs/index.html", "docs/analysis/index.html", "docs/a.html"])
+        case("S8：sitemap 覆盖传入的每一页且 X/index.html → X/",
+             sm.count("<loc>") == 3 and ("<loc>%s</loc>" % BASE_URL) in sm
+             and ("<loc>%sanalysis/</loc>" % BASE_URL) in sm
+             and ("<loc>%sa.html</loc>" % BASE_URL) in sm)
+        case("S8：sitemap ⛔ 不含 <lastmod>（墙钟时间戳会破坏幂等）", "lastmod" not in sm)
+        case("S8：robots.txt 声明 Sitemap 指向发布根 sitemap.xml",
+             ROBOTS.count("Sitemap: %ssitemap.xml" % BASE_URL) == 1)
+
+        # 17) 发布根相对路径口径：docs/X/index.html → …/X/（⛔ 不把 docs/ 拼进 URL）
+        case("S6 口径：仓根相对路径先剥发布根前缀再拼 URL",
+             page_url("docs/index.html") == BASE_URL
+             and page_url("docs/analysis/index.html") == BASE_URL + "analysis/"
+             and page_url("docs/analysis/B1_P3/S/03-深度解读报告.html")
+             == BASE_URL + "analysis/B1_P3/S/03-深度解读报告.html"
+             and "docs/" not in page_url("docs/x.html"))
 
         ok = all(v for _, v in cases)
         for n, v in cases:

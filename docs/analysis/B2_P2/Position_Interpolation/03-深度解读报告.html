@@ -85,6 +85,12 @@
   }
   footer.selfcheck b { color: var(--lp-ink-020); }
   footer.selfcheck .ok { color: var(--lp-ink-020); font-weight: 700; }
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -99,13 +105,26 @@
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="《Extending Context Window of Large Language Models via Positional Interpolation》深度解读报告——本文解读 Meta Platforms 团队于 2023 年 6 月 发布的《Extending Context Window of Larg…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="《Extending Context Window of Large Language Models via Positional Interpolation》深度解读报告">
+<meta property="og:description" content="《Extending Context Window of Large Language Models via Positional Interpolation》深度解读报告——本文解读 Meta Platforms 团队于 2023 年 6 月 发布的《Extending Context Window of Larg…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/Position_Interpolation/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/Position_Interpolation/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>Position_Interpolation</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
 <!-- LP:NAV:END -->
-<div class="wrap">
+<main id="main" class="wrap">
 
 <header class="hero">
   <div class="kicker">PAPER DEEP-DIVE · arXiv:2306.15595v2 · Meta Platforms (2023)</div>
@@ -289,6 +308,6 @@
   <div><span class="ok">[OK]</span> div 开闭平衡：1 wrap + hero/footer 内部无裸 div 错配，配平校验通过</div>
 </footer>
 
-</div>
+</main>
 </body>
 </html>

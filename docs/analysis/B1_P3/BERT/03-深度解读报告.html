@@ -54,6 +54,12 @@ blockquote{border-left:4px solid var(--line);padding:8px 18px;margin:14px 0;
 footer{ text-align:center;color:var(--lp-ink-227);font-size:13px;padding:18px 0 6px;}
 @media(max-width:720px){section{padding:22px 18px;}header.hero{padding:30px 22px;}
  table{display:block;overflow-x:auto;}}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -68,13 +74,26 @@ footer{ text-align:center;color:var(--lp-ink-227);font-size:13px;padding:18px 0 
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="《BERT》深度解读报告——本文解读 Jacob Devlin、Ming-Wei Chang、Kenton Lee、Kristina Toutanova 四人提出的《BERT》。论文的核心论断是：此前的语言预训练表示要么是单向的（left-to-right，如 OpenAI GPT），要么只是浅层双向拼接（如 ELM…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="BERT 深度解读报告">
+<meta property="og:description" content="《BERT》深度解读报告——本文解读 Jacob Devlin、Ming-Wei Chang、Kenton Lee、Kristina Toutanova 四人提出的《BERT》。论文的核心论断是：此前的语言预训练表示要么是单向的（left-to-right，如 OpenAI GPT），要么只是浅层双向拼接（如 ELM…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/BERT/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/BERT/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>BERT</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
 <!-- LP:NAV:END -->
-<div class="wrap">
+<main id="main" class="wrap">
 
 <header class="hero">
 <h1>《BERT》深度解读报告</h1>
@@ -319,7 +338,7 @@ footer{ text-align:center;color:var(--lp-ink-227);font-size:13px;padding:18px 0 
 
 <footer>《BERT》深度解读报告 · B1 批次 · 数字均出自源数据提取稿，「（推断）」处为分析者补充</footer>
 
-</div>
+</main>
 <!-- 
 ==================== 自检报告 ====================
 1. UTF-8 编码：通过，无 U+FFFD 替换字符；

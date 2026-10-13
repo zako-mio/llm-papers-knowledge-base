@@ -76,6 +76,12 @@
   footer{
     text-align:center; color:var(--sub); font-size:12.5px; padding:6px 0 20px;
   }
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -90,13 +96,26 @@
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="《Switch Transformers》深度解读报告——本文解读 Google 的 William Fedus、Barret Zoph 与 Noam Shazeer（三者 equal contribution）发表于 JMLR 23(2022) 的《Switch Transformers: Scaling to T…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="《Switch Transformers》深度解读报告">
+<meta property="og:description" content="《Switch Transformers》深度解读报告——本文解读 Google 的 William Fedus、Barret Zoph 与 Noam Shazeer（三者 equal contribution）发表于 JMLR 23(2022) 的《Switch Transformers: Scaling to T…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/Switch_Transformers/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/Switch_Transformers/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>Switch_Transformers</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
 <!-- LP:NAV:END -->
-<div class="page">
+<main id="main" class="page">
 
 <header class="hero">
   <h1>《Switch Transformers》深度解读报告</h1>
@@ -300,6 +319,6 @@
 
 <footer>B1 批次 · P3 · Switch Transformers 深度解读 · 数字唯一依据：00-源数据提取.md · 生成于 2026-08-26</footer>
 
-</div>
+</main>
 </body>
 </html>

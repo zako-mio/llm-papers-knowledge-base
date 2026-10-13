@@ -16,6 +16,18 @@ DATA_DIR = Path(__file__).resolve().parent
 BASE_DIR = DATA_DIR.parent
 OUT_PATH = BASE_DIR / 'docs' / 'list.html'
 
+# ★ 批 J：站点级常量 ＋ 无障碍样式。⛔ 下列 CSS 一个色值字面量都没有——本站
+#   gate_tokens.py 的 G3（Q3=A 等值注入）硬判「不得出现改动前基线之外的新色值」，
+#   故用 currentColor ＋ 系统色 Canvas/CanvasText（可见焦点环 ＋ 可读 skip link）。
+REPO_NAME = 'llm-papers-knowledge-base'
+BASE_URL = 'https://zako-mio.github.io/%s/' % REPO_NAME
+A11Y_CSS = '''
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+'''
+
 master = json.loads((DATA_DIR / 'papers_master.json').read_text(encoding='utf-8'))
 narratives = json.loads((DATA_DIR / 'era_narratives.json').read_text(encoding='utf-8'))
 papers = master['papers']
@@ -228,13 +240,28 @@ table.archive tr:last-child td{border-bottom:none}
 .page-foot{margin-top:46px;padding:26px 16px 42px;text-align:center;color:var(--mut);font-size:12px;
 border-top:1px solid var(--bd);background:#0d1219}
 .page-foot p{margin:3px 0}
-'''
+''' + A11Y_CSS
+
+DESC = ('现代大语言模型发展史 · 关键节点论文列表视图：{total} 个关键节点按五个时代分组、'
+        '逐篇卡片呈现标题/机构/贡献/背景档案，可按时代与优先级筛选，与泳道图一键互切。'
+        .format(total=total))
 
 html_out = (
     f'<!DOCTYPE html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n'
     f'<meta name="viewport" content="width=device-width, initial-scale=1">\n'
-    f'<title>现代大语言模型发展史 · 关键节点论文列表</title>\n<style>{CSS}</style>\n</head>\n<body>\n'
-    f'{header_html}\n{view_switch}\n{nav_html}\n{route_html}\n{main_html}\n{footer_html}\n'
+    f'<title>现代大语言模型发展史 · 关键节点论文列表</title>\n'
+    f'<meta name="description" content="{DESC}">\n'
+    f'<meta property="og:type" content="website">\n'
+    f'<meta property="og:title" content="现代大语言模型发展史 · 关键节点论文列表">\n'
+    f'<meta property="og:description" content="{DESC}">\n'
+    f'<meta property="og:url" content="{BASE_URL}list.html">\n'
+    f'<meta property="og:image" content="{BASE_URL}og.png">\n'
+    f'<link rel="canonical" href="{BASE_URL}list.html">\n'
+    f'<link rel="icon" type="image/svg+xml" href="favicon.svg">\n'
+    f'<style>{CSS}</style>\n</head>\n<body>\n'
+    f'<a class="skip-link" href="#main">跳到主要内容</a>\n'
+    f'{header_html}\n{view_switch}\n{nav_html}\n'
+    f'<main id="main">\n{route_html}\n{main_html}\n</main>\n{footer_html}\n'
     '<script>\n'
     'function $$(s,c){return Array.prototype.slice.call((c||document).querySelectorAll(s));}\n'
     'var curEra="all",curPri="all";\n'

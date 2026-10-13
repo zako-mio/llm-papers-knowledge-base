@@ -55,6 +55,12 @@ li{margin:7px 0;text-align:justify;}
 .vs li{margin:4px 0;}
 .footer{color:var(--sub);font-size:13px;text-align:center;margin-top:34px;}
 @media (max-width:720px){.grid2,.toc ol{grid-template-columns:1fr;columns:1;}section.card{padding:24px 20px;}}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -69,13 +75,26 @@ li{margin:7px 0;text-align:justify;}
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="《DeepSeekMath》深度解读报告 Pushing the Limits of Mathematical Reasoning in Open Language Models——本文解读 DeepSeek-AI 联合清华大学、北京大学提出的《DeepSeekMath》。论文的核心论断是：开源小模型在数学推理上的落…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="《DeepSeekMath》深度解读报告">
+<meta property="og:description" content="《DeepSeekMath》深度解读报告 Pushing the Limits of Mathematical Reasoning in Open Language Models——本文解读 DeepSeek-AI 联合清华大学、北京大学提出的《DeepSeekMath》。论文的核心论断是：开源小模型在数学推理上的落…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/GRPO_DeepSeekMath/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/GRPO_DeepSeekMath/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>GRPO_DeepSeekMath</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
 <!-- LP:NAV:END -->
-<div class="wrap">
+<main id="main" class="wrap">
 
 <div class="hero">
   <h1>《DeepSeekMath》深度解读报告<br><span style="font-size:17px;font-weight:400;opacity:.9;">Pushing the Limits of Mathematical Reasoning in Open Language Models</span></h1>
@@ -326,7 +345,7 @@ li{margin:7px 0;text-align:justify;}
 
 <div class="footer">《DeepSeekMath》深度解读 · B2 批次 · 数字唯一依据 00-源数据提取.md（arXiv:2402.03300v3）· 标注「（推断）」处为分析者推理</div>
 
-</div>
+</main>
 
 <!-- 自检：UTF-8 编码声明 ✓ | 内联 CSS ✓ | 关键数字 span.num/span.gold 高亮 ✓ | div 开闭配平（.wrap/.hero/.src-note/.toc/8×section.card/.grid 未使用嵌套均闭合）✓ -->
 </body>

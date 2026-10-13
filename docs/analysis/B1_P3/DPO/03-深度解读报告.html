@@ -119,6 +119,12 @@
     text-align: center; color: var(--muted); font-size: 12.5px;
     margin-top: 40px; font-family: "PingFang SC", sans-serif;
   }
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -133,13 +139,26 @@
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="《Direct Preference Optimization》深度解读报告——本文解读 Stanford 联合 CZ Biohub 六人组发表于 NeurIPS 2023 的《Direct Preference Optimization》。核心论断： RLHF 的标准三段式流水线（SFT → 奖励建模 → PPO）…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="DPO 深度解读报告 | Direct Preference Optimization">
+<meta property="og:description" content="《Direct Preference Optimization》深度解读报告——本文解读 Stanford 联合 CZ Biohub 六人组发表于 NeurIPS 2023 的《Direct Preference Optimization》。核心论断： RLHF 的标准三段式流水线（SFT → 奖励建模 → PPO）…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/DPO/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/DPO/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>DPO</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
 <!-- LP:NAV:END -->
-<div class="wrap">
+<main id="main" class="wrap">
 
 <header class="hero">
   <div class="kicker">LLM 关键节点论文 · 深度解读 · B1-P3</div>
@@ -368,6 +387,6 @@
 
 <footer class="colophon">数据依据：00-源数据提取.md · 分析框架：六层深度解读 · B1 批次 · 2026-08</footer>
 
-</div>
+</main>
 </body>
 </html>

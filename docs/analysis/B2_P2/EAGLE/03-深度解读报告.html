@@ -84,6 +84,12 @@ code,.fmt{font-family:var(--mono);font-size:.9em;background:var(--lp-bg-010);
   .content{margin-left:0;padding:24px 18px 60px}
   h1{font-size:22px} h2{font-size:19px}
 }
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -98,8 +104,21 @@ code,.fmt{font-family:var(--mono);font-size:.9em;background:var(--lp-bg-010);
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="《EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty》深度解读报告——数据依据：00-源数据提取.md（出自 arXiv:2401.15077v3，ICML 2024，13页）；全部数字与原文一致，标注 推断 处为分析者推理补充。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="《EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty》深度解读报告">
+<meta property="og:description" content="《EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty》深度解读报告——数据依据：00-源数据提取.md（出自 arXiv:2401.15077v3，ICML 2024，13页）；全部数字与原文一致，标注 推断 处为分析者推理补充。">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/EAGLE/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/EAGLE/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>EAGLE</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
@@ -125,7 +144,7 @@ code,.fmt{font-family:var(--mono);font-size:.9em;background:var(--lp-bg-010);
   </nav>
 </aside>
 
-<main class="content">
+<main class="content" id="main">
 
 <h1>《EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty》深度解读报告</h1>
 <p class="datasrc">数据依据：00-源数据提取.md（出自 arXiv:2401.15077v3，ICML 2024，13页）；全部数字与原文一致，标注<span class="infer">推断</span>处为分析者推理补充。</p>

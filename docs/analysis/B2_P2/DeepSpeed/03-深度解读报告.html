@@ -18,6 +18,12 @@ tr:nth-child(even){background:var(--lp-bg-004)}
 code{background:var(--lp-bg-002);padding:1px 5px;border-radius:4px;font-size:13px}
 hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 .selfcheck{font-size:11px;color:var(--lp-ink-007);margin-top:40px;border-top:1px solid var(--lp-line-003);padding-top:12px;font-family:ui-monospace,monospace}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -31,11 +37,25 @@ hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 .lp-back:hover{text-decoration:underline}
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
-</style></head><body>
+</style><!-- LP:HEAD:BEGIN -->
+<meta name="description" content="ZeRO / DeepSpeed 深度解读报告——2019 年，Transformer 训练撞上的墙已从「算不够」转向「 装不下 」——但比 0 更深的洞察是： 即便装得下，绝大多数显存也是浪费的。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ZeRO / DeepSpeed 深度解读报告 · 深度解读">
+<meta property="og:description" content="ZeRO / DeepSpeed 深度解读报告——2019 年，Transformer 训练撞上的墙已从「算不够」转向「 装不下 」——但比 0 更深的洞察是： 即便装得下，绝大多数显存也是浪费的。">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/DeepSpeed/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/DeepSpeed/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
+</head><body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>DeepSpeed</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
-<!-- LP:NAV:END --><div class="wrap">
+<!-- LP:NAV:END -->
+<main id="main" class="wrap">
 <h1>ZeRO / DeepSpeed 深度解读报告</h1>
 <blockquote> 论文：ZeRO: Memory Optimizations Toward Training Trillion Parameter Models</blockquote>
 <blockquote> 作者：Samyam Rajbhandari, Jeff Rasley, Olatunji Ruwase, Yuxiong He（Microsoft Research）</blockquote>
@@ -249,4 +269,4 @@ hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 <li>显存公式「<span class="num">16</span>P/N」为本报告据论文机制推断推导，非论文明文公式。</li>
 </ul>
 <div class="selfcheck">数据依据：本页 00-源数据提取.md | 推断处已标注（推断）| 生成：批量转换脚本</div>
-</div></body></html>
+</main></body></html>

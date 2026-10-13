@@ -94,6 +94,12 @@
     .hero{box-shadow:none;}
     .card{break-inside:avoid;}
   }
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -108,13 +114,26 @@
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="《The Llama 4 Herd》深度解读 ——开源权重从稠密走向原生多模态 MoE 的转折点——本文解读 Meta 于 2025 年 4 月 5 日发布的《The Llama 4 Herd》——开源权重模型从稠密架构走向 原生多模态 MoE 的关键转折点，也是开放权重阵营首次引入 10M token 上下文与 i…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="《The Llama 4 Herd》深度解读报告">
+<meta property="og:description" content="《The Llama 4 Herd》深度解读 ——开源权重从稠密走向原生多模态 MoE 的转折点——本文解读 Meta 于 2025 年 4 月 5 日发布的《The Llama 4 Herd》——开源权重模型从稠密架构走向 原生多模态 MoE 的关键转折点，也是开放权重阵营首次引入 10M token 上下文与 i…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/Llama_4/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/Llama_4/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>Llama_4</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
 <!-- LP:NAV:END -->
-<div class="wrap">
+<main id="main" class="wrap">
 
 <div class="hero">
   <div class="kicker">LLM 关键节点 · 深度解读报告 · B2 批次</div>
@@ -338,6 +357,6 @@
 
 <footer class="colophon">《The Llama 4 Herd》深度解读报告 ｜ B2 批次 ｜ 数据依据 00-源数据提取.md（抓取于 2026-08-26）</footer>
 
-</div>
+</main>
 </body>
 </html>

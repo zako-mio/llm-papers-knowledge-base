@@ -34,6 +34,12 @@ tr:nth-child(even) td{background:var(--lp-bg-012);}
 .kpi .l{font-size:.83rem;color:var(--sub);margin-top:4px;font-family:"PingFang SC",sans-serif;}
 footer{text-align:center;color:var(--sub);font-size:.82rem;margin-top:30px;font-family:"PingFang SC",sans-serif;}
 @media(max-width:640px){body{font-size:15.5px;}main section{padding:24px 20px;}header.hero{padding:32px 24px;}}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -48,8 +54,21 @@ footer{text-align:center;color:var(--sub);font-size:.82rem;margin-top:30px;font-
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="IndexCache：用跨层索引复用，砍掉 DSA 的「隐形账单」四分之三——DeepSeek Sparse Attention（DSA）以轻量 lightning indexer 为全部前文打分选 top-k（k= 2048 ），把核心注意力从 O(L²) 压到 O(Lk)，但 indexer 自身需在每层独立运行…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="IndexCache 深度解读：跨层索引复用加速稀疏注意力">
+<meta property="og:description" content="IndexCache：用跨层索引复用，砍掉 DSA 的「隐形账单」四分之三——DeepSeek Sparse Attention（DSA）以轻量 lightning indexer 为全部前文打分选 top-k（k= 2048 ），把核心注意力从 O(L²) 压到 O(Lk)，但 indexer 自身需在每层独立运行…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B3_P1/IndexShare/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B3_P1/IndexShare/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P1 · 基础补充</span><span class="lp-sep" aria-hidden="true">›</span><span>IndexShare</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
@@ -62,7 +81,7 @@ footer{text-align:center;color:var(--sub);font-size:.82rem;margin-top:30px;font-
   <div class="meta"><span>arXiv:2603.12201v1</span><span>2026-03-12</span><span>清华大学 × Z.ai</span><span>高效推理 / 稀疏注意力</span></div>
 </header>
 
-<main>
+<main id="main">
 
 <section id="abstract">
 <h2>摘要</h2>

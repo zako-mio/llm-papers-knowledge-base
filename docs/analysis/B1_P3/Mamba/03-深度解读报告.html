@@ -59,6 +59,12 @@ footer.selfcheck{margin-top:52px;border-top:1px dashed var(--line);padding-top:2
 footer.selfcheck h4{font-size:14px;color:var(--ink);margin-bottom:8px;}
 footer.selfcheck li{margin:4px 0;}
 .pass{color:var(--accent);font-weight:700;}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -73,13 +79,26 @@ footer.selfcheck li{margin:4px 0;}
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="《Mamba: Linear-Time Sequence Modeling with Selective State Spaces》深度解读报告——本文解读 Gu 与 Dao 提出的《Mamba》。论文的核心论断是：序列模型的效率与质量之争，本质上是一场 状态压缩质量 的竞争——注意力机制不压缩上下文（KV cach…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="《Mamba》深度解读报告">
+<meta property="og:description" content="《Mamba: Linear-Time Sequence Modeling with Selective State Spaces》深度解读报告——本文解读 Gu 与 Dao 提出的《Mamba》。论文的核心论断是：序列模型的效率与质量之争，本质上是一场 状态压缩质量 的竞争——注意力机制不压缩上下文（KV cach…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/Mamba/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/Mamba/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>Mamba</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
 <!-- LP:NAV:END -->
-<div class="page">
+<main id="main" class="page">
 
 <header class="hero">
   <span class="tag">LLM 关键节点论文 · B2 批次 · 深度解读</span>
@@ -323,6 +342,6 @@ footer.selfcheck li{margin:4px 0;}
   </ul>
 </footer>
 
-</div>
+</main>
 </body>
 </html>

@@ -48,6 +48,12 @@ footer.selfcheck{margin-top:64px;border-top:3px double var(--accent);padding-top
 footer.selfcheck ul{margin:8px 0 0 22px;}
 footer.selfcheck li{padding:2px 0;}
 @media (max-width:720px){.wrap{padding:28px 18px;}nav.toc ol{columns:1;}body{font-size:15.5px;}}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -62,13 +68,26 @@ footer.selfcheck li{padding:2px 0;}
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="《FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness》深度解读报告——本文解读 FlashAttention——一篇以「 I/O 感知 」（IO-Awareness）重新诊断注意力性能瓶颈的系统-算法协同设计论文。其核…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="FlashAttention 深度解读报告">
+<meta property="og:description" content="《FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness》深度解读报告——本文解读 FlashAttention——一篇以「 I/O 感知 」（IO-Awareness）重新诊断注意力性能瓶颈的系统-算法协同设计论文。其核…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/FlashAttention/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/FlashAttention/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>FlashAttention</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
 <!-- LP:NAV:END -->
-<div class="wrap">
+<main id="main" class="wrap">
 
 <header class="doc">
 <h1>《FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness》深度解读报告</h1>
@@ -307,6 +326,6 @@ O_i ← 按 diag(ℓ^new)⁻¹ 缩放更新，写回 HBM
 </ul>
 </footer>
 
-</div>
+</main>
 </body>
 </html>

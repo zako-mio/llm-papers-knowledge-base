@@ -18,6 +18,12 @@ tr:nth-child(even){background:var(--lp-bg-004)}
 code{background:var(--lp-bg-002);padding:1px 5px;border-radius:4px;font-size:13px}
 hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 .selfcheck{font-size:11px;color:var(--lp-ink-007);margin-top:40px;border-top:1px solid var(--lp-line-003);padding-top:12px;font-family:ui-monospace,monospace}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -31,11 +37,25 @@ hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 .lp-back:hover{text-decoration:underline}
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
-</style></head><body>
+</style><!-- LP:HEAD:BEGIN -->
+<meta name="description" content="BLIP-2: Bootstrapping Language-Image Pre-training 深度解读报告——BLIP-2（arXiv 2301.12597 ，ICML 2023 ，Salesforce Research）提出一种&quot;模块化视觉-语言预训练&quot;范式：用仅 188 M 参数的轻量查…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="BLIP-2: Bootstrapping Language-Image Pre-training 深度解读报告 · 深度解读">
+<meta property="og:description" content="BLIP-2: Bootstrapping Language-Image Pre-training 深度解读报告——BLIP-2（arXiv 2301.12597 ，ICML 2023 ，Salesforce Research）提出一种&quot;模块化视觉-语言预训练&quot;范式：用仅 188 M 参数的轻量查…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/BLIP-2/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/BLIP-2/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
+</head><body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>BLIP-2</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
-<!-- LP:NAV:END --><div class="wrap">
+<!-- LP:NAV:END -->
+<main id="main" class="wrap">
 <h1>BLIP-2: Bootstrapping Language-Image Pre-training 深度解读报告</h1>
 <blockquote> 数据依据：本报告所有数字与主张均严格取自已提取的 <code><span class="num">00</span>-源数据提取.md</code>（唯一数字依据，标注 [K#] 对应关键数字表、[§#] 对应章节树）。凡超出该文件范围的分析性推理一律标注「<span class="infer">（推断）</span>」。风格与结论层为分析师基于数据依据的组织性归纳，不引入源文件之外的新实证数字。</blockquote>
 <hr>
@@ -233,4 +253,4 @@ hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 <li>K8：ITG 损失提升检索（COCO I→T R@1: <span class="num">84.5</span>→<span class="num">85.4</span>），支撑"语言相关视觉特征"假设</li>
 </ul>
 <div class="selfcheck">数据依据：本页 00-源数据提取.md | 推断处已标注（推断）| 生成：批量转换脚本</div>
-</div></body></html>
+</main></body></html>

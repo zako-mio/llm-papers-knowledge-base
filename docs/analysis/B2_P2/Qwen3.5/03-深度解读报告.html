@@ -88,6 +88,12 @@ footer{margin-top:40px; text-align:center; font-size:13px; color:var(--muted);}
   section.card{padding:26px 20px;}
   .hero h1{font-size:25px;}
 }
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -102,13 +108,25 @@ footer{margin-top:40px; text-align:center; font-size:13px; color:var(--muted);}
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="Qwen3.5 深度解读报告 Towards Native Multimodal Agents——本文档所属的 B2_P2 节点，处于开源阵营从「总参数军备竞赛」转向「架构级效率」的转折点上。在 Qwen3.5 之前，开源旗舰的竞争力公式是 1T 级总参对冲激活不足（如 K2-1T-A32B）；Qwen3.5 发布博…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="03-深度解读报告：Qwen3.5 官方发布博客 · B2_P2 开源阵营架构效率节点">
+<meta property="og:description" content="Qwen3.5 深度解读报告 Towards Native Multimodal Agents——本文档所属的 B2_P2 节点，处于开源阵营从「总参数军备竞赛」转向「架构级效率」的转折点上。在 Qwen3.5 之前，开源旗舰的竞争力公式是 1T 级总参对冲激活不足（如 K2-1T-A32B）；Qwen3.5 发布博…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/Qwen3.5/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/Qwen3.5/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>Qwen3.5</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
 <!-- LP:NAV:END -->
-
 <div class="hero">
   <div class="kicker">LLM 关键节点论文全集 · B2_P2 · 开源阵营架构效率节点</div>
   <h1>Qwen3.5 深度解读报告<br>Towards Native Multimodal Agents</h1>
@@ -116,7 +134,7 @@ footer{margin-top:40px; text-align:center; font-size:13px; color:var(--muted);}
   <div class="meta">Qwen Team（阿里巴巴通义实验室）· 2026 年 2 月发布 · 本报告成文 2026-08-26</div>
 </div>
 
-<div class="container">
+<main id="main" class="container">
 
 <nav class="toc">
   <h2>目 录</h2>
@@ -260,6 +278,6 @@ footer{margin-top:40px; text-align:center; font-size:13px; color:var(--muted);}
 
 <footer>B2_P2 · 开源阵营架构效率节点 · Qwen3.5 官方发布博客深度解读 · 数据依据：00-源数据提取.md · 2026-08-26</footer>
 
-</div>
+</main>
 </body>
 </html>

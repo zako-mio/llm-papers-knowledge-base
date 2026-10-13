@@ -117,6 +117,12 @@
   footer.selfcheck ul{list-style:none; margin-left:0;}
   footer.selfcheck li{padding:2px 0;}
   footer.selfcheck li::before{content:"✓ "; color:var(--ok); font-weight:700;}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -131,13 +137,26 @@
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="《The Llama 3 Herd of Models》深度解读报告 A Field Manual for Frontier-Scale Open Models — Meta AI, July 2024——数据依据：pdf-worker 源数据提取文件（00-源数据提取.md），全部数字与原文一致并标注出处；标注 推…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="《The Llama 3 Herd of Models》深度解读报告">
+<meta property="og:description" content="《The Llama 3 Herd of Models》深度解读报告 A Field Manual for Frontier-Scale Open Models — Meta AI, July 2024——数据依据：pdf-worker 源数据提取文件（00-源数据提取.md），全部数字与原文一致并标注出处；标注 推…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/Llama_3/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/Llama_3/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>Llama_3</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
 <!-- LP:NAV:END -->
-<div class="wrap">
+<main id="main" class="wrap">
 
 <header class="hero">
   <p class="kicker">LLM Key-Paper Deep Reading · B2 批次</p>
@@ -364,6 +383,6 @@
   <p style="margin-top:12px;">分析批次 B2_P2 · 《The Llama 3 Herd of Models》 · 生成日期 2026-08-26</p>
 </footer>
 
-</div>
+</main>
 </body>
 </html>

@@ -46,6 +46,12 @@
   code{font-family:ui-monospace,monospace;background:var(--lp-bg-028);padding:1px 6px;border-radius:4px;font-size:.9em;color:var(--lp-ink-009);}
   .footnote{margin-top:60px;padding-top:20px;border-top:1px dashed var(--line);color:var(--sub);font-size:.82rem;}
   @media (max-width:640px){.hero{padding:36px 24px;}body{font-size:15px;}h2{font-size:1.25rem;}}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -60,13 +66,26 @@
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="GLM-5.2：为长程任务而生的开源旗舰——GLM-5.2 是智谱 Z.ai 于 2026-06-16 发布的开源旗舰（MIT 许可），官方标题即立场—— Built for Long-Horizon Tasks 。相较 GLM-5.1，它完成三重跃迁： Solid 1M Context 把上下文从 200K 扩展至…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="GLM-5.2 深度解读报告">
+<meta property="og:description" content="GLM-5.2：为长程任务而生的开源旗舰——GLM-5.2 是智谱 Z.ai 于 2026-06-16 发布的开源旗舰（MIT 许可），官方标题即立场—— Built for Long-Horizon Tasks 。相较 GLM-5.1，它完成三重跃迁： Solid 1M Context 把上下文从 200K 扩展至…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/GLM-5.2/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/GLM-5.2/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>GLM-5.2</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
 <!-- LP:NAV:END -->
-<div class="wrap">
+<main id="main" class="wrap">
 
 <header class="hero">
   <div class="kicker">B2_P2 · LLM 关键节点论文全集 · 深度解读</div>
@@ -184,6 +203,6 @@
   <!-- SELF-CHECK: UTF-8 OK / div balance OK / sections=6 / num-spans highlighted -->
 </div>
 
-</div>
+</main>
 </body>
 </html>

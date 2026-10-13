@@ -111,6 +111,12 @@
     section.card { padding: 20px 18px; }
     .formula { white-space: normal; }
   }
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -125,13 +131,26 @@
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="《Toolformer: Language Models Can Teach Themselves to Use Tools》深度解读报告——本文解读 Meta AI 于 2023 年 2 月发布的《Toolformer》。论文的核心论断是：语言模型无需大规模人工标注，即可通过 自监督方式 学会使用外部工具——只需让…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="《Toolformer》深度解读报告">
+<meta property="og:description" content="《Toolformer: Language Models Can Teach Themselves to Use Tools》深度解读报告——本文解读 Meta AI 于 2023 年 2 月发布的《Toolformer》。论文的核心论断是：语言模型无需大规模人工标注，即可通过 自监督方式 学会使用外部工具——只需让…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/Toolformer/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/Toolformer/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>Toolformer</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
 <!-- LP:NAV:END -->
-<div class="page">
+<main id="main" class="page">
 
 <header class="hero">
   <h1>《Toolformer: Language Models Can Teach Themselves to Use Tools》深度解读报告</h1>
@@ -360,6 +379,6 @@
   <p class="footnote">报告生成：ox-alpha · B2 批次 · Toolformer 深度解读 · 2026-08-26</p>
 </footer>
 
-</div>
+</main>
 </body>
 </html>

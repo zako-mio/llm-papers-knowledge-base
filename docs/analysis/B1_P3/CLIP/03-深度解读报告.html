@@ -63,6 +63,12 @@ tr:nth-child(even) td{background:var(--lp-bg-332);}
 .selfcheck li::before{content:"✓";color:var(--lp-ink-025);font-weight:700;margin-right:10px;}
 footer.endmark{text-align:center;margin-top:48px;color:var(--faint);font-family:"Noto Sans SC",sans-serif;font-size:.8rem;letter-spacing:.4em;}
 @media print{ body{font-size:11pt;} .wrap{padding:0;} }
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -77,13 +83,26 @@ footer.endmark{text-align:center;margin-top:48px;color:var(--faint);font-family:
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="从四亿图文对中学习可迁移的视觉模型——数据依据：同目录《00-源数据提取.md》（48 页 PDF 提取），全部数字与原文一致并注明出处；标注「（推断）」处为分析者推理补充。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="CLIP 深度解读报告 · Learning Transferable Visual Models From Natural Language Supervision">
+<meta property="og:description" content="从四亿图文对中学习可迁移的视觉模型——数据依据：同目录《00-源数据提取.md》（48 页 PDF 提取），全部数字与原文一致并注明出处；标注「（推断）」处为分析者推理补充。">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/CLIP/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/CLIP/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>CLIP</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
 <!-- LP:NAV:END -->
-<div class="wrap">
+<main id="main" class="wrap">
 
 <header class="hero">
 <div class="kicker">LLM 关键节点论文全集 · B1_P3 · 深度解读</div>
@@ -284,6 +303,6 @@ footer.endmark{text-align:center;margin-top:48px;color:var(--faint);font-family:
 
 <footer class="endmark">· 完 ·</footer>
 
-</div>
+</main>
 </body>
 </html>

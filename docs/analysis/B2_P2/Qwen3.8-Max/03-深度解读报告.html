@@ -53,6 +53,12 @@ footer{color:var(--sub);text-align:center;font-size:13px;margin-top:36px;line-he
 .divider{height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);margin:26px 0;}
 @media (max-width:640px){.wrap{padding:24px 14px 60px;}section{padding:26px 20px;}header.hero{padding:36px 26px;}}
 @media print{body{background:var(--card);}section{box-shadow:none;break-inside:avoid;}}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -67,13 +73,26 @@ footer{color:var(--sub);text-align:center;font-size:13px;margin-top:36px;line-he
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="Qwen3.8-Max：编码与协作的新标杆 A New Bar for Coding and Cowork — 深度解读报告——Qwen3.8-Max 是阿里 Qwen 团队于 2026-08-03 发布的家族旗舰，基于 Qwen 3.5 架构基础扩展至 2.4T 总参数、95B 激活 ，并宣布 首次开源 Max 级…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Qwen3.8-Max 深度解读报告">
+<meta property="og:description" content="Qwen3.8-Max：编码与协作的新标杆 A New Bar for Coding and Cowork — 深度解读报告——Qwen3.8-Max 是阿里 Qwen 团队于 2026-08-03 发布的家族旗舰，基于 Qwen 3.5 架构基础扩展至 2.4T 总参数、95B 激活 ，并宣布 首次开源 Max 级…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/Qwen3.8-Max/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B2_P2/Qwen3.8-Max/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>Qwen3.8-Max</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
 <!-- LP:NAV:END -->
-<div class="wrap">
+<main id="main" class="wrap">
 
 <header class="hero">
 <h1>Qwen3.8-Max：编码与协作的新标杆<br><span style="font-size:19px;font-weight:400;opacity:.9;">A New Bar for Coding and Cowork — 深度解读报告</span></h1>
@@ -265,6 +284,6 @@ footer{color:var(--sub);text-align:center;font-size:13px;margin-top:36px;line-he
 <!-- SELF-CHECK: UTF-8 无替换字符 ✓ | div 配平（.wrap 1 + header 1 + section×7 + kpi-grid/kpi×5 + gate-row/gate×10 + warn/note 若干，开闭平衡已核）✓ | span.num 高亮已启用 ✓ | 单文件内联 CSS ✓ | 六章结构完整：摘要/一问题定位/二概念内核/三方法拆解/四证据链/五批判性分析/六启示与影响 ✓ -->
 </footer>
 
-</div>
+</main>
 </body>
 </html>

@@ -30,10 +30,29 @@ for bid, label, color in batches:
     cards.append(
         '<section class="batch" style="--c:%s"><h2>%s <small>%s · %d 篇已完成</small></h2><ol>%s</ol></section>'
         % (color, bid, label, len(slugs), "".join(items)))
+# ★ 批 J：站点级常量 ＋ 无障碍样式。⛔ 一个色值字面量都不写——本站 gate_tokens.py 的
+#   G3（Q3=A 等值注入）硬判「不得出现改动前基线之外的新色值」⇒ 用 currentColor 与系统色。
+REPO_NAME = "llm-papers-knowledge-base"
+BASE_URL = "https://zako-mio.github.io/%s/" % REPO_NAME
+A11Y_CSS = """
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+"""
+
 html = """<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>LLM 关键节点论文 · 深度解读总览</title>
+<meta name="description" content="LLM 关键节点论文 · 深度解读总览：__TOTAL__ 个关键节点按 P3/P2/P1 分批，逐篇六层结构解读（问题定位→概念内核→方法拆解→证据链→批判→启示），点击标题进入 HTML 阅读版。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="LLM 关键节点论文 · 深度解读总览">
+<meta property="og:description" content="LLM 关键节点论文 · 深度解读总览：__TOTAL__ 个关键节点的六层结构深度解读（问题定位→概念内核→方法拆解→证据链→批判→启示）。">
+<meta property="og:url" content="__BASE__analysis/">
+<meta property="og:image" content="__BASE__og.png">
+<link rel="canonical" href="__BASE__analysis/">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <style>
 body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#0f1420;color:#e6e9f0;margin:0;line-height:1.7}
 .wrap{max-width:900px;margin:0 auto;padding:40px 20px 80px}
@@ -49,12 +68,14 @@ li a:hover{text-decoration:underline}
 .m{color:#8fa0b8;font-size:12px}
 .dis{color:#cdd6e4;font-size:15px}
 .note{background:#1a2233;border-radius:8px;padding:12px 16px;font-size:13px;color:#aeb9cc;margin-top:30px}
-</style></head><body><div class="wrap">
+__A11Y__</style></head><body>
+<a class="skip-link" href="#main">跳到主要内容</a>
+<main id="main" class="wrap">
 <h1>LLM 关键节点论文 · 深度解读总览</h1>
     <p class="sub">__TOTAL__ 个关键节点 · 按优先级分批深度解读（六层结构：问题定位→概念内核→方法拆解→证据链→批判→启示）· 点击标题进入 HTML 解读版</p>
     __CARDS__
     <div class="note">进度：已完成深度解读 __DONE__ / __TOTAL__ 篇。批次顺序 B1(P3) → B2(P2) → B3(P1)。每篇目录含 00-源数据提取.md（AI 权威数据层）、01-深度解读报告.md（AI 镜像）、03-深度解读报告.html（人类阅读入口）。论文 PDF（Git LFS）下载入口见<a href="../timeline.html" style="color:#7cb3ff">互动时间线</a>。</div>
-    </div></body></html>""".replace("__TOTAL__", str(TOTAL)).replace("__CARDS__", "".join(cards)).replace("__DONE__", str(done_total))
+    </main></body></html>""".replace("__TOTAL__", str(TOTAL)).replace("__CARDS__", "".join(cards)).replace("__DONE__", str(done_total)).replace("__BASE__", BASE_URL).replace("__A11Y__", A11Y_CSS)
 out = OUT_PATH
 open(out, "w", encoding="utf-8").write(html)
 h = open(out, "rb").read()

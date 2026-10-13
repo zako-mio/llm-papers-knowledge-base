@@ -18,6 +18,12 @@ tr:nth-child(even){background:var(--lp-bg-004)}
 code{background:var(--lp-bg-002);padding:1px 5px;border-radius:4px;font-size:13px}
 hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 .selfcheck{font-size:11px;color:var(--lp-ink-007);margin-top:40px;border-top:1px solid var(--lp-line-003);padding-top:12px;font-family:ui-monospace,monospace}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -31,11 +37,25 @@ hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 .lp-back:hover{text-decoration:underline}
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
-</style></head><body>
+</style><!-- LP:HEAD:BEGIN -->
+<meta name="description" content="Manifold-Constrained Hyper-Connections (mHC)——mHC（Manifold-Constrained Hyper-Connections，流形约束超连接）是 DeepSeek-V4 在超连接（Hyper-Connections，HC）残差架构基础上的收敛性加固方案，被列为这与模…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Manifold-Constrained Hyper-Connections (mHC) · 深度解读">
+<meta property="og:description" content="Manifold-Constrained Hyper-Connections (mHC)——mHC（Manifold-Constrained Hyper-Connections，流形约束超连接）是 DeepSeek-V4 在超连接（Hyper-Connections，HC）残差架构基础上的收敛性加固方案，被列为这与模…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B3_P1/mHC/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B3_P1/mHC/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
+</head><body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P1 · 基础补充</span><span class="lp-sep" aria-hidden="true">›</span><span>mHC</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
-<!-- LP:NAV:END --><div class="wrap">
+<!-- LP:NAV:END -->
+<main id="main" class="wrap">
 <h1>Manifold-Constrained Hyper-Connections (mHC)</h1>
 <blockquote> <strong>数据依据说明</strong>：本解读唯一数字依据为同目录 <code><span class="num">00</span>-源数据提取.md</code>（提取自 DeepSeek-V4 技术报告节选，arXiv:<span class="num">2606.19348</span>v1）。mHC 无独立 arXiv 论文，V4 报告仅以 §<span class="num">2.2</span>/§<span class="num">3.4</span>/§<span class="num">4.2</span> 引用其设计动机、公式与工程开销，<strong>不含 mHC 端到端性能消融数字</strong>；凡超出该提取文件的量化结论均标注「<span class="infer">（推断）</span>」，凡 mHC 独立收益量化一律指向专文 arXiv:<span class="num">2512.24880</span>。报告中公式与符号遵循源文件 §<span class="num">4 </span>的人工复原约定。</blockquote>
 <hr>
@@ -167,4 +187,4 @@ hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 <hr>
 <p>*本解读由资深论文解读分析师（B3 批次）基于同目录 <span class="num">00</span>-源数据提取.md 撰写；所有超出源文件范围的量化结论均已标注「<span class="infer">（推断）</span>」，所有 mHC 独立收益量化均指向专文 arXiv:<span class="num">2512.24880</span>。*</p>
 <div class="selfcheck">数据依据：本页 00-源数据提取.md | 推断处已标注（推断）| 生成：批量转换脚本</div>
-</div></body></html>
+</main></body></html>

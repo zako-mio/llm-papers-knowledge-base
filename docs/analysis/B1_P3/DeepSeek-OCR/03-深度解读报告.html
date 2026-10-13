@@ -105,6 +105,12 @@ tbody tr:hover { background: var(--lp-bg-230); }
   .wrap { padding: 28px 20px 40px; margin: 0; border-radius: 0; }
   body { font-size: 15px; }
 }
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -119,13 +125,26 @@ tbody tr:hover { background: var(--lp-bg-230); }
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="《DeepSeek-OCR: Contexts Optical Compression》深度解读报告——数据依据：pdf-worker 源数据提取文件（00-源数据提取.md），全部数字与原文一致；文中标注“（推断）”处为分析者推理补充。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="《DeepSeek-OCR: Contexts Optical Compression》深度解读报告">
+<meta property="og:description" content="《DeepSeek-OCR: Contexts Optical Compression》深度解读报告——数据依据：pdf-worker 源数据提取文件（00-源数据提取.md），全部数字与原文一致；文中标注“（推断）”处为分析者推理补充。">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/DeepSeek-OCR/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/DeepSeek-OCR/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>DeepSeek-OCR</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
 <!-- LP:NAV:END -->
-<div class="wrap">
+<main id="main" class="wrap">
 
 <h1>《DeepSeek-OCR: Contexts Optical Compression》深度解读报告</h1>
 
@@ -426,7 +445,7 @@ tbody tr:hover { background: var(--lp-bg-230); }
 
 <p>《DeepSeek-OCR》是一次目标明确的范式试探：它把“视觉”从 LLM 的输入负担重新定义为<strong>文字的压缩介质</strong>，并用一套完整的技术闭环证明了这个命题的中低压缩比区间成立——DeepEncoder 以“窗口注意力管高 token 段、16× 卷积硬压缩、全局注意力收尾”的三段式把激活成本打下来，DeepSeek3B-MoE-A570M 以 64 选 6 的稀疏激活保住解码表达力，数据引擎以 fitz 粗标 + 模型飞轮 + 渲染合成的成本阶梯喂出 <span class="num">30M 页级</span>语料。证据侧呈现清晰的“内外双环”：内环 Fox 曲线给出 <span class="num">97%</span> / <span class="num">90%</span> / <span class="num">59.1%</span> 三锚点的率失真边界，外环 OmniDocBench 实现了 <span class="num">100 tokens 胜 256</span>（vs GOT-OCR2.0）、<span class="num">795 胜 6790</span>（vs MinerU2.0）、<span class="num">1853 登顶全场</span>（0.123）的以少胜多。但必须清醒的是：作者自己承认这只是概念验证——所有硬证据都在“渲染→还原”闭环内，对话历史光学压缩、遗忘机制、更大模型的扩展性均停在猜想层面，基线矩阵尚有空格，中文场景分数系统性偏低。方法论层面的启示（模态转换即压缩、注意力分工前置、MoE 旋钮、数据成本阶梯、档位化部署）具有高度可迁移性；而这个范式的最终成败，取决于 digital-optical interleaved pretraining 与 NIAH 测试能否证明一件事：<strong>被光学压缩的不只是文字本身，还有文字所承载的可推理意义</strong>。</p>
 
-</div>
+</main>
 <!-- self-check: utf8_no_fffd | div_balanced | total_bytes=35954 -->
 </body>
 </html>

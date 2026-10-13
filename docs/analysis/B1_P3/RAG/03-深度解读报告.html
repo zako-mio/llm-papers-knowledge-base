@@ -48,6 +48,12 @@
     font-size:12.5px;color:var(--sub);line-height:1.8;}
   .footer-check b{color:var(--green);}
   @media (max-width:640px){.wrap{padding:20px 16px 48px;}h1{font-size:23px;}h2{font-size:19px;}}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -62,13 +68,26 @@
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
 </style>
+<!-- LP:HEAD:BEGIN -->
+<meta name="description" content="《Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks》（RAG） 深度解读报告——本文解读 Facebook AI Research 联合 UCL、NYU 提出、发表于 NeurIPS 2020 的 RAG 论文——日后成为整个行业基础设施…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="RAG（NeurIPS 2020）深度解读报告">
+<meta property="og:description" content="《Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks》（RAG） 深度解读报告——本文解读 Facebook AI Research 联合 UCL、NYU 提出、发表于 NeurIPS 2020 的 RAG 论文——日后成为整个行业基础设施…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/RAG/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B1_P3/RAG/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
 </head>
 <body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>RAG</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
 <!-- LP:NAV:END -->
-<div class="wrap">
+<main id="main" class="wrap">
 
 <header class="hero">
 <h1>《Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks》（RAG）<br>深度解读报告</h1>
@@ -246,6 +265,6 @@
 ✓ UTF-8 编码，无 U+FFFD 替换字符　✓ &lt;div&gt; 开闭平衡（wrap / abstract / 各 callout / footer-check 共 10 组）　✓ 关键数字高亮（.num 类，橙色渐变下划）　✓ 内联 CSS 单文件、无外链依赖　✓ 六层结构完整（摘要 + 问题定位 + 概念内核 + 方法拆解 + 证据链 + 批判审视 + 启示影响）　✓ 全部数字源自 00-源数据提取.md，推断处已标注
 </div>
 
-</div>
+</main>
 </body>
 </html>

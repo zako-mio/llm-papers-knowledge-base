@@ -18,6 +18,12 @@ tr:nth-child(even){background:var(--lp-bg-004)}
 code{background:var(--lp-bg-002);padding:1px 5px;border-radius:4px;font-size:13px}
 hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 .selfcheck{font-size:11px;color:var(--lp-ink-007);margin-top:40px;border-top:1px solid var(--lp-line-003);padding-top:12px;font-family:ui-monospace,monospace}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -31,11 +37,25 @@ hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 .lp-back:hover{text-decoration:underline}
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
-</style></head><body>
+</style><!-- LP:HEAD:BEGIN -->
+<meta name="description" content="Qwen3-Max（Preview）深度解读报告 —— 《Qwen3-Max: Just Scale it》——本报告的数字与事实性结论，均严格取自同目录 00 -源数据提取.md （下称「源档」），其分类如下：">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Qwen3-Max（Preview）深度解读报告 —— 《Qwen3-Max: Just Scale it》 · 深度解读">
+<meta property="og:description" content="Qwen3-Max（Preview）深度解读报告 —— 《Qwen3-Max: Just Scale it》——本报告的数字与事实性结论，均严格取自同目录 00 -源数据提取.md （下称「源档」），其分类如下：">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/_rejected/Qwen3-Max/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/_rejected/Qwen3-Max/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
+</head><body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>未采纳</span><span class="lp-sep" aria-hidden="true">›</span><span>Qwen3-Max</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
-<!-- LP:NAV:END --><div class="wrap">
+<!-- LP:NAV:END -->
+<main id="main" class="wrap">
 <h1>Qwen3-Max（Preview）深度解读报告 —— 《Qwen3-Max: Just Scale it》</h1>
 <blockquote> 解析对象：《Qwen3-Max: Just Scale it》（QwenTeam，阿里通义千问团队）</blockquote>
 <blockquote> 发布：<span class="num">2025-09-24</span>（API 元数据）/ 对外 <span class="num">2025-09-23</span>；Qwen3-Max Preview 于 <span class="num">2025-09-05</span> 先行发布</blockquote>
@@ -229,4 +249,4 @@ hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 <hr>
 <blockquote> 数据口径声明：本报告所有数字仅采用 <code><span class="num">00</span>-源数据提取.md</code>。其中源档标注「转引」的（预览版上下文窗口 <span class="num">262,144</span>、预览版榜单对比范围）均按转引层级对待；源档声明「无数值文本、不采信数字」的预览版具体分数，本报告一律不引用，仅保留「领先哪些对手」的排序性结论并标注<span class="infer">（推断）</span>。凡由机制推导、源档未给量化数字处，均以<span class="infer">（推断）</span>标注。</blockquote>
 <div class="selfcheck">数据依据：本页 00-源数据提取.md | 推断处已标注（推断）| 生成：批量转换脚本</div>
-</div></body></html>
+</main></body></html>

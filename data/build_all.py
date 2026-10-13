@@ -17,6 +17,8 @@
   6. `annotate_products.py --apply` → 139 页的 Q3 等值令牌注入 ＋ 134 个解读页的 Q7 着陆结构
   7. 门控：`gate_tokens.py` / `gate_links.py` / `gate_census.py` / `gate_ci_contract.py`
      ＋ `vendor/pipeline/check_gate_manifest.py`
+     ＋ ★ 批 J 追加 `gate_a11y.py` / `gate_seo_meta.py`（两条命令与 CI 的 Gate 步、与
+       `build/profile.json#gates.commands` 逐条同序）
   8. 写 `gate-report.json`（**确定性件**：⛔ 无墙钟时间戳、⛔ 无作者机绝对路径；
      `tree_digest` ＝ 仓内文件（路径+内容）的 sha256，★ **排除报告自身**，否则自指）
 
@@ -69,6 +71,13 @@ GATES = [
     ("gate-ci-contract", ["python3", "gate_ci_contract.py", "--site-root", "."]),
     ("manifest-check", ["python3", "vendor/pipeline/check_gate_manifest.py",
                         "--manifest", "gate-manifest.json", "--profile", "build/profile.json"]),
+    # ★ 批 J：a11y / metadata 由 report_only 转硬档（gate-manifest.json 的 mode=hard）
+    #   ⇒ 本地构建入口也必须跑它们，否则「重生成 → 门控」这条链在本地会漏判两类硬 FAIL。
+    #   ★ 顺序与 .github/workflows/pages.yml 的 Gate 步逐条一致（CI 侧由 gate_ci_contract.py
+    #     的 CI3 做「登记 ↔ 调用」双向断言；本表与 profile.gates.commands 亦逐条同序）。
+    ("a11y", ["python3", "gate_a11y.py", "--site-root", ".", "--profile", "build/profile.json"]),
+    ("metadata", ["python3", "gate_seo_meta.py", "--site-root", ".",
+                  "--profile", "build/profile.json"]),
 ]
 
 REPORT = "gate-report.json"
@@ -125,7 +134,8 @@ def guarded(repo):
     need = ["gate_tokens.py", "gate_links.py", "gate_census.py", "gate_ci_contract.py",
             "gate-manifest.json", "build/profile.json",
             "vendor/pipeline/check_gate_manifest.py", "vendor/tools/contrast.py",
-            "data/token-baseline.json", "data/annotate_products.py"]
+            "data/token-baseline.json", "data/annotate_products.py",
+            "gate_a11y.py", "gate_seo_meta.py"]
     missing = [f for f in need if not os.path.isfile(os.path.join(repo, f))]
     if missing:
         raise SystemExit("GUARD-REJECT: 判据面缺件：%s" % missing)

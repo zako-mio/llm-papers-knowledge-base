@@ -18,6 +18,12 @@ tr:nth-child(even){background:var(--lp-bg-004)}
 code{background:var(--lp-bg-002);padding:1px 5px;border-radius:4px;font-size:13px}
 hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 .selfcheck{font-size:11px;color:var(--lp-ink-007);margin-top:40px;border-top:1px solid var(--lp-line-003);padding-top:12px;font-family:ui-monospace,monospace}
+/* LP:A11Y:BEGIN */
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.skip-link{position:absolute;left:-9999px;top:0;z-index:100;padding:0.5rem 1rem;
+  background:Canvas;color:CanvasText;border:1px solid CanvasText;border-radius:0 0 6px 0}
+.skip-link:focus{left:0}
+/* LP:A11Y:END */
 /* LP:NAVCSS:BEGIN */
 .lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
   background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
@@ -31,11 +37,25 @@ hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 .lp-back:hover{text-decoration:underline}
 .lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
 /* LP:NAVCSS:END */
-</style></head><body>
+</style><!-- LP:HEAD:BEGIN -->
+<meta name="description" content="ChatGLM: A Family of Large Language Models from GLM- 130 B to GLM- 4 All Tools — 深度解读报告——论文速览 ：这是由智谱 AI 与清华大学联合团队（Team GLM）发表的 ChatGLM 系列四代技术总报告。论文标题点明主线「从 GLM…">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ChatGLM: A Family of Large Language Models from GLM-130B to GLM-4 All Tools — 深度解读报告 · 深度解读">
+<meta property="og:description" content="ChatGLM: A Family of Large Language Models from GLM- 130 B to GLM- 4 All Tools — 深度解读报告——论文速览 ：这是由智谱 AI 与清华大学联合团队（Team GLM）发表的 ChatGLM 系列四代技术总报告。论文标题点明主线「从 GLM…">
+<meta property="og:url" content="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B3_P1/ChatGLM_Family/03-深度解读报告.html">
+<meta property="og:image" content="https://zako-mio.github.io/llm-papers-knowledge-base/og.png">
+<link rel="canonical" href="https://zako-mio.github.io/llm-papers-knowledge-base/analysis/B3_P1/ChatGLM_Family/03-深度解读报告.html">
+<link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!-- LP:HEAD:END -->
+</head><body>
+<!-- LP:SKIP:BEGIN -->
+<a class="skip-link" href="#main">跳到主要内容</a>
+<!-- LP:SKIP:END -->
 <!-- LP:NAV:BEGIN -->
 <nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P1 · 基础补充</span><span class="lp-sep" aria-hidden="true">›</span><span>ChatGLM_Family</span></nav>
 <a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
-<!-- LP:NAV:END --><div class="wrap">
+<!-- LP:NAV:END -->
+<main id="main" class="wrap">
 <h1>ChatGLM: A Family of Large Language Models from GLM-<span class="num">130</span>B to GLM-<span class="num">4 </span>All Tools — 深度解读报告</h1>
 <blockquote> <strong>数据依据</strong>：本文所有数字均取自同目录 <code><span class="num">00</span>-源数据提取.md</code>，仅作为唯一数值来源，不做额外数值猜测。凡超出该文件范围的推断性表述，一律标注「<span class="infer">（推断）</span>」。文中「原文×页」系指 arXiv:<span class="num">2406.12793</span>v2 [cs.CL]（<span class="num">2024-06</span> 提交，<span class="num">2024-07-30</span> v2，Preprint under review）的版内页码。</blockquote>
 <p><strong>论文速览</strong>：这是由智谱 AI 与清华大学联合团队（Team GLM）发表的 ChatGLM 系列四代技术总报告。论文标题点明主线「从 GLM-<span class="num">130</span>B 到 GLM-<span class="num">4 </span>All Tools」，实质是把 <span class="num">2021</span> 年至 <span class="num">2024</span> 年间中国开源/商用 LLM 阵营中极具代表性的一条技术谱系做了一次系统性复盘。与许多"单个模型"论文不同，本论文的叙述对象不是一个模型，而是一整条迭代序列：它既回顾了 GLM-<span class="num">130</span>B（<span class="num">400</span>B 参数，<span class="num">2022-08</span> 开源）的初衷，也纵览了 ChatGLM-6B / ChatGLM2 / ChatGLM3 / GLM-<span class="num">4 </span>及 GLM-4-Air / GLM-<span class="num">4-9</span>B 的开源演进，最后落在 GLM-<span class="num">4 </span>All Tools 这一多工具智能体能力上。全文 <span class="num">19</span> 页，正文至 §<span class="num">5 </span>Conclusion 约第 <span class="num">13</span> 页，结构上把"技术方法"（§2）与"能力实证"（§3/§4）分成两大块，辅以安全维度（§<span class="num">4 </span>Safety and Risks）的专节。</p>
@@ -222,4 +242,4 @@ hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
 <hr>
 <p>*（说明：本文所有数值性结论均严格引自同目录 <code><span class="num">00</span>-源数据提取.md</code>；所有标「<span class="infer">（推断）</span>」的表述均为超出该文件数字范围的合理推演，仅供阅读参考，不作事实断言。本文不承担生成 HTML 之责，仅交付本 Markdown 深度解读报告。）*</p>
 <div class="selfcheck">数据依据：本页 00-源数据提取.md | 推断处已标注（推断）| 生成：批量转换脚本</div>
-</div></body></html>
+</main></body></html>
