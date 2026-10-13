@@ -1,5 +1,5 @@
 {
- "determinism_note": "★ 确定性件：⛔ 无墙钟时间戳、⛔ 无作者机绝对路径。tree_digest 排除本报告自身（否则自指：写报告改树 ⇒ 下次摘要必变）。",
+ "determinism_note": "★ 确定性件：⛔ 无墙钟时间戳、⛔ 无作者机绝对路径。tree_digest 排除本报告自身（否则自指：写报告改树 ⇒ 下次摘要必变）。★ 亦**不写 `source_head`**：报告随提交入库 ⇒ 它的值就是「包含它的那次提交」，任何一次提交都会让重跑结果与盘上不一致（同一种自指）。改动前的 HEAD 可随时用 `git log` 取，⛔ 不必进报告。",
  "failed": [],
  "gates": [
   {
@@ -101,7 +101,6 @@
  "result": "PASS",
  "schema": "llm-papers-gate-report/1",
  "site": "llm-papers-knowledge-base",
- "source_head": "2d55229b011f91ea9d25dbcda9b79e1a40059927",
- "tree_digest": "f6730da38c3992660fa1a995d2d1905650d5d50834bc7045045b7bb27a1c9844",
+ "tree_digest": "d310b3b7276261c0353ed6075703657a13b22c030e6a9ac9fbe66425089645ce",
  "tree_digest_files": 565
 }
