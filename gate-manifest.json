@@ -1,0 +1,136 @@
+{
+  "site": "llm-papers-knowledge-base",
+  "schema_note": "范式沿用 hub 的 scripts/check_ci_manifest.py（见 AUD 侧 pipeline/check_gate_manifest.py 的 M1–M6）。★ 本文件由**站点仓内**版本化，⛔ 不含任何豁免/白名单字段（M4 会主动拒绝 waivers/exempt/allow/skip/ignore 一类键）。",
+  "generated_by": "批 I · ROLLOUT-PLAN 第 3 轮（站 06 标准档）：新建 4 道站点侧门控（gate_tokens.py 的 G1–G10 / gate_links.py 的 LK1–LK7 / gate_census.py 的 TC1–TC6 / gate_ci_contract.py 的 CI1–CI7）＋ 1 道清单守门人（vendored）。★ 本站**改动前没有任何设计门控**（data/batch_gate.py 与 data/final_gate.py 都不读 CSS、不读令牌、不读对比度）。",
+  "gates": [
+    {
+      "id": "gate-tokens",
+      "script": "gate_tokens.py",
+      "reads": [
+        "docs/**/*.html 的首个 `:root` 令牌块与内联 <style> 文本（扫描面 = 139 页）",
+        "改动前基线 data/token-baseline.json（palette 值注册表 + 逐页 hex/令牌面）",
+        "站点值件 vendor/pipeline/values/llm-papers-knowledge-base.json（roles / palettes / binding / usage_tiers）",
+        "profile：build/profile.json（targets / page_families / no_root_pages / generator_owned_products / snapshot_products / known_contrast_defects / site_level_zero_ref）",
+        "生成器源码：data/*.py 的 OUT_PATH 赋值（**ast 求值面**，含跨行拼接与 os.path.join）"
+      ],
+      "selftest": true,
+      "mode": "enforce",
+      "mode_note": "★ G1 是 blind 类（空集守卫），不随任何模式放宽：致盲即 exit 1。G5/G6 含 report 面（既有缺陷按 Q3=A 登记，不改值）。",
+      "judges": [
+        {"id": "G1", "name": "空集守卫（页/族/值注册表/基线页均非空）", "class": "blind"},
+        {"id": "G2", "name": "形态 2 不变量（外链 CSS = 0 且每页 ≥1 个 <style>）· Q6=A", "class": "hard"},
+        {"id": "G3", "name": "等值注入（页面值 ⊆ 改动前基线 ∪ 值件角色值；新增页须登记）· Q3=A", "class": "hard"},
+        {"id": "G4", "name": "目标存在性（targets 全在 ＋ no_root_pages 真的无 :root）", "class": "hard"},
+        {"id": "G5", "name": "成对对比度（usage_tiers 逐档 · contrast.py 实算 · 登记双向）", "class": "hard/report"},
+        {"id": "G6", "name": "零引用令牌登记（站点级 hard / 页级 report，双向）", "class": "hard/report"},
+        {"id": "G7", "name": "未声明令牌（盘上名 ⊆ 值注册表名 ∪ 值件声明名）", "class": "hard"},
+        {"id": "G8", "name": "生成器单源不变量（首页有认领 · timeline 写者恰 1）· Q1=A⇒B / Q4=A", "class": "hard"},
+        {"id": "G9", "name": "产物归属（生成器面恰 1 写者 · 快照面零写者 · 双向登记）", "class": "hard"},
+        {"id": "G10", "name": "口径分布（词汇表/零令牌页/@media；仅报告）", "class": "report"}
+      ],
+      "not_enforced_here": [
+        "★ 不判「族内唯一值」：本站同族内合法存在不同取值（76 套词汇表 + Q3=A 等值注入）⇒ 按 SH5 §4.0 第 1 条不得写那种判据（那会把合法差异判成 FAIL）。",
+        "★ 不判像素/渲染层：等值注入只到「计算值不变」的代数等价（每页令牌值 == 该页原本字面值），真实渲染由 AUD 侧像素层承担。",
+        "★ 不判生成器的**语义**正确性（如首页文案是否恰当）：只判「有认领者、写者唯一、产物存在」。"
+      ]
+    },
+    {
+      "id": "gate-links",
+      "script": "gate_links.py",
+      "reads": [
+        "docs/**/*.html 的锚 href（`<a|area|link href>`；★ 先剥 <style>/<script> 与 HTML 注释）",
+        "目标文件的存在性与 `id` 集合（页内锚命中）",
+        "profile 的 link_registry.external_hosts 与 known_broken_links（★ 双向登记）"
+      ],
+      "selftest": true,
+      "mode": "enforce",
+      "mode_note": "LK1/LK7 为 blind 类；LK2–LK5 hard；LK6 仅报告。★ Q5=A 的负向夹具就是改动前首页那条 `../README.md`（自检里逐条复现）。",
+      "judges": [
+        {"id": "LK1", "name": "空集守卫（页/href/外站登记表均非空）", "class": "blind"},
+        {"id": "LK2", "name": "站内锚可达（相对路径锚必须解析到存在的文件）", "class": "hard"},
+        {"id": "LK3", "name": "页内锚命中（#id 必须真的存在）", "class": "hard"},
+        {"id": "LK4", "name": "站外锚登记（fail-closed：未登记 host ⇒ FAIL；双向）", "class": "hard"},
+        {"id": "LK5", "name": "已知断链登记双向（在册的必须真断 · 断的必须全在册）", "class": "hard"},
+        {"id": "LK6", "name": "站外锚分布（仅报告）", "class": "report"},
+        {"id": "LK7", "name": "解析口径自检（锚内 href 数 == 属性面 href 数）", "class": "blind"}
+      ],
+      "not_enforced_here": [
+        "★ 外站锚的**网络可达性**未测（本机与 CI 都不触网断言 200）：只判「host 已登记」，⛔ 不得读作「外链都能打开」。",
+        "★ `media.githubusercontent.com` 的 LFS 直链在 CI 内不可稳定断言（方案 §6 已登记该风险）。",
+        "★ 只判**标记层**锚：JS 运行期拼出的 URL（如泳道图的动态跳转）不在判据面内。"
+      ]
+    },
+    {
+      "id": "gate-census",
+      "script": "gate_census.py",
+      "reads": [
+        "docs/**/*.html 的 `:root` 名集合、`var()` 引用集合、`@media` 计数、hex 计数",
+        "改动前基线 data/token-baseline.json（palette + 逐页页集合/计数）",
+        "profile 的 page_families 与 no_root_pages"
+      ],
+      "selftest": true,
+      "mode": "enforce",
+      "mode_note": "TC1 为 blind 类。★ 本门控**只判变化不判对错**（Q2=A：本站当前没有「对」的基准），基线可显式登记更新（登记即视为有意变更，⛔ 不设豁免白名单）。",
+      "judges": [
+        {"id": "TC1", "name": "空集守卫（页/基线页/值注册表/page_families 均非空）", "class": "blind"},
+        {"id": "TC2", "name": "页集合双向一致（盘上 == 改动前基线）", "class": "hard"},
+        {"id": "TC3", "name": "词汇表数不增（残余词汇表指纹 ≤ 基线）", "class": "hard"},
+        {"id": "TC4", "name": "零令牌页清零 ＋ 每页有 `:root`（无根页逐页登记，双向）", "class": "hard"},
+        {"id": "TC5", "name": "注入令牌真被引用（声明的每个令牌至少被本页引用一次）", "class": "hard"},
+        {"id": "TC6", "name": "分布（@media / hex 计数；仅报告）", "class": "report"}
+      ],
+      "not_enforced_here": [
+        "★ 不判「词汇表该不该有 76 套」：那是 Q2=A 之后「按页面族分批收敛」的事，归后续轮。",
+        "★ 不判令牌**语义命名**质量（当前命名层是值注册表 `--lp-{bg|ink|line|mix}-NNN`）。"
+      ]
+    },
+    {
+      "id": "gate-ci-contract",
+      "script": "gate_ci_contract.py",
+      "reads": [
+        ".github/workflows/pages.yml 的**有效 YAML**（pyyaml；⛔ 无降级解析路径）jobs.*.steps 顺序与 run/uses 内容",
+        "gate-manifest.json 的登记项与 profile.gates.commands",
+        "profile.build.{entry,pipeline,inspectors,excluded_generators} 与 data/*.py 的实际文件集合",
+        "data/build_all.py 的 PIPELINE 常量（**ast 求值面**）"
+      ],
+      "selftest": true,
+      "mode": "enforce",
+      "mode_note": "CI1 为 blind 类；CI2–CI6 hard；CI7 仅报告。★ 本门控是 §4.1「门控必须在重生成之后 / 回写之前」硬约束的机检落点。",
+      "judges": [
+        {"id": "CI1", "name": "空集守卫（steps ≥1 且构建登记面非空）", "class": "blind"},
+        {"id": "CI2", "name": "步骤序 Rebuild < Gate < Publish（「回写 master」在本站 N/A，已显式声明）", "class": "hard"},
+        {"id": "CI3", "name": "登记 ↔ CI 调用双向（清单项必须在 CI Gate 步被调用；反之亦然）", "class": "hard"},
+        {"id": "CI4", "name": "data/*.py 四分登记双向（entry ∪ pipeline ∪ inspectors ∪ excluded，恰属一类）", "class": "hard"},
+        {"id": "CI5", "name": "Rebuild 步调用 build_all.py 且其 PIPELINE == build.pipeline 声明（双向）", "class": "hard"},
+        {"id": "CI6", "name": "CI Gate 步调用清单守门人 check_gate_manifest.py", "class": "hard"},
+        {"id": "CI7", "name": "CI 变更面（workflow sha256 与 step 清单；仅报告）", "class": "report"}
+      ],
+      "not_enforced_here": [
+        "★ 未在真实 GitHub Actions 上跑过（本机无 actionlint，也不触网）⇒ 只有静态判据。",
+        "★ 不判 YAML 的**其它**语义（action 版本是否存在、permissions 是否最小化）。"
+      ]
+    },
+    {
+      "id": "manifest-check",
+      "script": "check_gate_manifest.py",
+      "reads": [
+        "本清单与 build/profile.json 的 gates.commands 的**双向**一致性（登记⇒被调用 / 被调用⇒登记）",
+        "清单项数、命令数、每项的 reads 与 selftest 声明、未覆盖面声明"
+      ],
+      "selftest": true,
+      "mode": "hard",
+      "note": "本项是清单自身的守门人（vendored 薄副本，AUD 侧 pipeline/check_gate_manifest.py 为唯一真相源）。"
+    }
+  ],
+  "not_covered": [
+    "★ 三 job 发布形态未验（本站不采用；ADR-003 的发布形态收敛是常设排除项）。",
+    "★★ 像素层视觉回归在站点仓内完全未测：等值注入只证到「计算值不变」，真实渲染由 AUD 侧 P2=A 的像素层承担。",
+    "★ 无障碍与 SEO 实缺（skip link / :focus-visible / description / og / canonical / favicon）**不在本轮门控面内**，按 P3=B 以报告模式登记并「已排期：另立一轮」。",
+    "★ 外站锚的网络可达性未测（不触网）；LFS 直链在 CI 内不可稳定断言。",
+    "★ JS 运行期拼出的 URL/class 不在判据面内（静态扫描）。",
+    "★ 134 个解读页的正文来源不在本仓 ⇒ 其「可复现」只到后处理器幂等层（见 build.profile 的 build.rebuild_fidelity）。",
+    "★ 单位体系（px→rem/ch）与静态搜索索引属理想档，未做。",
+    "★ data/final_gate.py 的过期字面量（total == 125）如实登记但本轮不改（改判据超出 L1 裁定）。",
+    "★ 「门控真的在真实 Actions 上跑过」本轮未验：只做到「本地对仓内现状实跑 0 FAIL ＋ 静态核对 workflow 步骤序」。"
+  ]
+}

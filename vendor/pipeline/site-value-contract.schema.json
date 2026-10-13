@@ -1,0 +1,177 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "site-value-contract.schema.json",
+  "title": "站点独立值件（site value contract）",
+  "description": "站点侧机读值件 —— 单一真相源。形状沿用批 C 任务 4 PoC 的 site-value-contract.json，并按 SH1 §4.5.3 补入三级覆盖（族默认 → 站点覆盖 → 页面族覆盖）。⛔ 值件不直接改站点模板文件；写入由 pipeline/write_site_tokens.py 完成。",
+  "type": "object",
+  "required": ["meta", "scope", "usage_tiers", "roles", "palettes", "binding", "families", "derivation"],
+  "additionalProperties": true,
+  "definitions": {
+    "tier": {
+      "type": "object",
+      "required": ["allowed_use", "min_contrast", "gate"],
+      "properties": {
+        "allowed_use": { "type": "string", "minLength": 1 },
+        "min_contrast": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "type": "number", "exclusiveMinimum": 0 }
+        },
+        "gate": { "enum": ["hard", "report-only"] },
+        "provenance": { "type": "string" }
+      }
+    },
+    "form": { "enum": ["light", "dark"] }
+  },
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["id", "contract_version", "frozen_at", "title"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "contract_version": { "type": "string", "minLength": 1 },
+        "frozen_at": { "type": "string", "minLength": 8 },
+        "round": { "type": "string" },
+        "title": { "type": "string", "minLength": 1 },
+        "nature": { "type": "string" },
+        "authority": { "type": "string" },
+        "adr_ref": { "type": "string" }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "required": ["site", "declared_forms", "upstream_repo_head"],
+      "properties": {
+        "site": { "type": "string", "minLength": 1 },
+        "site_number": { "type": "string" },
+        "upstream_repo_head": { "type": "string", "minLength": 7 },
+        "declared_forms": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": { "$ref": "#/definitions/form" }
+        },
+        "declared_forms_reason": { "type": "string" },
+        "declared_forms_evidence": { "type": "string" },
+        "family": { "type": "string" },
+        "family_note": { "type": "string" }
+      }
+    },
+    "coverage_levels": {
+      "type": "object",
+      "required": ["order"],
+      "properties": {
+        "order": {
+          "type": "array", "minItems": 3, "maxItems": 3,
+          "items": { "enum": ["family-default", "site-override", "page-family"] }
+        },
+        "note": { "type": "string" }
+      }
+    },
+    "usage_tiers": {
+      "type": "object",
+      "required": ["body", "non-body", "non-text"],
+      "additionalProperties": { "$ref": "#/definitions/tier" }
+    },
+    "roles": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["tier", "kind", "purpose", "site_source"],
+        "properties": {
+          "tier": { "type": "string", "minLength": 1 },
+          "kind": { "enum": ["text", "semantic-text", "border", "surface", "brand", "focus", "dimension"] },
+          "purpose": { "type": "string", "minLength": 1 },
+          "site_source": { "type": "string" },
+          "site_source_note": { "type": "string" },
+          "consumed": { "type": "boolean" }
+        }
+      }
+    },
+    "palettes": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["family", "provenance", "values"],
+        "properties": {
+          "family": { "type": "string" },
+          "provenance": { "type": "string" },
+          "values": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": {
+              "type": "object",
+              "minProperties": 1,
+              "additionalProperties": { "type": ["string", "number"] }
+            }
+          }
+        }
+      }
+    },
+    "binding": {
+      "type": "object",
+      "required": ["site_token_names", "note"],
+      "properties": {
+        "site_token_names": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "pattern": "^--[A-Za-z0-9_-]+$" }
+        },
+        "aliases": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["canonical_role", "note"],
+            "properties": {
+              "canonical_role": { "type": "string" },
+              "note": { "type": "string" }
+            }
+          }
+        },
+        "note": { "type": "string" },
+        "passthrough_tokens": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": { "type": ["string", "number"] }
+          }
+        },
+        "passthrough_tokens_reason": { "type": "string" }
+      }
+    },
+    "families": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["targets", "overrides"],
+        "properties": {
+          "targets": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "overrides": {
+            "type": "object",
+            "additionalProperties": { "type": ["string", "number"] }
+          },
+          "generator": { "type": "string" },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "derivation": {
+      "type": "object",
+      "required": ["state", "direction", "generator_ref", "rule"],
+      "properties": {
+        "state": { "type": "string" },
+        "direction": { "type": "string" },
+        "generator_ref": { "type": "string" },
+        "derived_fields": { "type": "array", "items": { "type": "string" } },
+        "mirror_fields": { "type": "array", "items": { "type": "string" } },
+        "rule": { "type": "string" },
+        "write_surface_guard": { "type": "string" },
+        "write_mode": { "enum": ["whole-file", "root-block", "marker-region"] }
+      }
+    },
+    "bootstrap": { "type": "object" },
+    "transition": { "type": "object" },
+    "known_site_defects_registered": { "type": "array" },
+    "not_provided": { "type": "array", "items": { "type": "string" } }
+  }
+}

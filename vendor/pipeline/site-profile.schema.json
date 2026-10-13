@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "site-profile.schema.json",
+  "title": "站点 profile（站点参数面）",
+  "description": "把「随站点变化的一切」集中显式声明：分发形态 / 发布目录 / 生成目录与命令 / 值件路径 / 写入目标与写入模式。pipeline 的四件（派生器 · 写入器 · 契约门控 · 三 job 模板）都只读 profile，⛔ 不把站点差异写进脚本。",
+  "type": "object",
+  "required": ["site", "form", "publish_dir", "value_file", "targets", "gates"],
+  "additionalProperties": true,
+  "properties": {
+    "site": { "type": "string", "minLength": 1 },
+    "site_number": { "type": "string" },
+    "repo": { "type": "string" },
+    "default_branch": { "type": "string" },
+    "form": { "enum": ["external-link", "inline-single-source"] },
+    "form_reason": { "type": "string" },
+    "publish_dir": {
+      "type": "string",
+      "description": "ADR-003 条款三：发布目录不统一，按站显式参数化；契约只冻结『存在一条单一构建输出目录』。允许为 \".\"（根目录发布）。"
+    },
+    "publish_dir_shape": { "enum": ["root", "subdir"] },
+    "value_file": { "type": "string" },
+    "local_clone": { "type": "string" },
+    "generator_dirs": {
+      "type": "array",
+      "description": "本仓的生成器目录白名单（申报口径，用于复算真实生成器数；⛔ 不靠启发式猜）。",
+      "items": { "type": "string" }
+    },
+    "generator_commands": {
+      "type": "array",
+      "description": "build job 的生成命令（空数组表示手工站，无构建管线）。",
+      "items": { "type": "string" }
+    },
+    "build_cwd": { "type": "string" },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["path", "mode", "family"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "mode": { "enum": ["whole-file", "root-block", "marker-region"] },
+          "family": { "type": "string", "minLength": 1 },
+          "expect_absent": { "type": "boolean" },
+          "frozen_sha256": { "type": ["string", "null"] },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "gates": {
+      "type": "object",
+      "required": ["manifest", "hard_blocking", "commands"],
+      "properties": {
+        "manifest": { "type": "string" },
+        "hard_blocking": {
+          "type": "array", "minItems": 1,
+          "description": "ADR-003 条款六第一段：本批硬阻断集。",
+          "items": { "enum": ["token-consistency", "contrast", "empty-set-guard", "artifact-existence"] }
+        },
+        "report_only": {
+          "type": "array",
+          "items": { "enum": ["dead-css", "a11y", "responsive", "metadata"] }
+        },
+        "commands": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+      }
+    },
+    "non_target_guard": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": { "enum": ["rules-segment", "none"] },
+        "regex": { "type": "string" },
+        "note": { "type": "string" }
+      }
+    }
+  }
+}

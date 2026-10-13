@@ -7,8 +7,7 @@
 <style>
   :root{
     --ink:#1a2332; --muted:#5a6a7e; --accent:#b3541e; --accent2:#0f6b5c;
-    --bg:#faf8f4; --card:#ffffff; --line:#e4ddd2; --hl-bg:#fdf0e3; --hl2-bg:#e6f4f0;
-  }
+    --bg:#faf8f4; --card:#ffffff; --line:#e4ddd2; --hl-bg:#fdf0e3; --hl2-bg:#e6f4f0;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-ink-015:#7c2d12;--lp-bg-256:#f1ede5;--lp-ink-170:#4a3b2a;--lp-bg-249:#efe9de;--lp-bg-093:#fbf9f5;--lp-bg-383:#fffdf9;--lp-bg-357:#fdf4e8;/* LP:TOKENS:END */}
   *{box-sizing:border-box;}
   body{
     margin:0; padding:0; background:var(--bg); color:var(--ink);
@@ -24,7 +23,7 @@
     border-bottom:1px solid var(--line); padding-bottom:8px;}
   h3{font-size:17.5px; margin:30px 0 10px; color:var(--ink);}
   p{margin:10px 0; text-align:justify;}
-  strong{color:#7c2d12;}
+  strong{color:var(--lp-ink-015);}
   em{font-style:normal; color:var(--accent2);}
   .num{
     font-family:"SF Mono",Consolas,monospace; font-weight:700; font-size:.95em;
@@ -37,7 +36,7 @@
     white-space:nowrap;
   }
   code,.mono{font-family:"SF Mono",Consolas,"Courier New",monospace; font-size:.9em;
-    background:#f1ede5; padding:1px 5px; border-radius:3px; color:#4a3b2a;}
+    background:var(--lp-bg-256); padding:1px 5px; border-radius:3px; color:var(--lp-ink-170);}
   blockquote{
     margin:20px 0; padding:14px 18px; background:var(--card);
     border-left:4px solid var(--accent2); border-radius:0 4px 4px 0;
@@ -45,27 +44,44 @@
   }
   blockquote p{margin:0;}
   table{width:100%; border-collapse:collapse; margin:18px 0; font-size:14.5px; background:var(--card);}
-  th{background:#efe9de; text-align:left; padding:9px 12px; border:1px solid var(--line); white-space:nowrap;}
+  th{background:var(--lp-bg-249); text-align:left; padding:9px 12px; border:1px solid var(--line); white-space:nowrap;}
   td{padding:9px 12px; border:1px solid var(--line); vertical-align:top;}
-  tr:nth-child(even) td{background:#fbf9f5;}
+  tr:nth-child(even) td{background:var(--lp-bg-093);}
   ul,ol{padding-left:26px; margin:10px 0;}
   li{margin:6px 0;}
   .abstract{
-    background:linear-gradient(135deg,#fffdf9,#fdf4e8); border:1px solid var(--line);
+    background:linear-gradient(135deg,var(--lp-bg-383),var(--lp-bg-357)); border:1px solid var(--line);
     border-radius:8px; padding:22px 26px; margin-bottom:8px;
   }
   .abstract h2{margin-top:0; border:none;}
-  .tag{display:inline-block; font-size:12px; color:#fff; background:var(--accent);
+  .tag{display:inline-block; font-size:12px; color:var(--card); background:var(--accent);
     border-radius:3px; padding:1px 8px; margin-right:6px; vertical-align:2px;}
   footer.check{
     margin-top:64px; border-top:2px dashed var(--line); padding-top:20px;
     font-size:13.5px; color:var(--muted);
   }
   footer.check ul{margin:8px 0 0;}
-  @media print{ body{background:#fff;} .wrap{padding:0;} }
+  @media print{ body{background:var(--card);} .wrap{padding:0;} }
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>Constitutional_AI</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <header class="doc">

@@ -4,55 +4,72 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>《GLM-5: from Vibe Coding to Agentic Engineering》深度解读报告</title>
-<style>
+<style>:root{/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-bg-304:#f7f4ec;--lp-ink-138:#2d2a24;--lp-bg-382:#fffdf8;--lp-line-016:#a89468;--lp-ink-260:#a0522d;--lp-ink-128:#26221a;--lp-ink-198:#6b6355;--lp-bg-258:#f2ede1;--lp-ink-055:#57503f;--lp-bg-329:#fbf6ea;--lp-line-067:#c98a2d;--lp-ink-174:#4d4432;--lp-ink-234:#8a5a13;--lp-ink-015:#7c2d12;--lp-line-087:#e5dcc6;--lp-ink-013:#334155;--lp-ink-110:#1f2937;--lp-ink-061:#92400e;--lp-bg-313:#faeeda;--lp-line-071:#cbbfa2;--lp-bg-209:#3d3629;--lp-ink-310:#f7f2e4;--lp-line-095:#ece4cf;--lp-bg-316:#faf6ea;--lp-bg-275:#f3ecd8;--lp-ink-163:#3f382c;--lp-ink-215:#7a7160;--lp-line-084:#ddd3ba;--lp-ink-236:#8a8070;--lp-ink-001:#ffffff;/* LP:TOKENS:END */}
 *{margin:0;padding:0;box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{
   font-family:"Noto Serif SC","Source Han Serif SC","Songti SC","SimSun",Georgia,"Microsoft YaHei",serif;
-  background:#f7f4ec;color:#2d2a24;line-height:1.88;font-size:16px;
+  background:var(--lp-bg-304);color:var(--lp-ink-138);line-height:1.88;font-size:16px;
 }
-.container{max-width:960px;margin:0 auto;padding:52px 34px 72px;background:#fffdf8;
+.container{max-width:960px;margin:0 auto;padding:52px 34px 72px;background:var(--lp-bg-382);
   box-shadow:0 0 22px rgba(80,60,20,.10);min-height:100vh}
-header.masthead{text-align:center;border-bottom:3px double #a89468;padding-bottom:30px;margin-bottom:38px}
-header.masthead .kicker{font-size:.82em;letter-spacing:.35em;color:#a0522d;text-transform:uppercase;margin-bottom:12px}
-h1{font-size:1.85em;line-height:1.45;color:#26221a;font-weight:700}
-header.masthead .sub{margin-top:14px;font-size:.92em;color:#6b6355}
-blockquote.data-basis{background:#f2ede1;border-left:4px solid #a89468;padding:14px 20px;margin:0 0 14px;
-  font-size:.92em;color:#57503f;border-radius:0 6px 6px 0}
-blockquote.summary{background:#fbf6ea;border-left:4px solid #c98a2d;padding:14px 20px;margin:22px 0 8px;
-  color:#4d4432;border-radius:0 6px 6px 0}
-blockquote.summary strong{color:#8a5a13}
-h2{font-size:1.42em;color:#7c2d12;margin:44px 0 18px;padding-bottom:8px;border-bottom:2px solid #e5dcc6}
-h3{font-size:1.15em;color:#334155;margin:30px 0 12px}
+header.masthead{text-align:center;border-bottom:3px double var(--lp-line-016);padding-bottom:30px;margin-bottom:38px}
+header.masthead .kicker{font-size:.82em;letter-spacing:.35em;color:var(--lp-ink-260);text-transform:uppercase;margin-bottom:12px}
+h1{font-size:1.85em;line-height:1.45;color:var(--lp-ink-128);font-weight:700}
+header.masthead .sub{margin-top:14px;font-size:.92em;color:var(--lp-ink-198)}
+blockquote.data-basis{background:var(--lp-bg-258);border-left:4px solid var(--lp-line-016);padding:14px 20px;margin:0 0 14px;
+  font-size:.92em;color:var(--lp-ink-055);border-radius:0 6px 6px 0}
+blockquote.summary{background:var(--lp-bg-329);border-left:4px solid var(--lp-line-067);padding:14px 20px;margin:22px 0 8px;
+  color:var(--lp-ink-174);border-radius:0 6px 6px 0}
+blockquote.summary strong{color:var(--lp-ink-234)}
+h2{font-size:1.42em;color:var(--lp-ink-015);margin:44px 0 18px;padding-bottom:8px;border-bottom:2px solid var(--lp-line-087)}
+h3{font-size:1.15em;color:var(--lp-ink-013);margin:30px 0 12px}
 p{margin:12px 0;text-align:justify}
 ul,ol{margin:12px 0 12px 2em}
 li{margin:7px 0;text-align:justify}
-strong{color:#1f2937}
-em{color:#92400e;font-style:normal;font-weight:600}
+strong{color:var(--lp-ink-110)}
+em{color:var(--lp-ink-061);font-style:normal;font-weight:600}
 .num{
   font-family:"JetBrains Mono","SFMono-Regular",Consolas,Menlo,monospace;
-  font-weight:700;color:#7c2d12;background:#faeeda;
+  font-weight:700;color:var(--lp-ink-015);background:var(--lp-bg-313);
   padding:1px 6px;border-radius:4px;font-size:.94em;white-space:nowrap;
 }
-hr.sep{border:none;border-top:1px dashed #cbbfa2;margin:36px auto;width:70%}
+hr.sep{border:none;border-top:1px dashed var(--lp-line-071);margin:36px auto;width:70%}
 table{width:100%;border-collapse:collapse;margin:18px 0 10px;font-size:.93em;
   box-shadow:0 1px 4px rgba(90,70,30,.08);border-radius:6px;overflow:hidden}
-caption{caption-side:top;text-align:left;font-weight:700;color:#57503f;padding:0 0 8px;font-size:.95em}
-th{background:#3d3629;color:#f7f2e4;padding:9px 10px;text-align:center;font-weight:600;line-height:1.5}
-td{padding:8px 10px;border-bottom:1px solid #ece4cf;text-align:center;line-height:1.6}
-tbody tr:nth-child(even){background:#faf6ea}
-tbody tr:hover{background:#f3ecd8}
-td:first-child{text-align:left;font-weight:600;color:#3f382c}
-td.best{color:#7c2d12;font-weight:800}
-.table-note{font-size:.86em;color:#7a7160;margin:4px 0 0}
+caption{caption-side:top;text-align:left;font-weight:700;color:var(--lp-ink-055);padding:0 0 8px;font-size:.95em}
+th{background:var(--lp-bg-209);color:var(--lp-ink-310);padding:9px 10px;text-align:center;font-weight:600;line-height:1.5}
+td{padding:8px 10px;border-bottom:1px solid var(--lp-line-095);text-align:center;line-height:1.6}
+tbody tr:nth-child(even){background:var(--lp-bg-316)}
+tbody tr:hover{background:var(--lp-bg-275)}
+td:first-child{text-align:left;font-weight:600;color:var(--lp-ink-163)}
+td.best{color:var(--lp-ink-015);font-weight:800}
+.table-note{font-size:.86em;color:var(--lp-ink-215);margin:4px 0 0}
 section.chapter{margin-bottom:8px}
-footer.colophon{margin-top:56px;border-top:1px solid #ddd3ba;padding-top:18px;
-  font-size:.82em;color:#8a8070;text-align:center}
-@media print{body{background:#fff}.container{box-shadow:none;padding:0}}
+footer.colophon{margin-top:56px;border-top:1px solid var(--lp-line-084);padding-top:18px;
+  font-size:.82em;color:var(--lp-ink-236);text-align:center}
+@media print{body{background:var(--lp-ink-001)}.container{box-shadow:none;padding:0}}
 @media (max-width:640px){.container{padding:32px 18px}h1{font-size:1.4em}td,th{padding:6px 6px;font-size:.86em}}
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>GLM-5</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="container">
 
 <header class="masthead">

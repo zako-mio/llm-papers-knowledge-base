@@ -1,6 +1,11 @@
 import os, sys, json
 sys.stdout.reconfigure(encoding="utf-8")
-BASE = "/home/zako-mio/opencode/archive/Mission-file/2026-08/0825-LLM关键节点论文全集"
+# ★ L1 本地化（批 I · 裁定 L1=A）：⛔ 不再写死作者机绝对路径；由文件位置推导仓根。
+#   输入（data/papers_master.json）与产物（docs/analysis/index.html）在仓内均存在
+#   ⇒ 本地化后**行为等价**（实测：重跑产物与改动前逐字节相同）。
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# ★ 产物归属声明：本件认领 docs/analysis/index.html（gate_tokens.py 的 G8/G9 用 ast 扫 OUT_PATH）。
+OUT_PATH = os.path.join(BASE, "docs", "analysis", "index.html")
 master = json.load(open(os.path.join(BASE, "data/papers_master.json"), encoding="utf-8"))
 TOTAL = master["total"]
 batch_meta = {p["slug"]: p for p in master["papers"]}
@@ -50,7 +55,7 @@ li a:hover{text-decoration:underline}
     __CARDS__
     <div class="note">进度：已完成深度解读 __DONE__ / __TOTAL__ 篇。批次顺序 B1(P3) → B2(P2) → B3(P1)。每篇目录含 00-源数据提取.md（AI 权威数据层）、01-深度解读报告.md（AI 镜像）、03-深度解读报告.html（人类阅读入口）。论文 PDF（Git LFS）下载入口见<a href="../timeline.html" style="color:#7cb3ff">互动时间线</a>。</div>
     </div></body></html>""".replace("__TOTAL__", str(TOTAL)).replace("__CARDS__", "".join(cards)).replace("__DONE__", str(done_total))
-out = os.path.join(BASE, "docs", "analysis", "index.html")
+out = OUT_PATH
 open(out, "w", encoding="utf-8").write(html)
 h = open(out, "rb").read()
 assert "\ufffd".encode() not in h

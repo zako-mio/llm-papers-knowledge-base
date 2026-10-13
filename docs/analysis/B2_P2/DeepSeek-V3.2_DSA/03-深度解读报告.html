@@ -8,8 +8,7 @@
   :root{
     --ink:#1c2333; --sub:#5a6478; --bg:#f6f7fa; --card:#ffffff;
     --accent:#0f62fe; --accent-soft:#e8f0fe; --gold:#b7791f; --line:#e3e7ef;
-    --warn:#b42318; --ok:#067647;
-  }
+    --warn:#b42318; --ok:#067647;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-bg-046:#101a33;--lp-bg-168:#17306b;--lp-bg-350:#fdf3e2;--lp-bg-342:#fdecea;--lp-ink-148:#333d52;--lp-ink-045:#14213d;--lp-ink-213:#7a6a2f;--lp-bg-360:#fdf8ea;--lp-line-081:#d9b64a;--lp-bg-065:#eef2fb;--lp-bg-007:#fafbfd;--lp-bg-379:#fffaf9;--lp-bg-303:#f6fcf8;--lp-bg-117:#0f1729;--lp-ink-287:#d6e4ff;--lp-ink-275:#c9d6f2;--lp-ink-027:#4ade80;/* LP:TOKENS:END */}
   *{box-sizing:border-box;margin:0;padding:0}
   body{
     font-family:"Noto Serif SC","Source Han Serif SC","Songti SC",serif;
@@ -18,8 +17,8 @@
   }
   .wrap{max-width:920px;margin:0 auto}
   .hero{
-    margin:40px 0 28px;padding:44px 44px 38px;border-radius:18px;color:#fff;
-    background:linear-gradient(135deg,#101a33 0%,#17306b 55%,#0f62fe 130%);
+    margin:40px 0 28px;padding:44px 44px 38px;border-radius:18px;color:var(--card);
+    background:linear-gradient(135deg,var(--lp-bg-046) 0%,var(--lp-bg-168) 55%,var(--accent) 130%);
     box-shadow:0 12px 32px rgba(16,26,51,.25);
   }
   .hero .kicker{font-family:"JetBrains Mono",Consolas,monospace;font-size:12px;letter-spacing:.22em;opacity:.75;text-transform:uppercase}
@@ -32,11 +31,11 @@
     color:var(--accent);background:var(--accent-soft);
     padding:1px 6px;border-radius:6px;font-weight:600;white-space:nowrap;
   }
-  .num.gold{color:var(--gold);background:#fdf3e2}
-  .num.warn{color:var(--warn);background:#fdecea}
+  .num.gold{color:var(--gold);background:var(--lp-bg-350)}
+  .num.warn{color:var(--warn);background:var(--lp-bg-342)}
   .abstract{
     background:var(--card);border:1px solid var(--line);border-left:5px solid var(--accent);
-    border-radius:12px;padding:26px 30px;margin-bottom:34px;font-size:15.5px;color:#333d52;
+    border-radius:12px;padding:26px 30px;margin-bottom:34px;font-size:15.5px;color:var(--lp-ink-148);
   }
   .abstract h2{font-size:17px;color:var(--accent);margin-bottom:10px;letter-spacing:.08em}
   .sec{
@@ -48,47 +47,64 @@
     padding-bottom:14px;border-bottom:2px solid var(--accent-soft);
   }
   .sec>h2 .idx{
-    flex:none;width:38px;height:38px;border-radius:10px;background:var(--accent);color:#fff;
+    flex:none;width:38px;height:38px;border-radius:10px;background:var(--accent);color:var(--card);
     display:flex;align-items:center;justify-content:center;font-size:17px;
     font-family:"JetBrains Mono",Consolas,monospace;font-weight:700;
   }
-  h3{font-size:17.5px;margin:24px 0 10px;color:#14213d}
+  h3{font-size:17.5px;margin:24px 0 10px;color:var(--lp-ink-045)}
   h3::before{content:"§";color:var(--accent);margin-right:8px;font-weight:700}
   p{margin:10px 0;text-align:justify}
   .infer{
-    color:#7a6a2f;background:#fdf8ea;border-left:3px solid #d9b64a;
+    color:var(--lp-ink-213);background:var(--lp-bg-360);border-left:3px solid var(--lp-line-081);
     padding:2px 10px;border-radius:0 6px 6px 0;display:block;margin:8px 0;font-size:15px;
   }
   ul.plain{margin:8px 0 8px 22px}
   ul.plain li{margin:7px 0}
   table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14.5px}
-  th{background:#eef2fb;color:#14213d;text-align:left;padding:9px 12px;border:1px solid var(--line)}
+  th{background:var(--lp-bg-065);color:var(--lp-ink-045);text-align:left;padding:9px 12px;border:1px solid var(--line)}
   td{padding:8px 12px;border:1px solid var(--line);vertical-align:top}
-  tr:nth-child(even) td{background:#fafbfd}
+  tr:nth-child(even) td{background:var(--lp-bg-007)}
   .callout{
     background:var(--accent-soft);border-radius:10px;padding:16px 20px;margin:14px 0;font-size:15px;
   }
-  .critique{border-left:3px solid var(--warn);background:#fffaf9;padding:12px 18px;border-radius:0 10px 10px 0;margin:12px 0}
+  .critique{border-left:3px solid var(--warn);background:var(--lp-bg-379);padding:12px 18px;border-radius:0 10px 10px 0;margin:12px 0}
   .critique b.tag{color:var(--warn)}
-  .insight{border-left:3px solid var(--ok);background:#f6fcf8;padding:12px 18px;border-radius:0 10px 10px 0;margin:12px 0}
+  .insight{border-left:3px solid var(--ok);background:var(--lp-bg-303);padding:12px 18px;border-radius:0 10px 10px 0;margin:12px 0}
   .insight b.tag{color:var(--ok)}
   .formula{
-    font-family:"JetBrains Mono",Consolas,monospace;background:#0f1729;color:#d6e4ff;
+    font-family:"JetBrains Mono",Consolas,monospace;background:var(--lp-bg-117);color:var(--lp-ink-287);
     border-radius:10px;padding:14px 18px;margin:12px 0;font-size:14px;overflow-x:auto;
   }
   .footnote{font-size:13.5px;color:var(--sub);margin-top:18px;border-top:1px dashed var(--line);padding-top:14px}
   .check{
-    background:#101a33;color:#c9d6f2;border-radius:14px;padding:26px 32px;font-size:14px;
+    background:var(--lp-bg-046);color:var(--lp-ink-275);border-radius:14px;padding:26px 32px;font-size:14px;
     font-family:"Noto Sans SC",sans-serif;
   }
-  .check h2{color:#fff;font-size:16px;margin-bottom:12px;letter-spacing:.1em}
+  .check h2{color:var(--card);font-size:16px;margin-bottom:12px;letter-spacing:.1em}
   .check ul{list-style:none;margin:6px 0}
   .check li{padding:3px 0}
-  .check li::before{content:"✔ ";color:#4ade80;font-weight:700}
-  #divcount{color:#4ade80;font-weight:700}
+  .check li::before{content:"✔ ";color:var(--lp-ink-027);font-weight:700}
+  #divcount{color:var(--lp-ink-027);font-weight:700}
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>DeepSeek-V3.2_DSA</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <div class="hero">

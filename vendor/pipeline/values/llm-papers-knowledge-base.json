@@ -1,0 +1,370 @@
+{
+  "meta": {
+    "id": "value-contract.llm-papers-knowledge-base",
+    "contract_version": "1.0.0-batchI",
+    "frozen_at": "2026-10-13",
+    "round": "批 I · ROLLOUT-PLAN 第 3 轮（站 06 标准档）",
+    "title": "llm-papers-knowledge-base 站点值件（形态 2「内联单源」）",
+    "nature": "站点侧独立机读值件 —— 单一真相源。★ 本件**不承载**本站的命名层：本站 139 页共 78 套令牌词汇表（其中 134 个解读页 76 套、51 页零令牌），Q2=A 裁定「先增量冻结再按页面族分批」⇒ 命名层是**值注册表**（`data/token-baseline.json` 的 `palette`：全站 858 个不同色值 → `--lp-{bg|ink|line|mix}-NNN`），逐页只注入该页**本来就在用**的值（Q3=A 等值注入）。本件只声明**本轮新增元素（解读页面包屑/返回条）用到的站点级角色**。",
+    "authority": "角色口径沿用 fe-starter-kit/tokens/contract.json 的 11 角色与 solutions/_shared/SH0-tokens-draft.json 的 19 角色扩展；★ 阈值为 `usage_tiers`，⛔ 本件不自造阈值。",
+    "adr_ref": "ADR-001（令牌分发）· ADR-002（令牌集选型）· ADR-003（统一构建管线，本步只消费不重开）"
+  },
+  "scope": {
+    "site": "llm-papers-knowledge-base",
+    "site_number": "06",
+    "upstream_repo_head": "a6bb5ce8b6a2f4020e5c813f5f524e5cccb3b6b9",
+    "declared_forms": [
+      "light",
+      "dark"
+    ],
+    "declared_forms_reason": "★ 站内**两种极性并存**：134 个解读页为浅色（主底色 #f7f8fa，站内实测 background 用途 694 次为亮色 / 246 次为暗色），而首页 docs/index.html 与 docs/timeline.html / docs/list.html 为深色（#0f1420 / #161d2e）。这正是本站「76 套词汇表」现实的一部分；按 Q2=A 本轮**冻结不改**，⛔ 不做全站极性归一。",
+    "declared_forms_evidence": "data/token-baseline.json 的 counts/pages（改动前快照，as_of=改动前 HEAD a6bb5ce8b6）；report: 背景用途按亮度分档暗=246 亮=694",
+    "family": "content-kg-inline-mixed",
+    "family_note": "形态 2「内联单源」的混合极性站；⛔ 不并入任何既有族（既有族按外链表形态定义）。"
+  },
+  "coverage_levels": {
+    "order": [
+      "family-default",
+      "site-override",
+      "page-family"
+    ],
+    "note": "★ 本站三级覆盖的**实际落点**：① 族默认 = 值件 `palettes` 的站点级角色（只覆盖导航条这一新元素）；② 站点覆盖 = `binding.site_token_names`；③ 页面族覆盖 = **本轮不启用**（Q2=A：先冻结再按族分批）⇒ 登记为「本轮不适用」而非「未做」，逐页的值由值注册表按页注入。"
+  },
+  "usage_tiers": {
+    "body": {
+      "allowed_use": "正文类（p/li/dd/dt/blockquote 内文本）与非正文类均可",
+      "min_contrast": {
+        "light": 4.5,
+        "dark": 4.5
+      },
+      "gate": "hard",
+      "provenance": "fe-starter-kit/tokens/contract.json usage_tiers.body（阈值权威＝0916-前端技术栈基线/TOKEN-USAGE-SPEC.md，非本件自造）"
+    },
+    "non-body": {
+      "allowed_use": "× 仅非正文类（表头/标签/图标/占位符/停用态）",
+      "min_contrast": {
+        "light": 4.5,
+        "dark": 4.5
+      },
+      "gate": "report-only",
+      "provenance": "fe-starter-kit/tokens/contract.json usage_tiers.non-body"
+    },
+    "non-text": {
+      "allowed_use": "非文本元素（边框/分隔线/图形/焦点环）",
+      "min_contrast": {
+        "light": 3.0,
+        "dark": 3.0
+      },
+      "gate": "report-only",
+      "provenance": "fe-starter-kit/tokens/contract.json usage_tiers.non-text。★★ 本站该档**执行强度登记为 report-only**，理由是**取值面**：Q3=A 明令本轮「只注入等值令牌、⛔ 不同批改值」⇒ 站内既有分隔色的不达标（实测 #cbd5e1 对 #f7f8fa = 1.40）**本轮禁止修**；若判 hard 则门控对一条「按裁定不许修」的既有缺陷永久红 = 假 FAIL（SH5 §4.0 第 7 条明禁）。★ 判据与阈值**一字未改**，只是执行强度分阶段；该缺陷同时登记在 known_site_defects_registered 与 build/profile.json 的 known_contrast_defects（**双向**：登记过期即 FAIL）。",
+      "gate_strength_note": "★ 不是「放宽阈值换绿灯」：阈值仍为 3.0，实测值仍逐条打印；转 hard 条件是 Q3 的取值面被后续裁定解禁。"
+    },
+    "non-text-decorative": {
+      "allowed_use": "弱分隔：按定义应不可见，只报告不硬判（判据对象＝强分隔，⛔ 不用同一门槛去判它）",
+      "min_contrast": {
+        "light": 3.0,
+        "dark": 3.0
+      },
+      "gate": "report-only",
+      "provenance": "SH5 §4.0 第 1 条「判据对象必须与断言对象一致」+ 批 C PoC 对 border.subtle 的处置"
+    }
+  },
+  "roles": {
+    "text.primary": {
+      "tier": "body",
+      "kind": "text",
+      "purpose": "主文字：解读页正文默认档",
+      "site_source": "★ 站内实测最高频正文色 #1f2430（color 用途 49 次），逐字节沿用；不是本件新造值",
+      "consumed": false
+    },
+    "text.secondary": {
+      "tier": "body",
+      "kind": "text",
+      "purpose": "次要文字",
+      "site_source": "站内 #3a4a63（h3 档，color 用途 50 次），逐字节沿用",
+      "consumed": false
+    },
+    "text.tertiary": {
+      "tier": "non-body",
+      "kind": "text",
+      "purpose": "三级灰（页脚自检行）",
+      "site_source": "站内 #90a0b5（.selfcheck，color 用途 49 次）。实测对 #f7f8fa 仅 2.51 ⇒ 按 non-body 档 report-only 登记为既有缺陷（⛔ 本轮不改值，Q3=A）",
+      "consumed": false
+    },
+    "link": {
+      "tier": "body",
+      "kind": "text",
+      "purpose": "链接文字",
+      "site_source": "站内 #2b6cb0（h2 与链接主色，color 用途 49 次），逐字节沿用",
+      "consumed": false
+    },
+    "brand.primary": {
+      "tier": "non-text",
+      "kind": "brand",
+      "purpose": "品牌主色（标题左侧色条 / 下边框）",
+      "site_source": "站内 #2b6cb0，逐字节沿用",
+      "consumed": false
+    },
+    "border.line": {
+      "tier": "non-text",
+      "kind": "border",
+      "purpose": "强分隔：表格线 / 容器描边",
+      "site_source": "★ 站内 #cbd5e1（表格边框与分隔，border 用途最多）。实测对 #f7f8fa = 1.40、对 #ffffff = 1.48，**均不达 3.0** ⇒ 登记为既有缺陷并由 usage_tiers.non-text 的 report-only 强度承接（Q3=A 禁止本轮改值）",
+      "consumed": false
+    },
+    "border.subtle": {
+      "tier": "non-text-decorative",
+      "kind": "border",
+      "purpose": "弱分隔：表头底色与斑马纹边界",
+      "site_source": "站内 #e8eef6 / #f4f7fb 一族的弱分隔语义",
+      "consumed": false
+    },
+    "surface.page": {
+      "tier": "non-text",
+      "kind": "surface",
+      "purpose": "页面底色（对比度计算的参考背景）",
+      "site_source": "站内 #f7f8fa（解读页 body 底色，background 用途 50 次）",
+      "consumed": false
+    },
+    "surface.raised": {
+      "tier": "non-text",
+      "kind": "surface",
+      "purpose": "卡片/容器底色",
+      "site_source": "站内 #ffffff（background 用途 42 次）",
+      "consumed": false
+    },
+    "surface.subtle": {
+      "tier": "non-text",
+      "kind": "surface",
+      "purpose": "次级底色：code / 引用块",
+      "site_source": "站内 #eef1f5（background 用途 52 次）",
+      "consumed": false
+    },
+    "surface.stripe": {
+      "tier": "non-text",
+      "kind": "surface",
+      "purpose": "斑马纹底色",
+      "site_source": "站内 #f4f7fb（background 用途 50 次）",
+      "consumed": false
+    },
+    "surface.nav": {
+      "tier": "non-text",
+      "kind": "surface",
+      "purpose": "★ 本轮新增：解读页面包屑/返回条的**自持底色**（不依赖各页底色，故极性无关）",
+      "site_source": "站内既有的次级底色 #eef1f5（逐字节沿用，⛔ 不新造）",
+      "consumed": true
+    },
+    "border.nav": {
+      "tier": "non-text",
+      "kind": "border",
+      "purpose": "★ 本轮新增：面包屑/返回条的描边（强分隔，须过 3.0）",
+      "site_source": "★ **新值 #7c8aa0**：站内既有分隔色 #cbd5e1 对自持底色 #eef1f5 只有 1.31，不达 3.0；取站内冷蓝灰族内首个达标值（实测 3.09 对 #eef1f5 / 3.50 对 #ffffff）。★ 它只作用于**本轮新增的元素**，⛔ 不改变任何既有页面元素的计算值 ⇒ 与 Q3=A「等值注入」不冲突（详见 known_value_changes）",
+      "consumed": true
+    },
+    "text.nav": {
+      "tier": "body",
+      "kind": "text",
+      "purpose": "★ 本轮新增：面包屑正文文字",
+      "site_source": "站内既有的深色正文 #14304f（逐字节沿用；实测对 #eef1f5 = 11.84）",
+      "consumed": true
+    },
+    "link.nav": {
+      "tier": "body",
+      "kind": "text",
+      "purpose": "★ 本轮新增：面包屑/返回链接文字",
+      "site_source": "站内既有的链接主色 #2b6cb0（逐字节沿用；实测对 #eef1f5 = 4.78）",
+      "consumed": true
+    },
+    "focus.ring": {
+      "tier": "non-text",
+      "kind": "focus",
+      "purpose": "★ 本轮新增：面包屑/返回链接的焦点环",
+      "site_source": "复用 link.nav 的 #2b6cb0（**与 link.nav 共用同一枚令牌**，⛔ 不新增第四枚色值）",
+      "consumed": true
+    },
+    "ok": {
+      "tier": "body",
+      "kind": "semantic-text",
+      "purpose": "成功态（本站无此语义）",
+      "site_source": "★ 本站无可断言对象（站内实测无任何成功态色）⇒ 本轮**不声明值、不新造色**（Q3=A）。按纪律登记为「不适用」而非「未做」",
+      "consumed": false
+    },
+    "warn": {
+      "tier": "body",
+      "kind": "semantic-text",
+      "purpose": "警告态（本站的 `.num` 强调色 #b45309 是唯一候选）",
+      "site_source": "★ 站内 #b45309 只用于**数字强调**（.num），不是警告语义 ⇒ 本轮不登记为 warn 角色（登记即误名）。实测 4.73 达标，留待按族收敛轮再裁",
+      "consumed": false
+    },
+    "err": {
+      "tier": "body",
+      "kind": "semantic-text",
+      "purpose": "错误态（本站无此语义）",
+      "site_source": "★ 本站无可断言对象 ⇒ 不声明值、不新造色（Q3=A）",
+      "consumed": false
+    },
+    "ext": {
+      "tier": "body",
+      "kind": "semantic-text",
+      "purpose": "外部链（本站的「（推断）」标记 #9a6b2f 是同族但非同一语义）",
+      "site_source": "★ 站内 #9a6b2f 实测对 #fdf6e3 = 4.31（不达 4.5）⇒ 登记为既有缺陷，本轮不改值；不冒充 ext 角色",
+      "consumed": false
+    },
+    "upgrade": {
+      "tier": "body",
+      "kind": "semantic-text",
+      "purpose": "升级态（本站无此语义）",
+      "site_source": "★ 本站无可断言对象 ⇒ 不声明值、不新造色（Q3=A）",
+      "consumed": false
+    },
+    "disabled": {
+      "tier": "non-body",
+      "kind": "semantic-text",
+      "purpose": "停用态（本站无表单控件）",
+      "site_source": "★ 本站在线 0 个 <input>/<button>（批 C 实测）⇒ 不适用",
+      "consumed": false
+    },
+    "measure": {
+      "tier": "non-text",
+      "kind": "dimension",
+      "purpose": "行长度量",
+      "site_source": "★ 站内无 --w-reading 一类量测令牌（76 套词汇表里 0 枚 dimension 类）⇒ 不声明值；行宽由各页 .wrap 的 max-width 承担（px，属问题 7 的单位体系议题，归理想档）",
+      "consumed": false
+    }
+  },
+  "palettes": {
+    "content-kg-inline-mixed": {
+      "family": "内联单源 · 混合极性（06 站）· 仅覆盖本轮新增的着陆条",
+      "provenance": "站内既有值逐字节沿用 + 一枚新增值（border.nav），逐条登记在 roles[*].site_source；实测对比度由 tools/contrast.py 复算（见 build/profile.json 的 contrast_evidence）",
+      "values": {
+        "surface.nav": {
+          "light": "#eef1f5",
+          "dark": "#eef1f5"
+        },
+        "border.nav": {
+          "light": "#7c8aa0",
+          "dark": "#7c8aa0"
+        },
+        "text.nav": {
+          "light": "#14304f",
+          "dark": "#14304f"
+        },
+        "link.nav": {
+          "light": "#2b6cb0",
+          "dark": "#2b6cb0"
+        },
+        "focus.ring": {
+          "light": "#2b6cb0",
+          "dark": "#2b6cb0"
+        }
+      },
+      "palette_note": "★ 两侧（light/dark）取值**相同**：着陆条自带底色，故与宿主页极性无关 —— 这是让一个混合极性站能有一致着陆结构的必要设计。"
+    }
+  },
+  "binding": {
+    "site_token_names": {
+      "surface.nav": "--lp-nav-bg",
+      "border.nav": "--lp-nav-line",
+      "text.nav": "--lp-nav-ink",
+      "link.nav": "--lp-nav-accent",
+      "focus.ring": "--lp-nav-accent"
+    },
+    "aliases": {},
+    "note": "★ 5 个角色映射到 **4 枚唯一令牌**（link.nav 与 focus.ring 共用 --lp-nav-accent）。命名前缀 `--lp-nav-` 与值注册表前缀 `--lp-{bg|ink|line|mix}-NNN` **不同名空间**，由 annotate_products.py 的自检第 9 项与 gate_tokens.py 的 G7 双向核对。",
+    "passthrough_tokens_reason": "★ 本站**没有**需要透传的非角色令牌：命名层是值注册表（858 值），逐页按页注入；⛔ 不做全站字体/间距令牌化（Q2=A 冻结，归按族收敛轮）。",
+    "passthrough_tokens": {}
+  },
+  "families": {
+    "landing": {
+      "targets": [
+        "docs/analysis/*/*/03-深度解读报告.html"
+      ],
+      "overrides": {
+        "--lp-nav-bg": "#eef1f5",
+        "--lp-nav-line": "#7c8aa0",
+        "--lp-nav-ink": "#14304f",
+        "--lp-nav-accent": "#2b6cb0"
+      },
+      "generator": "data/annotate_products.py（Q7 着陆结构；Q3 等值令牌注入）",
+      "note": "★ 本族＝Q7=A 点名的 134 个解读页。overrides 以 `--lp-nav-*` 的**最终字面值**登记，供 gate_tokens.py 的 G3 逐页对账（判据对象 == 断言对象：只判这 4 枚）。"
+    }
+  },
+  "derivation": {
+    "state": "batch-i-site-postprocessor",
+    "direction": "单向：值件（站点级角色）+ 改动前值注册表（data/token-baseline.json） → 各产物的内联 `:root` 令牌块",
+    "generator_ref": "data/annotate_products.py",
+    "derived_fields": [
+      "binding.site_token_names",
+      "palettes.*.values",
+      "data/token-baseline.json#palette"
+    ],
+    "mirror_fields": [
+      "usage_tiers",
+      "families.*.overrides"
+    ],
+    "rule": "★ 形态 2 的写入面是**每页首个 <style> 块**内的成对标记区 `/* LP:TOKENS:BEGIN */…/* LP:TOKENS:END */`（marker-region 语义）；⛔ 不写外链文件、⛔ 不改任何既有取值（Q3=A 等值注入）。",
+    "write_surface_guard": "marker-region：非标记段（含各页既有的 76 套 `<style>` 规则）在**取值上**逐字节未变——由 gate_tokens.py 的 G3（逐页等值）与 gate_census.py 的 TC3（词汇表不增）双向证明。",
+    "write_mode": "marker-region"
+  },
+  "known_value_changes": {
+    "--lp-nav-line": {
+      "from": "（新增令牌）",
+      "to": "#7c8aa0",
+      "reason": "★ Q7=A 要求给 134 页加统一着陆结构，而站内既有分隔色 #cbd5e1 对自持底色 #eef1f5 只有 1.31（不达 non-text 的 3.0）⇒ 取站内冷蓝灰族内首个达标值（3.09 / 3.50，tools/contrast.py 实算）。★ 该值只作用于**本轮新增元素**，⛔ 不改变任何既有页面元素的计算值 ⇒ 不违反 Q3=A。",
+      "scope": "仅新建的 .lp-crumb / .lp-back 元素"
+    }
+  },
+  "intended_additions": {
+    "tokens": [
+      "--lp-nav-bg",
+      "--lp-nav-line",
+      "--lp-nav-ink",
+      "--lp-nav-accent"
+    ],
+    "note": "★ 4 枚站点级着陆令牌；其余全部令牌都是**等值注入**（值＝该页原本的字面 hex），逐页登记在 data/token-baseline.json 的 palette（858 值 → 名）里。"
+  },
+  "known_site_defects_registered": [
+    {
+      "id": "C2-D1",
+      "defect": "站内分隔色 #cbd5e1 对主底色 #f7f8fa = 1.40、对 #ffffff = 1.48，均不达 non-text 档 3.0",
+      "handling": "★ 本轮**不改值**（Q3=A 明令只注入等值令牌）⇒ 由 usage_tiers.non-text 的 report-only 强度承接，并登记进 build/profile.json 的 known_contrast_defects（登记过期即 FAIL）。与审计问题 2「--border 对比度 1.36:1」同源，但判据对象不同：本站主面**根本没有 --border 令牌**，可断言对象是字面 hex。"
+    },
+    {
+      "id": "C2-D2",
+      "defect": "页脚自检行 #90a0b5 对 #f7f8fa = 2.51；「（推断）」标记 #9a6b2f 对 #fdf6e3 = 4.31",
+      "handling": "同上：本轮不改值，按 non-body / body 的既有强度如实报告并登记。"
+    },
+    {
+      "id": "C2-D3",
+      "defect": "134 个解读页的**正文来源（上游 0825 语料）不在本仓** ⇒ 这批页面无法「从源重建」，只能「重跑后处理逐字节相同」",
+      "handling": "★ 这是方案 C2-N6「产物归属契约缺失」的如实形态。本轮按 Q1=B 把**首页**纳入管线（消除首页这一例），其余页面按 Q2=A「增量冻结」登记；⛔ 不假装已闭环。已登记进 build/profile.json 的 build.rebuild_fidelity。"
+    },
+    {
+      "id": "C2-D4",
+      "defect": "85 个 `data/*.py` 级绝对路径以外的可复现性缺口：7 个生成器的 BASE 常量写死在作者机绝对路径（L1）",
+      "handling": "★ 本轮按 L1=A **本地化并修实**（7 文件 7 处）；复测 L1 由 7 → 0，证据见 evidence/i/measure/llm-papers-knowledge-base@post.json 与报告。"
+    }
+  ],
+  "bootstrap": {
+    "seeded_by": "批 I · 站 06 标准档",
+    "seeded_from": "evidence/i/work/llm-papers-knowledge-base（HEAD a6bb5ce8b6）+ data/token-baseline.json（改动前令牌面快照）",
+    "seeded_at": "2026-10-13",
+    "purpose": "建立「站点现状 → 值件/值注册表 → 派生产物」的可复现基线，并证明**等值注入**（观感零变化）"
+  },
+  "transition": {
+    "state": "site-versioned",
+    "derivation_direction_now": "值件 + 值注册表 → 产物（仓内可重跑）",
+    "guard_expiry": "本轮不解禁任何护栏；AUD 侧 pipeline/ 与 fe-starter-kit 零改动",
+    "not_yet_done": [
+      "未做 76 套词汇表的**语义**收敛（Q2=A 明确推到「按页面族分批」）⇒ 命名层是值注册表，不是语义角色",
+      "未做单位体系迁移（px → rem/ch，属方案问题 7 的理想档）",
+      "未做静态搜索索引（方案问题 19 的理想档）",
+      "未把 134 页正文的源语料纳入仓库（C2-D3，属产物归属的进一步工作）"
+    ]
+  },
+  "not_provided": [
+    "多方法用户研究",
+    "含残障用户的可用性测试",
+    "像素层视觉回归（本批由 AUD 侧 P2=A 的像素层能力承担，⛔ 不在站点仓内）"
+  ]
+}

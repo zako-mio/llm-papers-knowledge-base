@@ -7,38 +7,54 @@
 <style>
   :root{
     --ink:#1a2233; --muted:#5a6478; --accent:#1a56b0; --accent2:#c0392b;
-    --bg:#f7f8fb; --card:#ffffff; --line:#e3e7ef; --soft:#eef3fb;
-  }
+    --bg:#f7f8fb; --card:#ffffff; --line:#e3e7ef; --soft:#eef3fb;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-bg-017:#10233f;--lp-mix-030:#12294d;--lp-ink-078:#0f2a52;--lp-ink-129:#26406b;--lp-bg-007:#fafbfd;--lp-ink-087:#123a6e;--lp-ink-029:#8a6d1a;--lp-mix-051:#f2f6fc;--lp-bg-225:#eaf0fa;--lp-line-065:#c8d2e2;/* LP:TOKENS:END */}
   *{box-sizing:border-box; margin:0; padding:0;}
   body{font-family:"Source Han Serif SC","Noto Serif SC","Songti SC",serif; background:var(--bg); color:var(--ink); line-height:1.85; font-size:16px;}
   .wrap{max-width:920px; margin:0 auto; padding:48px 28px 64px;}
-  header.hero{background:linear-gradient(135deg,#10233f 0%,#1a56b0 100%); color:#fff; border-radius:14px; padding:44px 40px 36px; margin-bottom:36px;}
+  header.hero{background:linear-gradient(135deg,var(--lp-bg-017) 0%,var(--accent) 100%); color:var(--card); border-radius:14px; padding:44px 40px 36px; margin-bottom:36px;}
   header.hero .kicker{font-family:"JetBrains Mono",Consolas,monospace; font-size:12px; letter-spacing:.22em; text-transform:uppercase; opacity:.75; margin-bottom:14px;}
   header.hero h1{font-size:29px; line-height:1.4; font-weight:700; margin-bottom:16px;}
   header.hero .meta{font-size:13.5px; opacity:.88; display:flex; flex-wrap:wrap; gap:8px 22px;}
   .note{background:var(--soft); border-left:4px solid var(--accent); border-radius:0 10px 10px 0; padding:14px 20px; font-size:13.5px; color:var(--muted); margin-bottom:34px;}
   section{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:36px 38px 30px; margin-bottom:30px;}
   h2{font-size:21px; color:var(--accent); padding-bottom:12px; border-bottom:2px solid var(--soft); margin-bottom:22px;}
-  h3{font-size:16.5px; margin:26px 0 12px; color:#12294d;}
+  h3{font-size:16.5px; margin:26px 0 12px; color:var(--lp-mix-030);}
   h3:first-of-type{margin-top:0;}
   p{margin-bottom:14px; text-align:justify;}
   ul,ol{padding-left:24px; margin-bottom:14px;}
   li{margin-bottom:8px; text-align:justify;}
-  strong{color:#0f2a52;}
+  strong{color:var(--lp-ink-078);}
   .hl{color:var(--accent2); font-weight:700;}
   .hl-b{color:var(--accent); font-weight:700;}
-  blockquote{background:var(--soft); border-radius:10px; padding:14px 20px; margin:20px 0; font-size:15px; color:#26406b;}
+  blockquote{background:var(--soft); border-radius:10px; padding:14px 20px; margin:20px 0; font-size:15px; color:var(--lp-ink-129);}
   table{width:100%; border-collapse:collapse; margin:18px 0 22px; font-size:14px;}
-  th{background:#12294d; color:#fff; font-weight:600; padding:9px 12px; text-align:left;}
+  th{background:var(--lp-mix-030); color:var(--card); font-weight:600; padding:9px 12px; text-align:left;}
   td{border-bottom:1px solid var(--line); padding:8px 12px; vertical-align:top;}
-  tr:nth-child(even) td{background:#fafbfd;}
-  code,.mono{font-family:"JetBrains Mono",Consolas,monospace; font-size:.92em; background:var(--soft); padding:1px 6px; border-radius:4px; color:#123a6e;}
-  .infer{color:#8a6d1a; font-weight:600;}
-  .concl{background:linear-gradient(135deg,#f2f6fc 0%,#eaf0fa 100%);}
-  footer.selfcheck{font-family:"JetBrains Mono",Consolas,monospace; font-size:11.5px; color:var(--muted); background:var(--card); border:1px dashed #c8d2e2; border-radius:10px; padding:16px 20px; line-height:1.9;}
+  tr:nth-child(even) td{background:var(--lp-bg-007);}
+  code,.mono{font-family:"JetBrains Mono",Consolas,monospace; font-size:.92em; background:var(--soft); padding:1px 6px; border-radius:4px; color:var(--lp-ink-087);}
+  .infer{color:var(--lp-ink-029); font-weight:600;}
+  .concl{background:linear-gradient(135deg,var(--lp-mix-051) 0%,var(--lp-bg-225) 100%);}
+  footer.selfcheck{font-family:"JetBrains Mono",Consolas,monospace; font-size:11.5px; color:var(--muted); background:var(--card); border:1px dashed var(--lp-line-065); border-radius:10px; padding:16px 20px; line-height:1.9;}
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>PaLM</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <header class="hero">

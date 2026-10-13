@@ -16,8 +16,7 @@
     --muted: #6b7280;
     --card: #ffffff;
     --warn: #9a3412;
-    --warn-bg: #fff1e7;
-  }
+    --warn-bg: #fff1e7;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-bg-083:#f6f4ef;--lp-bg-084:#f7f9fb;--lp-bg-134:#10233b;--lp-ink-067:#dce8f5;--lp-ink-240:#8fa8c4;--lp-bg-252:#f0f7f0;--lp-line-046:#7aa87a;--lp-ink-053:#33552f;--lp-line-005:#cfe3cf;/* LP:TOKENS:END */}
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", Georgia, serif;
@@ -91,38 +90,55 @@
   blockquote {
     margin: 14px 0; padding: 10px 18px;
     border-left: 3px solid var(--line); color: var(--muted);
-    background: #f6f4ef; border-radius: 0 8px 8px 0;
+    background: var(--lp-bg-083); border-radius: 0 8px 8px 0;
   }
   table {
     width: 100%; border-collapse: collapse; margin: 16px 0;
     font-family: "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 14px;
   }
-  th { background: var(--accent); color: #fff; padding: 8px 12px; text-align: left; font-weight: 600; }
+  th { background: var(--accent); color: var(--card); padding: 8px 12px; text-align: left; font-weight: 600; }
   td { padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  tr:nth-child(even) td { background: #f7f9fb; }
+  tr:nth-child(even) td { background: var(--lp-bg-084); }
   .formula {
-    background: #10233b; color: #dce8f5;
+    background: var(--lp-bg-134); color: var(--lp-ink-067);
     font-family: "Cambria Math", "STIX Two Math", serif;
     padding: 18px 22px; border-radius: 8px; margin: 16px 0;
     font-size: 15px; overflow-x: auto; line-height: 2;
   }
-  .formula .frac-note { display: block; font-family: "PingFang SC", sans-serif; font-size: 13px; color: #8fa8c4; margin-top: 8px; }
+  .formula .frac-note { display: block; font-family: "PingFang SC", sans-serif; font-size: 13px; color: var(--lp-ink-240); margin-top: 8px; }
   ul.plain, ol.plain { margin: 10px 0 10px 24px; }
   ul.plain li, ol.plain li { margin: 7px 0; }
   .selfcheck {
     font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: #f0f7f0; border: 1px dashed #7aa87a; border-radius: 10px;
-    padding: 20px 26px; font-size: 13.5px; color: #33552f;
+    background: var(--lp-bg-252); border: 1px dashed var(--lp-line-046); border-radius: 10px;
+    padding: 20px 26px; font-size: 13.5px; color: var(--lp-ink-053);
   }
-  .selfcheck h2 { color: #33552f; border-bottom-color: #cfe3cf; font-size: 17px; }
+  .selfcheck h2 { color: var(--lp-ink-053); border-bottom-color: var(--lp-line-005); font-size: 17px; }
   .selfcheck td:first-child { white-space: nowrap; font-weight: 600; }
   footer.colophon {
     text-align: center; color: var(--muted); font-size: 12.5px;
     margin-top: 40px; font-family: "PingFang SC", sans-serif;
   }
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>DPO</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <header class="hero">

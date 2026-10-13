@@ -1,6 +1,11 @@
 import json, os, sys, glob
 sys.stdout.reconfigure(encoding="utf-8")
-BASE = "/home/zako-mio/opencode/archive/Mission-file/2026-08/0825-LLM关键节点论文全集"
+# ★ L1 本地化（批 I · 裁定 L1=A）：⛔ 不再写死作者机绝对路径；由文件位置推导仓根。
+#   ⚠ 本件是**历史一批的门控**，不在本轮的门控集（gate-manifest.json）内、CI 不调用它。
+#   本地化只改路径常量；其 `assert m["total"] == 125` 是**过期字面量**（仓内
+#   data/papers_master.json 实测 total=133）⇒ 如实登记为「既有缺陷·本轮⛔ 不改判据」
+#   （改它＝改判据，超出 L1 裁定的范围；见报告 decisions/warnings）。
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 fails, warns = [], []
 
 # 1) master manifest

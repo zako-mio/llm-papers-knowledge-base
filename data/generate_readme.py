@@ -5,7 +5,9 @@ import sys
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-BASE = "/home/zako-mio/opencode/archive/Mission-file/2026-08/0825-LLM关键节点论文全集"
+# ★ L1 本地化（批 I · 裁定 L1=A）：⛔ 不再写死作者机绝对路径；由文件位置推导仓根。
+#   输入 data/*.json 与产物 README.md 都在仓根 ⇒ 本地化后行为等价。
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(BASE, "data")
 OUT = os.path.join(BASE, "README.md")
 

@@ -8,8 +8,7 @@
 :root{
   --ink:#1a2332; --sub:#4a5568; --accent:#0b5394; --accent2:#38761d;
   --gold:#b45309; --bg:#f7f8fa; --card:#ffffff; --line:#dde3ea;
-  --hl:#fff3cd; --code:#eef2f7;
-}
+  --hl:#fff3cd; --code:#eef2f7;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-ink-028:#7c4a03;--lp-bg-339:#fde8e8;--lp-ink-262:#a12622;--lp-bg-271:#f2f8ee;--lp-ink-140:#2d5016;--lp-bg-007:#fafbfd;/* LP:TOKENS:END */}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:"Source Han Serif SC","Noto Serif CJK SC","Songti SC",Georgia,serif;
   color:var(--ink);background:var(--bg);line-height:1.85;font-size:16px}
@@ -22,16 +21,16 @@ h2{font-size:22px;color:var(--accent);margin:44px 0 16px;padding-left:12px;borde
 h3{font-size:17px;color:var(--ink);margin:26px 0 10px}
 p{margin:10px 0;text-align:justify}
 strong{color:var(--accent)}
-.num{background:var(--hl);padding:1px 5px;border-radius:3px;font-weight:700;color:#7c4a03}
-.neg{background:#fde8e8;color:#a12622;padding:1px 5px;border-radius:3px;font-weight:700}
+.num{background:var(--hl);padding:1px 5px;border-radius:3px;font-weight:700;color:var(--lp-ink-028)}
+.neg{background:var(--lp-bg-339);color:var(--lp-ink-262);padding:1px 5px;border-radius:3px;font-weight:700}
 .tag{display:inline-block;background:var(--code);border:1px solid var(--line);
   border-radius:4px;padding:1px 7px;font-family:Consolas,Menlo,monospace;font-size:.88em;color:var(--accent)}
-blockquote{border-left:4px solid var(--accent2);background:#f2f8ee;
-  padding:12px 18px;margin:16px 0;color:#2d5016;border-radius:0 6px 6px 0}
+blockquote{border-left:4px solid var(--accent2);background:var(--lp-bg-271);
+  padding:12px 18px;margin:16px 0;color:var(--lp-ink-140);border-radius:0 6px 6px 0}
 table{width:100%;border-collapse:collapse;margin:14px 0;background:var(--card);font-size:14.5px}
-th{background:var(--accent);color:#fff;padding:8px 10px;text-align:left;font-weight:600}
+th{background:var(--accent);color:var(--card);padding:8px 10px;text-align:left;font-weight:600}
 td{border-bottom:1px solid var(--line);padding:7px 10px;vertical-align:top}
-tr:nth-child(even) td{background:#fafbfd}
+tr:nth-child(even) td{background:var(--lp-bg-007)}
 ul,ol{margin:10px 0 10px 26px}
 li{margin:6px 0;text-align:justify}
 .note{font-size:13.5px;color:var(--sub);background:var(--card);border:1px dashed var(--line);
@@ -39,9 +38,26 @@ li{margin:6px 0;text-align:justify}
 .audit{margin-top:56px;border-top:1px solid var(--line);padding-top:20px;
   font-size:13px;color:var(--sub)}
 footer{margin-top:40px;text-align:center;color:var(--sub);font-size:13px}
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>GPT-2</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <header class="hero">

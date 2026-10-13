@@ -8,8 +8,7 @@
   :root{
     --ink:#1f2430; --ink2:#4a5163; --paper:#faf9f6; --card:#ffffff;
     --accent:#c0392b; --accent-bg:#fdf3f1; --gold:#b07d2b;
-    --line:#e6e2d8; --code-bg:#f4f1ea; --head:#233044;
-  }
+    --line:#e6e2d8; --code-bg:#f4f1ea; --head:#233044;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-ink-003:#3a4a63;--lp-bg-014:#fbfaf7;--lp-bg-261:#f2f4ec;--lp-line-055:#a8b08c;--lp-ink-181:#5c6b3c;/* LP:TOKENS:END */}
   *{box-sizing:border-box;}
   body{
     margin:0; padding:0; background:var(--paper); color:var(--ink);
@@ -18,8 +17,8 @@
   }
   .wrap{max-width:920px; margin:0 auto; padding:32px 28px 64px;}
   header.hero{
-    background:linear-gradient(135deg,var(--head) 0%,#3a4a63 100%);
-    color:#fff; border-radius:14px; padding:44px 40px 36px; margin-bottom:36px;
+    background:linear-gradient(135deg,var(--head) 0%,var(--lp-ink-003) 100%);
+    color:var(--card); border-radius:14px; padding:44px 40px 36px; margin-bottom:36px;
     box-shadow:0 8px 24px rgba(35,48,68,.18);
   }
   header.hero h1{margin:0 0 10px; font-size:30px; letter-spacing:.5px; line-height:1.4;}
@@ -71,29 +70,46 @@
   }
   table{width:100%; border-collapse:collapse; margin:16px 0; font-size:14.5px;}
   th{
-    background:var(--head); color:#fff; padding:8px 12px; text-align:left;
+    background:var(--head); color:var(--card); padding:8px 12px; text-align:left;
     font-weight:600; white-space:nowrap;
   }
   td{padding:8px 12px; border-bottom:1px solid var(--line); vertical-align:top;}
-  tr:nth-child(even) td{background:#fbfaf7;}
+  tr:nth-child(even) td{background:var(--lp-bg-014);}
   ul,ol{padding-left:24px; margin:10px 0;}
   li{margin:6px 0; text-align:justify;}
   .infer{color:var(--ink2);}
   .infer::before{content:"〔推断〕"; color:var(--gold); font-style:normal; font-size:.92em;}
   footer.selfcheck{
-    background:#f2f4ec; border:1px dashed #a8b08c; border-radius:10px;
+    background:var(--lp-bg-261); border:1px dashed var(--lp-line-055); border-radius:10px;
     padding:16px 22px; font-size:13px; color:var(--ink2); margin-top:40px;
   }
-  footer.selfcheck b{color:#5c6b3c;}
+  footer.selfcheck b{color:var(--lp-ink-181);}
   @media (max-width:680px){
     .wrap{padding:16px 14px 48px;}
     section.card{padding:22px 18px;}
     nav.toc ol{columns:1;}
     header.hero{padding:30px 22px;}
   }
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>HunyuanImage_3.0</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <header class="hero">

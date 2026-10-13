@@ -8,8 +8,7 @@
   :root{
     --ink:#1c2430; --sub:#5a6b7f; --bg:#f6f4ee; --paper:#ffffff;
     --accent:#b3541e; --accent2:#7a5c2e; --gold:#9c7c38;
-    --hl:#fff3d6; --line:#e4ddd0; --code:#f2efe8;
-  }
+    --hl:#fff3d6; --line:#e4ddd0; --code:#f2efe8;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-ink-313:#fdfbf6;/* LP:TOKENS:END */}
   *{margin:0;padding:0;box-sizing:border-box;}
   body{
     font-family:"Source Han Serif SC","Noto Serif CJK SC","Songti SC",Georgia,serif;
@@ -44,7 +43,7 @@
   ul.plain{margin:12px 0 12px 24px;}
   ul.plain li{margin:8px 0;text-align:justify;}
   table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.92rem;}
-  th{background:var(--ink);color:#fdfbf6;padding:9px 12px;text-align:left;font-weight:600;letter-spacing:.03em;}
+  th{background:var(--ink);color:var(--lp-ink-313);padding:9px 12px;text-align:left;font-weight:600;letter-spacing:.03em;}
   td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
   tr:nth-child(even) td{background:rgba(228,221,208,.25);}
   td .num{font-size:.92em;}
@@ -61,9 +60,26 @@
   footer{margin-top:64px;padding-top:24px;border-top:3px double var(--accent);font-size:.82rem;color:var(--sub);}
   footer .check{margin-top:14px;background:var(--code);border:1px solid var(--line);border-radius:8px;padding:14px 18px;font-style:normal;}
   @media (max-width:640px){.wrap{padding:28px 18px 60px;}h1{font-size:1.45rem;}body{font-size:15.5px;}}
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>AWQ</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <header class="hero">

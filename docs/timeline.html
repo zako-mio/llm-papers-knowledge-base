@@ -5,95 +5,101 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>现代大语言模型发展史 · 多技术线泳道图（转置）</title>
 <style>
-:root{--bg:#0b0f14;--panel:#11161d;--bd:#232b36;--tx:#dbe4ee;--mut:#7d8b9d;--acc:#4cc2ff;--gold:#e8b93e}
+:root{--bg:#0b0f14;--panel:#11161d;--bd:#232b36;--tx:#dbe4ee;--mut:#7d8b9d;--acc:#4cc2ff;--gold:#e8b93e;/* LP:TOKENS:BEGIN */--lp-bg-051:#12304a;--lp-bg-041:#0e141b;--lp-bg-062:#9ecbff;--lp-bg-069:#eef6ff;--lp-bg-061:#7fd4ff;--lp-mix-046:#7fa3c9;--lp-ink-031:#9aa7b5;--lp-bg-009:#0d1219;--lp-bg-171:#1a2431;--lp-bg-056:#1c2f45;--lp-ink-034:#cddaea;--lp-line-010:#1a222d;--lp-line-004:#000000;--lp-line-013:#3d4c60;--lp-bg-192:#242012;--lp-bg-154:#141019;--lp-ink-044:#14100a;--lp-line-035:#3d6ea0;--lp-bg-157:#14202e;--lp-ink-283:#cfe0f0;--lp-mix-044:#3d5a78;--lp-ink-001:#ffffff;--lp-mix-040:#333b45;--lp-bg-113:#0e1319;--lp-bg-059:#2c3a4d;--lp-mix-022:#c084fc;--lp-bg-152:#131c2b;--lp-line-033:#33415a;--lp-ink-068:#eaf2fb;--lp-ink-066:#c3cedb;--lp-ink-165:#3fb950;--lp-ink-177:#58a6ff;--lp-ink-270:#bc8cff;--lp-ink-311:#f85149;--lp-line-012:#3b4757;/* LP:TOKENS:END */}
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--tx);line-height:1.6;font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
 a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
-.page-head{text-align:center;padding:36px 16px 20px;background:radial-gradient(ellipse 80% 65% at 50% -10%,#12304a66,transparent),linear-gradient(180deg,#0e141b,var(--bg))}
-.page-head h1{font-size:clamp(20px,3vw,30px);letter-spacing:.02em;background:linear-gradient(90deg,#9ecbff,#eef6ff 45%,#7fd4ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.page-head{text-align:center;padding:36px 16px 20px;background:radial-gradient(ellipse 80% 65% at 50% -10%,var(--lp-bg-051),transparent),linear-gradient(180deg,var(--lp-bg-041),var(--bg))}
+.page-head h1{font-size:clamp(20px,3vw,30px);letter-spacing:.02em;background:linear-gradient(90deg,var(--lp-bg-062),var(--lp-bg-069) 45%,var(--lp-bg-061));-webkit-background-clip:text;background-clip:text;color:transparent}
 .page-head .sub{color:var(--mut);margin-top:6px;font-family:ui-monospace,Consolas,monospace;font-size:12px}
 .stat-badges{margin-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .sb{border:1px solid var(--bd);background:var(--panel);border-radius:999px;padding:3px 12px;font-size:12px;color:var(--mut)}
-.sb b{color:var(--tx)}.sb.p3c b{color:var(--gold)}.sb.p2c b{color:#7fa3c9}.sb.p1c b{color:#9aa7b5}
+.sb b{color:var(--tx)}.sb.p3c b{color:var(--gold)}.sb.p2c b{color:var(--lp-mix-046)}.sb.p1c b{color:var(--lp-ink-031)}
 
 /* ===== 转置布局：左=时间纵轴 sticky left，顶=技术线横轴 sticky top ===== */
-.timeline-wrap{position:relative;margin:20px auto 0;max-width:1700px;padding:0 14px 40px;overflow:visible}
-.tl-grid{display:grid;grid-template-columns:120px repeat(9,minmax(150px,1fr));grid-template-rows:88px 116px 320px 116px 218px 320px 116px 116px 116px 320px 218px 422px 524px 422px 218px 728px 320px 524px 218px;min-width:max-content;position:relative}
+/* ★ Q8=A（栅格溢出，C2-N2）：① 容器 overflow:visible → overflow-x:auto（治**传导**）；
+   ② .tl-grid 的 min-width:max-content → min-width:0（治**主因**）。改动前实测：主因是
+   栅格内容被 .node{width:100%} 撑到 1849px（不是审计原话里的 1168px），`max-content`
+   令栅格**按内容宽**取宽；改为 0 后栅格**按容器量测**取宽、列轨道由引擎按 minmax(150px,1fr)
+   分配，超出部分落在 .timeline-wrap 的横向滚动区内 ⇒ 整页不再横向溢出。
+   ★ 只做①不做②＝审计原话的修法，实测已证伪（Q8 裁定原文）。 */
+.timeline-wrap{position:relative;margin:20px auto 0;max-width:1700px;padding:0 14px 40px;overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch}
+.tl-grid{display:grid;grid-template-columns:120px repeat(9,minmax(150px,1fr));grid-template-rows:88px 116px 320px 116px 218px 320px 116px 116px 116px 320px 218px 422px 524px 422px 218px 728px 320px 524px 218px;min-width:0;position:relative}
 /* 左上角空白 + 技术线头部行 (sticky top) */
-.corner{grid-row:1;grid-column:1;background:#0d1219;position:sticky;top:0;left:0;z-index:20;border:1px solid var(--bd);display:flex;align-items:center;justify-content:center}
-.lane-head-cell{grid-row:1;position:sticky;top:0;z-index:15;background:#0d1219;border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;padding:6px}
+.corner{grid-row:1;grid-column:1;background:var(--lp-bg-009);position:sticky;top:0;left:0;z-index:20;border:1px solid var(--bd);display:flex;align-items:center;justify-content:center}
+.lane-head-cell{grid-row:1;position:sticky;top:0;z-index:15;background:var(--lp-bg-009);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;padding:6px}
 /* 技术线标签按钮（顶部横轴 + 图例筛选） */
 .lane-tab{display:flex;flex-direction:column;align-items:center;gap:3px;width:100%;height:100%;background:transparent;border:none;cursor:pointer;padding:6px 4px;transition:.15s;border-radius:8px}
 .lane-tab .ldot{width:12px;height:12px;border-radius:50%}
 .lane-tab .lt-name{font-size:13px;font-weight:700;color:var(--tx);line-height:1.2;text-align:center}
 .lane-tab .lt-cnt{font-size:10.5px;color:var(--mut);font-family:ui-monospace,monospace}
-.lane-tab:hover{background:#1a2431}
-.lane-tab.on{background:#1c2f45;box-shadow:inset 0 0 0 2px var(--lc)}
+.lane-tab:hover{background:var(--lp-bg-171)}
+.lane-tab.on{background:var(--lp-bg-056);box-shadow:inset 0 0 0 2px var(--lc)}
 .lane-tab.dim{opacity:.35}
 .lane-tab.off{opacity:.3;filter:grayscale(1);text-decoration:line-through}
 
 /* 左侧时间纵轴 segment 标签 (sticky left) */
-.seg-cell{grid-column:1;position:sticky;left:0;z-index:10;background:#0d1219;border:1px solid var(--bd);padding:4px 8px;display:flex;flex-direction:column;justify-content:center;gap:2px}
-.seg-y{font-family:ui-monospace,Consolas,monospace;font-size:12px;font-weight:700;color:#cddaea}
+.seg-cell{grid-column:1;position:sticky;left:0;z-index:10;background:var(--lp-bg-009);border:1px solid var(--bd);padding:4px 8px;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.seg-y{font-family:ui-monospace,Consolas,monospace;font-size:12px;font-weight:700;color:var(--lp-ink-034)}
 .seg-n{font-size:10px;color:var(--mut)}
 
 /* 内容单元格 */
-.cll{position:relative;border:1px solid #1a222d;padding:6px 4px;display:flex;flex-direction:column;gap:6px;align-items:center}
-.cll:nth-child(odd){background:#0d1219}
+.cll{position:relative;border:1px solid var(--lp-line-010);padding:6px 4px;display:flex;flex-direction:column;gap:6px;align-items:center}
+.cll:nth-child(odd){background:var(--lp-bg-009)}
 
 /* 节点卡片 */
 .node{position:relative;background:var(--panel);border:1px solid var(--bd);border-radius:8px;padding:6px 8px;width:100%;min-height:80px;display:flex;flex-direction:column;transition:.16s}
-.node:hover{transform:translateY(-2px);box-shadow:0 6px 16px #00000066;border-color:#3d4c60;z-index:100}
-.node-P3{border-color:var(--gold);border-width:2px;background:linear-gradient(180deg,#242012,#141019);box-shadow:0 0 14px #e8b93e44;z-index:4}
+.node:hover{transform:translateY(-2px);box-shadow:0 6px 16px var(--lp-line-004);border-color:var(--lp-line-013);z-index:100}
+.node-P3{border-color:var(--gold);border-width:2px;background:linear-gradient(180deg,var(--lp-bg-192),var(--lp-bg-154));box-shadow:0 0 14px var(--gold);z-index:4}
 .node-P3 .node-title{color:var(--gold);font-weight:800}
-.node-P3 .pri-chip{background:var(--gold);color:#14100a;font-weight:800}
-.node-P2{border-color:#3d6ea0;border-width:1.5px;background:linear-gradient(180deg,#14202e,#11161d)}
-.node-P2 .node-title{color:#cfe0f0}
-.node-P2 .pri-chip{background:#3d5a78;color:#fff}
-.node-P1{border-color:#333b45;border-width:1px;background:#0e1319;opacity:.72}
-.node-P1 .node-title{color:#7d8b9d}
-.node-P1 .pri-chip{background:#333b45;color:#9aa7b5}
+.node-P3 .pri-chip{background:var(--gold);color:var(--lp-ink-044);font-weight:800}
+.node-P2{border-color:var(--lp-line-035);border-width:1.5px;background:linear-gradient(180deg,var(--lp-bg-157),var(--panel))}
+.node-P2 .node-title{color:var(--lp-ink-283)}
+.node-P2 .pri-chip{background:var(--lp-mix-044);color:var(--lp-ink-001)}
+.node-P1{border-color:var(--lp-mix-040);border-width:1px;background:var(--lp-bg-113);opacity:.72}
+.node-P1 .node-title{color:var(--mut)}
+.node-P1 .pri-chip{background:var(--lp-mix-040);color:var(--lp-ink-031)}
 .pri-chip{font-size:9px;font-weight:700;border-radius:4px;padding:0 5px;line-height:1.5}
 .node-top{display:flex;gap:4px;align-items:center;margin-bottom:4px;flex-wrap:wrap}
 .node-date{font-family:ui-monospace,Consolas,monospace;font-size:10px;color:var(--mut)}
-.cross-badge{font-size:9px;background:#2c3a4d;color:#cddaea;border-radius:99px;padding:0 5px;font-weight:700}
+.cross-badge{font-size:9px;background:var(--lp-bg-059);color:var(--lp-ink-034);border-radius:99px;padding:0 5px;font-weight:700}
 .node-title{font-size:11.5px;line-height:1.32;display:block;word-break:break-word}
 .node-org{font-size:10px;color:var(--mut);margin-top:3px;line-height:1.25;word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.node-ana{margin-top:auto;padding-top:4px}.node-ana a{font-size:10px;color:#c084fc;font-weight:600}
+.node-ana{margin-top:auto;padding-top:4px}.node-ana a{font-size:10px;color:var(--lp-mix-022);font-weight:600}
 .node.dim{opacity:.18;pointer-events:none}
-.node.sel{box-shadow:0 0 0 2px var(--acc),0 6px 16px #00000066;z-index:9}
+.node.sel{box-shadow:0 0 0 2px var(--acc),0 6px 16px var(--lp-line-004);z-index:9}
 
 /* 悬停概要浮层 */
-.node-tip{position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);width:230px;background:#131c2b;border:1px solid #33415a;border-radius:10px;padding:10px 12px;z-index:200;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .15s,visibility .15s;text-align:left;box-shadow:0 10px 28px #00000088}
+.node-tip{position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);width:230px;background:var(--lp-bg-152);border:1px solid var(--lp-line-033);border-radius:10px;padding:10px 12px;z-index:200;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .15s,visibility .15s;text-align:left;box-shadow:0 10px 28px var(--lp-line-004)}
 .node:hover .node-tip{opacity:1;visibility:visible;pointer-events:auto}
-.node-tip .tip-title{font-size:12px;font-weight:700;color:#eaf2fb;line-height:1.35;word-break:break-word}
+.node-tip .tip-title{font-size:12px;font-weight:700;color:var(--lp-ink-068);line-height:1.35;word-break:break-word}
 .node-tip .tip-org{font-size:10.5px;color:var(--mut);margin-top:4px}
-.node-tip .tip-contrib{font-size:11px;color:#c3cedb;margin-top:6px;line-height:1.45;word-break:break-word}
+.node-tip .tip-contrib{font-size:11px;color:var(--lp-ink-066);margin-top:6px;line-height:1.45;word-break:break-word}
 .node-tip .tip-contrib b{color:var(--acc)}
 
 /* 关系线 SVG overlay */
 .relation-layer{position:absolute;top:0;left:0;overflow:visible;pointer-events:none;z-index:1}
 .rel-line{pointer-events:auto;cursor:pointer;opacity:.32;stroke-width:1.2;fill:none}
-.rel-line.found{stroke:#3fb950} .rel-line.inherit{stroke:#58a6ff}
-.rel-line.branch{stroke:#bc8cff} .rel-line.compete{stroke:#f85149}
+.rel-line.found{stroke:var(--lp-ink-165)} .rel-line.inherit{stroke:var(--lp-ink-177)}
+.rel-line.branch{stroke:var(--lp-ink-270)} .rel-line.compete{stroke:var(--lp-ink-311)}
 .rel-line:hover,.rel-line.hl{opacity:.95;stroke-width:2.5}
 .rel-line.dim{opacity:.06;pointer-events:none}
 .rel-line.hide{display:none}
 
 /* 关系类型图例 */
-.legend{display:flex;gap:10px 18px;flex-wrap:wrap;justify-content:center;max-width:1300px;margin:14px auto 0;padding:10px 16px;background:#0d1219f2;border:1px solid var(--bd);border-radius:10px}
+.legend{display:flex;gap:10px 18px;flex-wrap:wrap;justify-content:center;max-width:1300px;margin:14px auto 0;padding:10px 16px;background:var(--lp-bg-009);border:1px solid var(--bd);border-radius:10px}
 .rel-tab{display:flex;align-items:center;gap:6px;background:transparent;border:1px solid var(--bd);border-radius:999px;padding:4px 12px;font-size:12px;color:var(--mut);cursor:pointer;transition:.15s}
 .rel-tab .rline{width:18px;height:3px;border-radius:2px;display:inline-block}
-.rel-tab:hover{color:var(--tx);border-color:#3b4757}
-.rel-tab.on{background:#1c2f45;color:var(--tx);border-color:var(--rc);box-shadow:inset 0 0 0 1px var(--rc)}
+.rel-tab:hover{color:var(--tx);border-color:var(--lp-line-012)}
+.rel-tab.on{background:var(--lp-bg-056);color:var(--tx);border-color:var(--rc);box-shadow:inset 0 0 0 1px var(--rc)}
 .rel-tab.dim{opacity:.4}
 
 /* 视图切换 + 图例提示 */
 .view-switch{text-align:center;margin:18px 0 0}
 .view-switch a{display:inline-block;border:1px solid var(--acc);color:var(--acc);border-radius:99px;padding:6px 20px;font-size:13px;font-weight:600;background:var(--acc)14}
 .hint{text-align:center;color:var(--mut);font-size:11.5px;margin:12px auto 0}
-.page-foot{margin-top:40px;padding:24px 16px 40px;text-align:center;color:var(--mut);font-size:12px;border-top:1px solid var(--bd);background:#0d1219}
+.page-foot{margin-top:40px;padding:24px 16px 40px;text-align:center;color:var(--mut);font-size:12px;border-top:1px solid var(--bd);background:var(--lp-bg-009)}
 @media(max-width:760px){
   .tl-grid{grid-template-columns:88px repeat(9,minmax(120px,1fr))}
   .node{width:100%}

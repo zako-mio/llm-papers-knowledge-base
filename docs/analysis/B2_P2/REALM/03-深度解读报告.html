@@ -8,8 +8,7 @@
   :root{
     --ink:#1f2933; --muted:#52606d; --accent:#1a5fb4; --accent2:#0b7285;
     --gold:#b7791f; --bg:#fafcfe; --card:#ffffff; --line:#d9e2ec;
-    --code-bg:#f0f4f8; --hl-bg:#fff3bf;
-  }
+    --code-bg:#f0f4f8; --hl-bg:#fff3bf;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-mix-015:#12355b;--lp-ink-077:#0d2b4e;--lp-ink-249:#9c4221;--lp-bg-245:#eef6fb;--lp-ink-117:#223344;--lp-bg-287:#f4f8fb;--lp-bg-349:#fdf3dc;--lp-bg-029:#eef3ee;--lp-line-045:#7a9a7a;--lp-line-036:#48793e;--lp-ink-143:#2f5233;/* LP:TOKENS:END */}
   *{box-sizing:border-box; margin:0; padding:0;}
   body{
     font-family:"Source Han Serif SC","Noto Serif CJK SC","Songti SC",Georgia,serif;
@@ -18,8 +17,8 @@
   }
   .wrap{max-width:900px; margin:0 auto;}
   header.hero{
-    background:linear-gradient(135deg,#12355b 0%,#1a5fb4 60%,#0b7285 100%);
-    color:#fff; border-radius:14px; padding:44px 40px 36px; margin:28px 0 30px;
+    background:linear-gradient(135deg,var(--lp-mix-015) 0%,var(--accent) 60%,var(--accent2) 100%);
+    color:var(--card); border-radius:14px; padding:44px 40px 36px; margin:28px 0 30px;
     box-shadow:0 6px 24px rgba(18,53,91,.25);
   }
   header.hero h1{font-size:27px; line-height:1.45; letter-spacing:.5px;}
@@ -34,27 +33,27 @@
   }
   h2{
     font-size:21.5px; margin:42px 0 18px; padding-left:14px;
-    border-left:5px solid var(--accent); color:#12355b;
+    border-left:5px solid var(--accent); color:var(--lp-mix-015);
   }
   h3{font-size:17.5px; margin:26px 0 10px; color:var(--accent2);}
   p{margin:10px 0; text-align:justify;}
   ul,ol{margin:10px 0 10px 26px;}
   li{margin:6px 0; text-align:justify;}
-  strong{color:#0d2b4e;}
+  strong{color:var(--lp-ink-077);}
   .knum{
     font-family:Georgia,"Times New Roman",serif; font-weight:700;
-    color:#9c4221; background:var(--hl-bg); padding:0 5px; border-radius:4px;
+    color:var(--lp-ink-249); background:var(--hl-bg); padding:0 5px; border-radius:4px;
     white-space:nowrap;
   }
   .tag{
     display:inline-block; font-size:12px; font-family:sans-serif;
-    color:#fff; background:var(--accent); border-radius:4px;
+    color:var(--card); background:var(--accent); border-radius:4px;
     padding:1px 8px; margin-right:6px; vertical-align:2px;
   }
   blockquote{
-    margin:16px 0; padding:12px 18px; background:#eef6fb;
+    margin:16px 0; padding:12px 18px; background:var(--lp-bg-245);
     border-left:4px solid var(--accent2); border-radius:0 8px 8px 0;
-    color:#234; font-size:15.5px;
+    color:var(--lp-ink-117); font-size:15.5px;
   }
   pre{
     background:var(--code-bg); border:1px solid var(--line); border-radius:8px;
@@ -66,22 +65,39 @@
     background:var(--card);
   }
   th{
-    background:#12355b; color:#fff; padding:8px 10px; text-align:left;
+    background:var(--lp-mix-015); color:var(--card); padding:8px 10px; text-align:left;
     font-weight:600;
   }
   td{padding:7px 10px; border-bottom:1px solid var(--line);}
-  tr:nth-child(even) td{background:#f4f8fb;}
-  tr.hl-row td{background:#fdf3dc; font-weight:700;}
+  tr:nth-child(even) td{background:var(--lp-bg-287);}
+  tr.hl-row td{background:var(--lp-bg-349); font-weight:700;}
   td.num,th.num{text-align:center; font-family:Consolas,monospace;}
   .note{font-size:13.5px; color:var(--muted);}
   footer.selfcheck{
-    margin-top:48px; padding:20px 24px; background:#eef3ee;
-    border:1px dashed #7a9a7a; border-radius:10px; font-size:14px;
+    margin-top:48px; padding:20px 24px; background:var(--lp-bg-029);
+    border:1px dashed var(--lp-line-045); border-radius:10px; font-size:14px;
   }
-  footer.selfcheck h2{border-color:#48793e; color:#2f5233; margin-top:0;}
+  footer.selfcheck h2{border-color:var(--lp-line-036); color:var(--lp-ink-143); margin-top:0;}
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>REALM</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <header class="hero">

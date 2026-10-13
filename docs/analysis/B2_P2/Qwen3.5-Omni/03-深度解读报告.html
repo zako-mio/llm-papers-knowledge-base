@@ -7,8 +7,7 @@
 <style>
   :root{
     --ink:#1a2332; --muted:#5b6b82; --accent:#0f6ba8; --accent2:#c2571a;
-    --bg:#f6f8fb; --card:#ffffff; --line:#dde5ee; --hl:#fff3cd;
-  }
+    --bg:#f6f8fb; --card:#ffffff; --line:#dde5ee; --hl:#fff3cd;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-mix-027:#0d2b45;--lp-bg-158:#14486e;--lp-ink-271:#bcd6ea;--lp-bg-001:#fdf6e3;--lp-ink-189:#6b4a1e;--lp-ink-059:#8a5a00;--lp-ink-228:#8866aa;--lp-bg-030:#eef3f9;--lp-bg-011:#fafcfe;--lp-ink-105:#177a3d;--lp-ink-064:#b02a2a;--lp-bg-269:#f2f7fc;/* LP:TOKENS:END */}
   *{margin:0;padding:0;box-sizing:border-box;}
   body{
     font-family:"Source Han Serif SC","Noto Serif CJK SC","Songti SC",Georgia,serif;
@@ -16,15 +15,15 @@
   }
   .wrap{max-width:900px;margin:0 auto;padding:32px 24px 64px;}
   header.hero{
-    background:linear-gradient(135deg,#0d2b45 0%,#14486e 60%,#0f6ba8 100%);
-    color:#fff;border-radius:14px;padding:44px 40px;margin-bottom:36px;
+    background:linear-gradient(135deg,var(--lp-mix-027) 0%,var(--lp-bg-158) 60%,var(--accent) 100%);
+    color:var(--card);border-radius:14px;padding:44px 40px;margin-bottom:36px;
   }
   header.hero h1{font-size:27px;line-height:1.5;font-weight:700;letter-spacing:.5px;}
-  header.hero .sub{margin-top:14px;font-size:13.5px;color:#bcd6ea;line-height:1.9;font-family:"PingFang SC","Microsoft YaHei",sans-serif;}
+  header.hero .sub{margin-top:14px;font-size:13.5px;color:var(--lp-ink-271);line-height:1.9;font-family:"PingFang SC","Microsoft YaHei",sans-serif;}
   .badge{display:inline-block;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:2px 12px;margin:10px 8px 0 0;font-size:12px;font-family:sans-serif;}
   .notice{
-    background:#fdf6e3;border-left:4px solid var(--accent2);border-radius:0 8px 8px 0;
-    padding:14px 18px;font-size:13.5px;color:#6b4a1e;margin-bottom:34px;
+    background:var(--lp-bg-001);border-left:4px solid var(--accent2);border-radius:0 8px 8px 0;
+    padding:14px 18px;font-size:13.5px;color:var(--lp-ink-189);margin-bottom:34px;
     font-family:"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.8;
   }
   section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:30px 34px;margin-bottom:26px;box-shadow:0 1px 3px rgba(20,40,70,.05);}
@@ -34,21 +33,38 @@
   ul.plain{padding-left:22px;margin:10px 0;}
   ul.plain li{margin:7px 0;text-align:justify;}
   b.k{color:var(--accent2);}
-  span.num{font-family:"SF Mono",Consolas,monospace;background:var(--hl);color:#8a5a00;font-weight:700;padding:1px 6px;border-radius:5px;font-size:.92em;white-space:nowrap;}
-  em.inf{font-style:normal;color:#8866aa;font-size:.9em;}
+  span.num{font-family:"SF Mono",Consolas,monospace;background:var(--hl);color:var(--lp-ink-059);font-weight:700;padding:1px 6px;border-radius:5px;font-size:.92em;white-space:nowrap;}
+  em.inf{font-style:normal;color:var(--lp-ink-228);font-size:.9em;}
   table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;font-family:"PingFang SC","Microsoft YaHei",sans-serif;}
-  th{background:#eef3f9;color:var(--ink);font-weight:600;text-align:left;}
+  th{background:var(--lp-bg-030);color:var(--ink);font-weight:600;text-align:left;}
   th,td{border:1px solid var(--line);padding:8px 11px;vertical-align:top;}
-  tr:nth-child(even) td{background:#fafcfe;}
+  tr:nth-child(even) td{background:var(--lp-bg-011);}
   td .num{font-family:Consolas,monospace;}
-  .win{color:#177a3d;font-weight:700;} .lose{color:#b02a2a;font-weight:700;}
-  blockquote{border-left:3px solid var(--accent);background:#f2f7fc;padding:10px 16px;margin:12px 0;color:var(--muted);font-size:14.5px;border-radius:0 8px 8px 0;}
+  .win{color:var(--lp-ink-105);font-weight:700;} .lose{color:var(--lp-ink-064);font-weight:700;}
+  blockquote{border-left:3px solid var(--accent);background:var(--lp-bg-269);padding:10px 16px;margin:12px 0;color:var(--muted);font-size:14.5px;border-radius:0 8px 8px 0;}
   ol.lim{padding-left:22px;} ol.lim li{margin:8px 0;text-align:justify;}
   footer{ text-align:center;color:var(--muted);font-size:12.5px;font-family:sans-serif;margin-top:30px;}
-  #selfcheck{display:inline-block;margin-top:10px;padding:6px 14px;border:1px dashed var(--line);border-radius:8px;background:#fff;font-size:12px;}
+  #selfcheck{display:inline-block;margin-top:10px;padding:6px 14px;border:1px dashed var(--line);border-radius:8px;background:var(--card);font-size:12px;}
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>Qwen3.5-Omni</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <header class="hero">

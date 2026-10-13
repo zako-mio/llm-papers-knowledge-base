@@ -4,7 +4,10 @@ try:
     import pymupdf as fitz
 except Exception:
     import fitz
-BASE = "/home/zako-mio/opencode/archive/Mission-file/2026-08/0825-LLM关键节点论文全集"
+# ★ L1 本地化（批 I · 裁定 L1=A）：⛔ 不再写死作者机绝对路径；由文件位置推导仓根。
+#   ⚠ 本件依赖 PyMuPDF（fitz）且要读 papers/ 下的 PDF（Git LFS）；在 CI 上 LFS 已拉取，
+#   本机可能未拉取 ⇒ 它是**只读巡检件**，不在 rebuild 管线内（见 build/profile.json）。
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 m = json.load(open(os.path.join(BASE, "data/papers_master.json"), encoding="utf-8"))
 problems, ok = [], 0
 for p in m["papers"]:

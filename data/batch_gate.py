@@ -1,7 +1,10 @@
 import os, sys, glob, json
 sys.stdout.reconfigure(encoding="utf-8")
-BASE = "/home/zako-mio/opencode/archive/Mission-file/2026-08/0825-LLM关键节点论文全集"
-batch_dir = os.path.join(BASE, "analysis", sys.argv[1] if len(sys.argv) > 1 else "B1_P3")
+# ★ L1 本地化（批 I · 裁定 L1=A）：原先写死作者机绝对路径 `/home/…/0825-LLM关键节点论文全集`
+#   ⇒ 他人机器与 CI 无法重跑。现改为**由本文件位置推导仓根**（data/ 的上一级）。
+#   同时把产物面从上游语料的 `analysis/<批次>` 改为仓内 `docs/analysis/<批次>`。
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+batch_dir = os.path.join(BASE, "docs", "analysis", sys.argv[1] if len(sys.argv) > 1 else "B1_P3")
 fails, rows = [], []
 for d in sorted(os.listdir(batch_dir)):
     p = os.path.join(batch_dir, d)

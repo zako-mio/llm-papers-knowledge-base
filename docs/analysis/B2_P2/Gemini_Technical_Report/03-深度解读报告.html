@@ -5,44 +5,61 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gemini 技术报告 · 深度解读</title>
 <style>
-:root{--ink:#1a2332;--paper:#f7f5f0;--card:#ffffff;--accent:#1a73e8;--gold:#c77b00;--green:#137333;--red:#a50e0e;--muted:#5f6368;--line:#e0dcd3;}
+:root{--ink:#1a2332;--paper:#f7f5f0;--card:#ffffff;--accent:#1a73e8;--gold:#c77b00;--green:#137333;--red:#a50e0e;--muted:#5f6368;--line:#e0dcd3;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-mix-014:#10214b;--lp-mix-017:#1a4d8f;--lp-bg-013:#eef3fb;--lp-ink-103:#173a6b;--lp-bg-091:#fafaf7;--lp-bg-364:#fdfcf9;--lp-bg-286:#f4f7fd;--lp-bg-140:#12251a;--lp-ink-285:#cfe8d8;--lp-ink-058:#7ee2a8;--lp-line-030:#2e7d52;/* LP:TOKENS:END */}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:"Source Han Serif SC","Noto Serif SC","Songti SC",serif;background:var(--paper);color:var(--ink);line-height:1.85;font-size:16.5px;}
 .wrap{max-width:860px;margin:0 auto;padding:0 28px 80px;}
-header.hero{background:linear-gradient(135deg,#10214b 0%,#1a4d8f 55%,#1a73e8 100%);color:#fff;padding:72px 28px 58px;text-align:center;}
+header.hero{background:linear-gradient(135deg,var(--lp-mix-014) 0%,var(--lp-mix-017) 55%,var(--accent) 100%);color:var(--card);padding:72px 28px 58px;text-align:center;}
 header.hero .kicker{font-family:sans-serif;font-size:.78rem;letter-spacing:.35em;text-transform:uppercase;opacity:.75;margin-bottom:18px;}
 header.hero h1{font-size:2.15rem;line-height:1.4;font-weight:700;margin-bottom:16px;}
 header.hero .sub{font-size:1rem;opacity:.88;max-width:640px;margin:0 auto;}
 header.hero .meta{margin-top:26px;font-family:sans-serif;font-size:.82rem;display:flex;gap:22px;justify-content:center;flex-wrap:wrap;opacity:.8;}
 main section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:40px 44px;margin-top:34px;box-shadow:0 1px 4px rgba(26,35,50,.05);}
-h2{font-size:1.45rem;color:#10214b;border-left:5px solid var(--accent);padding-left:16px;margin-bottom:24px;line-height:1.5;}
-h3{font-size:1.13rem;color:#1a4d8f;margin:30px 0 12px;}
+h2{font-size:1.45rem;color:var(--lp-mix-014);border-left:5px solid var(--accent);padding-left:16px;margin-bottom:24px;line-height:1.5;}
+h3{font-size:1.13rem;color:var(--lp-mix-017);margin:30px 0 12px;}
 p{margin-bottom:14px;text-align:justify;}
 .hl{font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;}
 .gold{font-weight:700;color:var(--gold);}
 .red{font-weight:700;color:var(--red);}
 .green{font-weight:700;color:var(--green);}
 .infer{color:var(--muted);font-style:normal;font-size:.94em;}
-blockquote{background:#eef3fb;border-left:4px solid var(--accent);padding:14px 20px;margin:18px 0;border-radius:0 8px 8px 0;color:#173a6b;}
+blockquote{background:var(--lp-bg-013);border-left:4px solid var(--accent);padding:14px 20px;margin:18px 0;border-radius:0 8px 8px 0;color:var(--lp-ink-103);}
 table{width:100%;border-collapse:collapse;margin:18px 0;font-size:.92rem;font-family:sans-serif;}
-th{background:#10214b;color:#fff;padding:9px 12px;text-align:left;font-weight:600;}
+th{background:var(--lp-mix-014);color:var(--card);padding:9px 12px;text-align:left;font-weight:600;}
 td{padding:9px 12px;border-bottom:1px solid var(--line);}
-tr:nth-child(even) td{background:#fafaf7;}
+tr:nth-child(even) td{background:var(--lp-bg-091);}
 ul.plain{padding-left:24px;margin-bottom:14px;}
 ul.plain li{margin-bottom:10px;text-align:justify;}
-.abs{background:linear-gradient(135deg,#fdfcf9,#f4f7fd);border:1px solid var(--line);border-radius:12px;padding:32px 38px;margin-top:34px;}
+.abs{background:linear-gradient(135deg,var(--lp-bg-364),var(--lp-bg-286));border:1px solid var(--line);border-radius:12px;padding:32px 38px;margin-top:34px;}
 .abs h2{border:none;padding:0;margin-bottom:16px;}
-.tag{display:inline-block;font-family:sans-serif;font-size:.72rem;background:#eef3fb;color:#1a4d8f;border-radius:20px;padding:3px 14px;margin-right:8px;margin-top:10px;}
-.checker{background:#12251a;color:#cfe8d8;border-radius:12px;padding:30px 38px;margin-top:34px;font-family:sans-serif;font-size:.86rem;}
-.checker h2{color:#7ee2a8;border-color:#2e7d52;}
+.tag{display:inline-block;font-family:sans-serif;font-size:.72rem;background:var(--lp-bg-013);color:var(--lp-mix-017);border-radius:20px;padding:3px 14px;margin-right:8px;margin-top:10px;}
+.checker{background:var(--lp-bg-140);color:var(--lp-ink-285);border-radius:12px;padding:30px 38px;margin-top:34px;font-family:sans-serif;font-size:.86rem;}
+.checker h2{color:var(--lp-ink-058);border-color:var(--lp-line-030);}
 .checker ul{list-style:none;padding-left:4px;}
 .checker li{margin-bottom:8px;}
-.ok{color:#7ee2a8;font-weight:700;}
+.ok{color:var(--lp-ink-058);font-weight:700;}
 footer{text-align:center;font-family:sans-serif;font-size:.78rem;color:var(--muted);margin-top:44px;}
 @media(max-width:640px){main section,.abs,.checker{padding:26px 20px;}header.hero h1{font-size:1.55rem;}body{font-size:15.5px;}}
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>Gemini_Technical_Report</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <header class="hero">
 <div class="kicker">Deep Reading · LLM Key Milestones</div>
 <h1>《Gemini: A Family of Highly<br>Capable Multimodal Models》深度解读报告</h1>

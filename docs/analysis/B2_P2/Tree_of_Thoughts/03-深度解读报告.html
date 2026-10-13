@@ -14,8 +14,7 @@
     --bg: #faf8f4;
     --card: #ffffff;
     --num: #9a3412;
-    --num-bg: #fff0e0;
-  }
+    --num-bg: #fff0e0;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-bg-189:#23272f;--lp-bg-208:#3c3428;--lp-bg-213:#6b4423;--lp-ink-309:#f5efe6;--lp-ink-147:#33302a;--lp-ink-041:#111111;--lp-ink-217:#7c6f64;--lp-bg-277:#f3ede4;--lp-ink-172:#4a4034;--lp-bg-093:#fbf9f5;--lp-bg-032:#f2f0ea;--lp-line-075:#cfc8ba;--lp-bg-224:#e9e5dc;/* LP:TOKENS:END */}
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", Georgia, serif;
@@ -27,8 +26,8 @@
   .page { max-width: 900px; margin: 0 auto; padding: 0 28px 64px; }
 
   header.hero {
-    background: linear-gradient(135deg, #23272f 0%, #3c3428 60%, #6b4423 100%);
-    color: #f5efe6;
+    background: linear-gradient(135deg, var(--lp-bg-189) 0%, var(--lp-bg-208) 60%, var(--lp-bg-213) 100%);
+    color: var(--lp-ink-309);
     padding: 56px 28px 48px;
     text-align: center;
   }
@@ -59,23 +58,23 @@
     font-size: 21px; color: var(--accent); margin-bottom: 18px;
     padding-bottom: 10px; border-bottom: 2px solid var(--accent-soft);
   }
-  section.card h3 { font-size: 17px; margin: 24px 0 10px; color: #33302a; }
+  section.card h3 { font-size: 17px; margin: 24px 0 10px; color: var(--lp-ink-147); }
   section.card p { margin: 10px 0; text-align: justify; }
   section.card ul, section.card ol { margin: 10px 0 10px 24px; }
   section.card li { margin: 6px 0; text-align: justify; }
 
-  strong, b { color: #111; }
+  strong, b { color: var(--lp-ink-041); }
   .num {
     font-family: Georgia, "Times New Roman", serif;
     color: var(--num); background: var(--num-bg);
     padding: 1px 6px; border-radius: 4px; font-weight: 700; white-space: nowrap;
   }
-  .infer { color: #7c6f64; font-size: .93em; }
+  .infer { color: var(--lp-ink-217); font-size: .93em; }
 
   table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14.5px; }
-  th { background: #f3ede4; color: #4a4034; font-weight: 700; padding: 9px 12px; border: 1px solid var(--line); text-align: left; }
+  th { background: var(--lp-bg-277); color: var(--lp-ink-172); font-weight: 700; padding: 9px 12px; border: 1px solid var(--line); text-align: left; }
   td { padding: 8px 12px; border: 1px solid var(--line); }
-  tr:nth-child(even) td { background: #fbf9f5; }
+  tr:nth-child(even) td { background: var(--lp-bg-093); }
   td.hl { color: var(--num); font-weight: 700; }
 
   blockquote.punch {
@@ -87,16 +86,33 @@
 
   footer.check {
     margin-top: 36px; padding: 18px 24px; font-size: 13px; color: var(--sub);
-    background: #f2f0ea; border: 1px dashed #cfc8ba; border-radius: 10px;
+    background: var(--lp-bg-032); border: 1px dashed var(--lp-line-075); border-radius: 10px;
   }
-  footer.check code { background: #e9e5dc; padding: 1px 6px; border-radius: 4px; font-size: 12.5px; }
+  footer.check code { background: var(--lp-bg-224); padding: 1px 6px; border-radius: 4px; font-size: 12.5px; }
   @media (max-width: 640px) {
     section.card { padding: 24px 20px; }
     nav.toc ol { grid-template-columns: 1fr; }
   }
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>Tree_of_Thoughts</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 
 <header class="hero">
   <div class="kicker">深度解读 · NEURIPS 2023 · B2 批次</div>

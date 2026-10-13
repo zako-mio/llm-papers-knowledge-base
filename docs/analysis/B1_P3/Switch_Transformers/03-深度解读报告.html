@@ -7,8 +7,7 @@
 <style>
   :root{
     --ink:#1f2430; --sub:#5b6472; --accent:#0b5cad; --hot:#c22f4e;
-    --line:#dfe4ec; --bg:#f4f6fa; --card:#ffffff; --soft:#eef3fb;
-  }
+    --line:#dfe4ec; --bg:#f4f6fa; --card:#ffffff; --soft:#eef3fb;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-bg-105:#0b3059;--lp-bg-159:#14508c;--lp-bg-183:#1d6ab5;--lp-bg-097:#fdf8ec;--lp-line-091:#eadfc3;--lp-ink-211:#7a6428;--lp-mix-007:#123a63;--lp-ink-079:#0f2f52;--lp-ink-120:#23456b;--lp-bg-086:#f7fafd;--lp-bg-373:#fff4f4;--lp-line-097:#f0c9cf;--lp-ink-230:#8a2a3c;--lp-ink-060:#8a6d1f;--lp-bg-273:#f2fbf4;--lp-line-044:#79b78a;--lp-mix-045:#3f9d5c;--lp-ink-113:#205c33;/* LP:TOKENS:END */}
   *{box-sizing:border-box;}
   body{
     margin:0; padding:32px 16px; background:var(--bg); color:var(--ink);
@@ -17,8 +16,8 @@
   }
   .page{max-width:920px; margin:0 auto;}
   header.hero{
-    background:linear-gradient(135deg,#0b3059 0%,#14508c 60%,#1d6ab5 100%);
-    color:#fff; border-radius:14px; padding:36px 40px 30px;
+    background:linear-gradient(135deg,var(--lp-bg-105) 0%,var(--lp-bg-159) 60%,var(--lp-bg-183) 100%);
+    color:var(--card); border-radius:14px; padding:36px 40px 30px;
   }
   header.hero h1{margin:0 0 6px; font-size:27px; letter-spacing:.5px;}
   header.hero .en{font-size:14px; opacity:.85; font-family:Georgia,serif; font-style:italic;}
@@ -28,8 +27,8 @@
     border-radius:999px; padding:3px 12px; font-size:12.5px;
   }
   .datasrc{
-    background:#fdf8ec; border:1px solid #eadfc3; border-radius:10px;
-    padding:10px 16px; margin:18px 0 26px; color:#7a6428; font-size:13.5px;
+    background:var(--lp-bg-097); border:1px solid var(--lp-line-091); border-radius:10px;
+    padding:10px 16px; margin:18px 0 26px; color:var(--lp-ink-211); font-size:13.5px;
   }
   section.card{
     background:var(--card); border:1px solid var(--line); border-radius:14px;
@@ -39,11 +38,11 @@
     font-size:21px; margin:0 0 18px; padding-left:14px; line-height:1.5;
     border-left:5px solid var(--accent); letter-spacing:.3px;
   }
-  h3{font-size:17px; margin:26px 0 10px; color:#123a63;}
+  h3{font-size:17px; margin:26px 0 10px; color:var(--lp-mix-007);}
   p{margin:10px 0;}
   ul,ol{padding-left:24px; margin:8px 0;}
   li{margin:6px 0;}
-  strong{color:#0f2f52;}
+  strong{color:var(--lp-ink-079);}
   .num{
     font-weight:700; color:var(--hot);
     font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif;
@@ -52,34 +51,51 @@
   blockquote{
     margin:18px 0; padding:12px 18px; background:var(--soft);
     border-left:4px solid var(--accent); border-radius:0 10px 10px 0;
-    color:#23456b; font-size:15px;
+    color:var(--lp-ink-120); font-size:15px;
   }
   table{
     width:100%; border-collapse:collapse; margin:14px 0; font-size:14px;
     font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif;
   }
-  th{background:#123a63; color:#fff; padding:8px 10px; text-align:left; font-weight:600;}
+  th{background:var(--lp-mix-007); color:var(--card); padding:8px 10px; text-align:left; font-weight:600;}
   td{border-bottom:1px solid var(--line); padding:8px 10px;}
-  tr:nth-child(even) td{background:#f7fafd;}
+  tr:nth-child(even) td{background:var(--lp-bg-086);}
   td.n{text-align:right;}
   .warnbox{
-    background:#fff4f4; border:1px solid #f0c9cf; border-radius:10px;
-    padding:10px 16px; margin:12px 0; color:#8a2a3c; font-size:13.5px;
+    background:var(--lp-bg-373); border:1px solid var(--lp-line-097); border-radius:10px;
+    padding:10px 16px; margin:12px 0; color:var(--lp-ink-230); font-size:13.5px;
   }
-  .infer{color:#8a6d1f; font-size:13.5px;}
+  .infer{color:var(--lp-ink-060); font-size:13.5px;}
   .selfcheck{
-    background:#f2fbf4; border:1px dashed #79b78a; border-radius:12px;
+    background:var(--lp-bg-273); border:1px dashed var(--lp-line-044); border-radius:12px;
     padding:20px 26px; margin-bottom:26px; font-size:13.5px;
   }
-  .selfcheck h2{border-left-color:#3f9d5c; color:#205c33;}
+  .selfcheck h2{border-left-color:var(--lp-mix-045); color:var(--lp-ink-113);}
   .selfcheck ul{list-style:none; padding-left:4px;}
-  .selfcheck li::before{content:"✓ "; color:#3f9d5c; font-weight:700;}
+  .selfcheck li::before{content:"✓ "; color:var(--lp-mix-045); font-weight:700;}
   footer{
     text-align:center; color:var(--sub); font-size:12.5px; padding:6px 0 20px;
   }
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>Switch_Transformers</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="page">
 
 <header class="hero">

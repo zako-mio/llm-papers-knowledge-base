@@ -5,55 +5,72 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>《Kimi k1.5》深度解读报告</title>
 <style>
-:root{--ink:#1c2733;--sub:#5a6b7d;--accent:#0f6ba8;--accent2:#c2571a;--gold:#b8860b;--line:#dde5ec;--bg:#f7fafc;--card:#ffffff;--code:#eef3f8;--ok:#1e7d43;--warn:#b3401f;}
+:root{--ink:#1c2733;--sub:#5a6b7d;--accent:#0f6ba8;--accent2:#c2571a;--gold:#b8860b;--line:#dde5ec;--bg:#f7fafc;--card:#ffffff;--code:#eef3f8;--ok:#1e7d43;--warn:#b3401f;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-bg-143:#12314f;--lp-bg-203:#2e93cf;--lp-bg-361:#fdf8ee;--lp-ink-196:#6b5a2e;--lp-ink-046:#14456b;--lp-bg-343:#fdf0e6;--lp-bg-325:#fbeae4;--lp-bg-268:#f2f7fb;--lp-ink-173:#4a5568;--lp-bg-289:#f4f9fd;--lp-bg-223:#e8f0f7;--lp-bg-100:#fff8ef;--lp-bg-133:#10233a;--lp-ink-297:#dbe9f7;--lp-ink-241:#8fb3d4;--lp-bg-380:#fffbea;--lp-ink-212:#7a651f;--lp-bg-121:#0f2b45;--lp-ink-284:#cfe2f3;--lp-ink-223:#7fc4f0;/* LP:TOKENS:END */}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:"Source Han Serif SC","Noto Serif SC","Songti SC",serif;color:var(--ink);background:var(--bg);line-height:1.85;font-size:16px;}
 .wrap{max-width:960px;margin:0 auto;padding:32px 40px 64px;}
-header.hero{background:linear-gradient(135deg,#12314f 0%,#0f6ba8 70%,#2e93cf 100%);color:#fff;border-radius:14px;padding:44px 48px;margin-bottom:36px;box-shadow:0 6px 24px rgba(15,107,168,.22);}
+header.hero{background:linear-gradient(135deg,var(--lp-bg-143) 0%,var(--accent) 70%,var(--lp-bg-203) 100%);color:var(--card);border-radius:14px;padding:44px 48px;margin-bottom:36px;box-shadow:0 6px 24px rgba(15,107,168,.22);}
 header.hero h1{font-size:30px;line-height:1.45;font-weight:700;letter-spacing:.5px;}
 header.hero .meta{margin-top:14px;font-size:13.5px;opacity:.92;font-family:"PingFang SC","Microsoft YaHei",sans-serif;}
 .badge-row{margin-top:16px;display:flex;flex-wrap:wrap;gap:10px;}
 .badge{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:3px 14px;font-size:12.5px;font-family:"PingFang SC",sans-serif;}
-.datasrc{background:#fdf8ee;border-left:4px solid var(--gold);padding:12px 20px;border-radius:0 8px 8px 0;font-size:13.5px;color:#6b5a2e;margin-bottom:34px;}
+.datasrc{background:var(--lp-bg-361);border-left:4px solid var(--gold);padding:12px 20px;border-radius:0 8px 8px 0;font-size:13.5px;color:var(--lp-ink-196);margin-bottom:34px;}
 h2.sec{font-size:23px;color:var(--accent);margin:52px 0 8px;padding-bottom:8px;border-bottom:2.5px solid var(--accent);display:flex;align-items:center;gap:10px;}
-h2.sec .no{background:var(--accent);color:#fff;border-radius:8px;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;font-size:17px;flex:none;font-family:"PingFang SC",sans-serif;}
-h3{font-size:18.5px;margin:30px 0 10px;color:#14456b;}
+h2.sec .no{background:var(--accent);color:var(--card);border-radius:8px;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;font-size:17px;flex:none;font-family:"PingFang SC",sans-serif;}
+h3{font-size:18.5px;margin:30px 0 10px;color:var(--lp-ink-046);}
 h4{font-size:16px;margin:20px 0 8px;color:var(--accent2);}
 p{margin:10px 0;text-align:justify;}
-.hl{color:var(--accent2);font-weight:700;font-family:"SF Mono","Consolas",monospace;font-size:.94em;background:#fdf0e6;padding:1px 5px;border-radius:4px;}
-.hlb{color:#fff;background:var(--accent);font-weight:700;font-family:monospace;font-size:.9em;padding:1px 7px;border-radius:4px;}
-.neg{color:var(--warn);font-weight:700;font-family:monospace;font-size:.94em;background:#fbeae4;padding:1px 5px;border-radius:4px;}
+.hl{color:var(--accent2);font-weight:700;font-family:"SF Mono","Consolas",monospace;font-size:.94em;background:var(--lp-bg-343);padding:1px 5px;border-radius:4px;}
+.hlb{color:var(--card);background:var(--accent);font-weight:700;font-family:monospace;font-size:.9em;padding:1px 7px;border-radius:4px;}
+.neg{color:var(--warn);font-weight:700;font-family:monospace;font-size:.94em;background:var(--lp-bg-325);padding:1px 5px;border-radius:4px;}
 .term{color:var(--accent);font-weight:700;}
 blockquote{background:var(--code);border-left:4px solid var(--accent);padding:12px 20px;margin:16px 0;border-radius:0 8px 8px 0;font-size:15px;}
-blockquote.oneline{background:#f2f7fb;border-left-color:var(--gold);color:#4a5568;}
-.defbox{background:#f4f9fd;border:1px solid var(--line);border-radius:10px;padding:14px 20px;margin:14px 0;font-size:15px;}
-.defbox .tag{display:inline-block;background:var(--accent);color:#fff;font-size:12px;border-radius:4px;padding:1px 8px;margin-right:8px;font-family:sans-serif;}
+blockquote.oneline{background:var(--lp-bg-268);border-left-color:var(--gold);color:var(--lp-ink-173);}
+.defbox{background:var(--lp-bg-289);border:1px solid var(--line);border-radius:10px;padding:14px 20px;margin:14px 0;font-size:15px;}
+.defbox .tag{display:inline-block;background:var(--accent);color:var(--card);font-size:12px;border-radius:4px;padding:1px 8px;margin-right:8px;font-family:sans-serif;}
 table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--card);box-shadow:0 2px 8px rgba(28,39,51,.06);border-radius:8px;overflow:hidden;}
-th{background:#e8f0f7;color:#14456b;padding:9px 10px;border-bottom:2px solid var(--accent);text-align:left;font-weight:600;white-space:nowrap;}
+th{background:var(--lp-bg-223);color:var(--lp-ink-046);padding:9px 10px;border-bottom:2px solid var(--accent);text-align:left;font-weight:600;white-space:nowrap;}
 td{padding:8px 10px;border-bottom:1px solid var(--line);}
 tr:last-child td{border-bottom:none;}
 td.c,th.c{text-align:center;}
-.kcol{background:#fff8ef;font-weight:700;color:var(--accent2);}
+.kcol{background:var(--lp-bg-100);font-weight:700;color:var(--accent2);}
 .win{color:var(--ok);font-weight:700;}
 .lose{color:var(--warn);font-weight:700;}
-.formula{background:#10233a;color:#dbe9f7;border-radius:10px;padding:16px 24px;margin:16px 0;font-family:"STIX Two Math","Cambria Math",Georgia,serif;font-size:17px;text-align:center;overflow-x:auto;}
-.formula .cond{font-size:13px;color:#8fb3d4;}
+.formula{background:var(--lp-bg-133);color:var(--lp-ink-297);border-radius:10px;padding:16px 24px;margin:16px 0;font-family:"STIX Two Math","Cambria Math",Georgia,serif;font-size:17px;text-align:center;overflow-x:auto;}
+.formula .cond{font-size:13px;color:var(--lp-ink-241);}
 ul,ol{margin:10px 0 10px 26px;}
 li{margin:6px 0;text-align:justify;}
 .cardgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin:16px 0;}
 .icard{background:var(--card);border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:10px;padding:16px 18px;font-size:14.5px;box-shadow:0 2px 6px rgba(28,39,51,.05);}
 .icard b.t{display:block;color:var(--accent);margin-bottom:6px;font-size:15.5px;}
 .note{font-size:13px;color:var(--sub);}
-.tuizhu{background:#fffbea;border:1px dashed var(--gold);border-radius:8px;padding:8px 16px;margin:12px 0;font-size:14px;color:#7a651f;}
-.selfcheck{margin-top:60px;background:#0f2b45;color:#cfe2f3;border-radius:12px;padding:24px 30px;font-size:13.5px;font-family:"PingFang SC","Microsoft YaHei",sans-serif;}
-.selfcheck h3{color:#7fc4f0;margin-top:0;font-size:16px;}
+.tuizhu{background:var(--lp-bg-380);border:1px dashed var(--gold);border-radius:8px;padding:8px 16px;margin:12px 0;font-size:14px;color:var(--lp-ink-212);}
+.selfcheck{margin-top:60px;background:var(--lp-bg-121);color:var(--lp-ink-284);border-radius:12px;padding:24px 30px;font-size:13.5px;font-family:"PingFang SC","Microsoft YaHei",sans-serif;}
+.selfcheck h3{color:var(--lp-ink-223);margin-top:0;font-size:16px;}
 .selfcheck ul{margin-left:20px;}
 .selfcheck li{margin:4px 0;}
 footer{text-align:center;color:var(--sub);font-size:12.5px;margin-top:40px;}
-@media print{body{background:#fff;} header.hero{border-radius:0;} }
+@media print{body{background:var(--card);} header.hero{border-radius:0;} }
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>Kimi_k1.5</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <header class="hero">

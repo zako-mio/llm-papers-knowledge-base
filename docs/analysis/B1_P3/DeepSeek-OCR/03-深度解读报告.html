@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>《DeepSeek-OCR: Contexts Optical Compression》深度解读报告</title>
-<style>
+<style>:root{/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-bg-078:#f2f5f9;--lp-ink-121:#24292f;--lp-ink-001:#ffffff;--lp-ink-099:#16294a;--lp-mix-009:#2c5fb8;--lp-ink-111:#1f3a68;--lp-bg-013:#eef3fb;--lp-line-072:#ccd6e4;--lp-ink-051:#33445c;--lp-ink-085:#10305e;--lp-bg-081:#f2f7ff;--lp-bg-218:#d9e0ea;--lp-line-025:#255099;--lp-line-085:#dde4ee;--lp-bg-301:#f6f9fd;--lp-bg-230:#ecf2fb;--lp-ink-033:#b02a37;--lp-bg-345:#fdf0ef;--lp-line-099:#f2d7d5;/* LP:TOKENS:END */}
 * { box-sizing: border-box; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  background: #f2f5f9;
-  color: #24292f;
+  background: var(--lp-bg-078);
+  color: var(--lp-ink-121);
   margin: 0;
   line-height: 1.85;
   font-size: 16px;
@@ -17,57 +17,57 @@ body {
 .wrap {
   max-width: 900px;
   margin: 32px auto;
-  background: #ffffff;
+  background: var(--lp-ink-001);
   padding: 52px 60px 64px;
   box-shadow: 0 2px 18px rgba(20, 42, 84, 0.08);
   border-radius: 8px;
 }
 h1 {
   font-size: 27px;
-  color: #16294a;
+  color: var(--lp-ink-099);
   line-height: 1.5;
-  border-bottom: 3px solid #2c5fb8;
+  border-bottom: 3px solid var(--lp-mix-009);
   padding-bottom: 16px;
   margin: 0 0 18px;
 }
 h2 {
   font-size: 21px;
-  color: #1f3a68;
-  background: #eef3fb;
-  border-left: 5px solid #2c5fb8;
+  color: var(--lp-ink-111);
+  background: var(--lp-bg-013);
+  border-left: 5px solid var(--lp-mix-009);
   border-radius: 0 4px 4px 0;
   padding: 8px 14px;
   margin: 2.4em 0 1em;
 }
 h3 {
   font-size: 17.5px;
-  color: #2c5fb8;
-  border-bottom: 1px dashed #ccd6e4;
+  color: var(--lp-mix-009);
+  border-bottom: 1px dashed var(--lp-line-072);
   padding-bottom: 6px;
   margin: 2em 0 0.8em;
 }
 h4 {
   font-size: 16px;
-  color: #33445c;
+  color: var(--lp-ink-051);
   margin: 1.5em 0 0.6em;
 }
 p { margin: 0.9em 0; text-align: justify; }
-strong { color: #10305e; }
+strong { color: var(--lp-ink-085); }
 ol, ul { padding-left: 1.7em; margin: 0.8em 0; }
 li { margin: 0.5em 0; text-align: justify; }
 blockquote {
   margin: 1.3em 0;
   padding: 13px 20px;
-  background: #f2f7ff;
-  border-left: 4px solid #2c5fb8;
+  background: var(--lp-bg-081);
+  border-left: 4px solid var(--lp-mix-009);
   border-radius: 0 6px 6px 0;
-  color: #33445c;
+  color: var(--lp-ink-051);
 }
 blockquote p { margin: 0.3em 0; }
 hr {
   border: none;
   height: 1px;
-  background: #d9e0ea;
+  background: var(--lp-bg-218);
   margin: 2.2em 0;
 }
 table {
@@ -77,24 +77,24 @@ table {
   font-size: 15px;
 }
 th {
-  background: #2c5fb8;
-  color: #ffffff;
+  background: var(--lp-mix-009);
+  color: var(--lp-ink-001);
   padding: 9px 12px;
   text-align: center;
   font-weight: 600;
-  border: 1px solid #255099;
+  border: 1px solid var(--lp-line-025);
 }
 td {
   padding: 8px 12px;
-  border: 1px solid #dde4ee;
+  border: 1px solid var(--lp-line-085);
   text-align: center;
 }
-tbody tr:nth-child(even) { background: #f6f9fd; }
-tbody tr:hover { background: #ecf2fb; }
+tbody tr:nth-child(even) { background: var(--lp-bg-301); }
+tbody tr:hover { background: var(--lp-bg-230); }
 .num {
-  color: #b02a37;
-  background: #fdf0ef;
-  border: 1px solid #f2d7d5;
+  color: var(--lp-ink-033);
+  background: var(--lp-bg-345);
+  border: 1px solid var(--lp-line-099);
   border-radius: 4px;
   padding: 0 5px;
   font-weight: 600;
@@ -105,9 +105,26 @@ tbody tr:hover { background: #ecf2fb; }
   .wrap { padding: 28px 20px 40px; margin: 0; border-radius: 0; }
   body { font-size: 15px; }
 }
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>DeepSeek-OCR</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <h1>《DeepSeek-OCR: Contexts Optical Compression》深度解读报告</h1>

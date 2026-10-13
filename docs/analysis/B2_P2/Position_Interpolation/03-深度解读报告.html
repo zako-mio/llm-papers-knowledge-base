@@ -15,8 +15,7 @@
     --line: #dde5ee;
     --card: #ffffff;
     --page: #f4f7fa;
-    --warn: #9c3312;
-  }
+    --warn: #9c3312;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-bg-049:#10312b;--lp-bg-057:#1d8a66;--lp-ink-047:#14503e;--lp-bg-020:#eef3f8;--lp-bg-011:#fafcfe;--lp-bg-074:#f0f7f3;--lp-bg-047:#10202e;--lp-ink-065:#b8cadd;--lp-ink-020:#7fd7ae;/* LP:TOKENS:END */}
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", Georgia, serif;
@@ -27,8 +26,8 @@
   }
   .wrap { max-width: 900px; margin: 0 auto; padding: 32px 28px 64px; }
   header.hero {
-    background: linear-gradient(135deg, #10312b 0%, #0f6b4f 60%, #1d8a66 100%);
-    color: #fff;
+    background: linear-gradient(135deg, var(--lp-bg-049) 0%, var(--accent) 60%, var(--lp-bg-057) 100%);
+    color: var(--card);
     border-radius: 14px;
     padding: 44px 40px 36px;
     margin-bottom: 34px;
@@ -64,31 +63,48 @@
   blockquote {
     border-left: 4px solid var(--accent); background: var(--accent-bg);
     border-radius: 0 8px 8px 0; padding: 12px 18px; margin: 16px 0;
-    color: #14503e; font-size: 15px;
+    color: var(--lp-ink-047); font-size: 15px;
   }
   blockquote p:last-child { margin-bottom: 0; }
   table { width: 100%; border-collapse: collapse; margin: 14px 0 20px; font-size: 14px; }
-  th { background: #eef3f8; color: var(--ink); font-weight: 700; }
+  th { background: var(--lp-bg-020); color: var(--ink); font-weight: 700; }
   th, td { border: 1px solid var(--line); padding: 8px 11px; text-align: left; vertical-align: top; }
-  tr:nth-child(even) td { background: #fafcfe; }
+  tr:nth-child(even) td { background: var(--lp-bg-011); }
   code.formula {
     font-family: "SF Mono", Consolas, monospace;
-    background: #eef3f8; border: 1px solid var(--line);
+    background: var(--lp-bg-020); border: 1px solid var(--line);
     padding: 1px 6px; border-radius: 4px; font-size: .92em;
     white-space: nowrap;
   }
   .note { font-size: 13.5px; color: var(--sub); }
   .inference { color: var(--warn); }
-  .concl { background: linear-gradient(135deg, #f0f7f3, #ffffff); }
+  .concl { background: linear-gradient(135deg, var(--lp-bg-074), var(--card)); }
   footer.selfcheck {
-    background: #10202e; color: #b8cadd; border-radius: 12px;
+    background: var(--lp-bg-047); color: var(--lp-ink-065); border-radius: 12px;
     padding: 22px 28px; font-family: "SF Mono", Consolas, monospace; font-size: 13px; line-height: 2;
   }
-  footer.selfcheck b { color: #7fd7ae; }
-  footer.selfcheck .ok { color: #7fd7ae; font-weight: 700; }
+  footer.selfcheck b { color: var(--lp-ink-020); }
+  footer.selfcheck .ok { color: var(--lp-ink-020); font-weight: 700; }
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>Position_Interpolation</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <header class="hero">

@@ -14,8 +14,7 @@
     --accent2: #1f5f8b;
     --line: #e5e0d4;
     --hl-bg: #fff3d6;
-    --code-bg: #f4f1e8;
-  }
+    --code-bg: #f4f1e8;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-mix-018:#1f3a5f;--lp-bg-196:#274b77;--lp-mix-042:#3a6ea5;--lp-bg-240:#eef4ea;--lp-line-039:#4a7c3a;--lp-ink-152:#33502a;--lp-bg-089:#faf8f2;--lp-ink-062:#9a3412;--lp-ink-029:#8a6d1a;--lp-ink-108:#1e6b34;--lp-ink-258:#a03030;--lp-bg-032:#f2f0ea;--lp-line-056:#b8b2a2;--lp-ink-175:#55503f;--lp-bg-233:#eeeeff;--lp-ink-115:#222255;/* LP:TOKENS:END */}
   * { box-sizing: border-box; }
   body {
     margin: 0;
@@ -27,8 +26,8 @@
   }
   .page { max-width: 900px; margin: 0 auto; padding: 40px 28px 80px; }
   header.hero {
-    background: linear-gradient(135deg, #1f3a5f 0%, #274b77 60%, #3a6ea5 100%);
-    color: #fff;
+    background: linear-gradient(135deg, var(--lp-mix-018) 0%, var(--lp-bg-196) 60%, var(--lp-mix-042) 100%);
+    color: var(--card);
     border-radius: 14px;
     padding: 42px 44px 34px;
     margin-bottom: 30px;
@@ -57,7 +56,7 @@
   }
   h2 {
     font-size: 20px; margin: 0 0 18px; padding-bottom: 10px;
-    border-bottom: 2px solid var(--line); color: #1f3a5f; letter-spacing: 1px;
+    border-bottom: 2px solid var(--line); color: var(--lp-mix-018); letter-spacing: 1px;
   }
   h3 { font-size: 16.5px; margin: 26px 0 10px; color: var(--accent); }
   p { margin: 10px 0; text-align: justify; }
@@ -69,16 +68,16 @@
     border-radius: 0 8px 8px 0; color: var(--muted); font-size: 14.5px;
   }
   blockquote.one-line {
-    background: #eef4ea; border-left-color: #4a7c3a; color: #33502a;
+    background: var(--lp-bg-240); border-left-color: var(--lp-line-039); color: var(--lp-ink-152);
     font-weight: bold;
   }
   table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; }
   th {
-    background: #1f3a5f; color: #fff; padding: 8px 10px;
+    background: var(--lp-mix-018); color: var(--card); padding: 8px 10px;
     text-align: left; font-weight: normal; letter-spacing: .5px;
   }
   td { padding: 8px 10px; border-bottom: 1px solid var(--line); }
-  tr:nth-child(even) td { background: #faf8f2; }
+  tr:nth-child(even) td { background: var(--lp-bg-089); }
   td.num, th.num { text-align: center; font-variant-numeric: tabular-nums; }
   code {
     background: var(--code-bg); padding: 1px 6px; border-radius: 4px;
@@ -86,26 +85,43 @@
   }
   /* 关键数字高亮 */
   .knum {
-    color: #9a3412; font-weight: bold;
+    color: var(--lp-ink-062); font-weight: bold;
     background: var(--hl-bg); padding: 0 4px; border-radius: 4px;
     font-variant-numeric: tabular-nums; white-space: nowrap;
   }
   .term { color: var(--accent2); font-weight: bold; }
-  .inferred { color: #8a6d1a; font-size: .92em; }
-  .win { color: #1e6b34; font-weight: bold; }
-  .loss { color: #a03030; }
+  .inferred { color: var(--lp-ink-029); font-size: .92em; }
+  .win { color: var(--lp-ink-108); font-weight: bold; }
+  .loss { color: var(--lp-ink-258); }
   footer.selfcheck {
-    background: #f2f0ea; border: 1px dashed #b8b2a2; border-radius: 10px;
+    background: var(--lp-bg-032); border: 1px dashed var(--lp-line-056); border-radius: 10px;
     padding: 18px 24px; font-size: 12.5px; color: var(--muted); line-height: 1.9;
   }
-  footer.selfcheck b { color: #55503f; }
+  footer.selfcheck b { color: var(--lp-ink-175); }
   .tag {
-    display: inline-block; background: #eef; color: #225; border-radius: 4px;
+    display: inline-block; background: var(--lp-bg-233); color: var(--lp-ink-115); border-radius: 4px;
     padding: 0 6px; font-size: 12px; margin-right: 4px;
   }
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>FLAN</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="page">
 
 <header class="hero">

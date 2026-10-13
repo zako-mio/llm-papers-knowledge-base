@@ -8,49 +8,65 @@
 :root{
   --ink:#1f2430; --muted:#5b6472; --bg:#f4f5fa; --card:#ffffff;
   --brand:#5b21b6; --brand2:#7c3aed; --accent:#d97706;
-  --line:#e4e6ef; --soft:#f6f3ff;
-}
+  --line:#e4e6ef; --soft:#f6f3ff;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-bg-167:#17123a;--lp-bg-060:#3b1d82;--lp-bg-026:#6d28d9;--lp-ink-274:#c4b5fd;--lp-mix-024:#ddd6fe;--lp-mix-049:#ede9fe;--lp-ink-069:#fbbf24;--lp-mix-010:#4c1d95;--lp-ink-164:#3f3a5e;--lp-bg-320:#faf9ff;--lp-bg-278:#f3efff;--lp-bg-037:#fef3c7;--lp-ink-061:#92400e;--lp-ink-238:#8b8fa3;--lp-bg-127:#101430;--lp-line-001:#cbd5e1;/* LP:TOKENS:END */}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.85;font-size:16px}
 .wrap{max-width:960px;margin:0 auto;padding:0 28px}
-.hero{background:linear-gradient(135deg,#17123a 0%,#3b1d82 55%,#6d28d9 100%);color:#fff;padding:64px 0 56px}
-.kicker{letter-spacing:.35em;font-size:13px;color:#c4b5fd;text-transform:uppercase;margin-bottom:14px}
+.hero{background:linear-gradient(135deg,var(--lp-bg-167) 0%,var(--lp-bg-060) 55%,var(--lp-bg-026) 100%);color:var(--card);padding:64px 0 56px}
+.kicker{letter-spacing:.35em;font-size:13px;color:var(--lp-ink-274);text-transform:uppercase;margin-bottom:14px}
 h1{font-size:34px;line-height:1.35;font-weight:700;letter-spacing:.01em}
-.subtitle{margin-top:14px;color:#ddd6fe;font-size:15.5px}
+.subtitle{margin-top:14px;color:var(--lp-mix-024);font-size:15.5px}
 .meta{margin-top:22px;display:flex;flex-wrap:wrap;gap:10px}
-.meta span{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:4px 14px;font-size:13px;color:#ede9fe}
+.meta span{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:4px 14px;font-size:13px;color:var(--lp-mix-049)}
 .stats{margin-top:26px;display:flex;flex-wrap:wrap;gap:14px}
 .stat{flex:1 1 150px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:14px 16px}
-.stat b{display:block;font-size:26px;color:#fbbf24;font-weight:700;line-height:1.2}
-.stat i{font-style:normal;display:block;margin-top:4px;font-size:12.5px;color:#ddd6fe}
+.stat b{display:block;font-size:26px;color:var(--lp-ink-069);font-weight:700;line-height:1.2}
+.stat i{font-style:normal;display:block;margin-top:4px;font-size:12.5px;color:var(--lp-mix-024)}
 main{padding:44px 0 30px}
 section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:34px 38px;margin-bottom:26px;box-shadow:0 2px 10px rgba(30,27,75,.05)}
 h2{font-size:22px;color:var(--brand);padding-bottom:10px;border-bottom:2px solid var(--soft);margin-bottom:20px}
 h2 small{font-size:13px;color:var(--muted);font-weight:400;margin-left:10px}
-h3{font-size:17px;color:#4c1d95;margin:24px 0 10px}
+h3{font-size:17px;color:var(--lp-mix-010);margin:24px 0 10px}
 p{margin:10px 0}
 ul,ol{margin:10px 0 10px 22px}
 li{margin:6px 0}
 strong{color:var(--brand)}
 .kn{color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
 .term{color:var(--brand);font-weight:600}
-blockquote{border-left:4px solid var(--brand2);background:var(--soft);border-radius:0 10px 10px 0;padding:12px 18px;margin:16px 0;color:#3f3a5e;font-size:15.5px}
+blockquote{border-left:4px solid var(--brand2);background:var(--soft);border-radius:0 10px 10px 0;padding:12px 18px;margin:16px 0;color:var(--lp-ink-164);font-size:15.5px}
 .note{color:var(--muted);font-size:14px}
 table{width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:14.5px}
-th{background:linear-gradient(135deg,#3b1d82,#6d28d9);color:#fff;padding:9px 12px;text-align:left;font-weight:600}
+th{background:linear-gradient(135deg,var(--lp-bg-060),var(--lp-bg-026));color:var(--card);padding:9px 12px;text-align:left;font-weight:600}
 td{padding:8px 12px;border-bottom:1px solid var(--line)}
-tbody tr:nth-child(even){background:#faf9ff}
-tr:hover td{background:#f3efff}
-.tag{display:inline-block;background:#fef3c7;color:#92400e;border-radius:6px;padding:0 8px;font-size:12.5px;font-weight:600}
-.src{color:#8b8fa3;font-size:12.5px}
-details.selfcheck{background:#101430;color:#cbd5e1;border:none;border-radius:16px;padding:20px 26px;margin-bottom:26px}
-details.selfcheck summary{cursor:pointer;font-weight:700;color:#fbbf24;letter-spacing:.06em}
+tbody tr:nth-child(even){background:var(--lp-bg-320)}
+tr:hover td{background:var(--lp-bg-278)}
+.tag{display:inline-block;background:var(--lp-bg-037);color:var(--lp-ink-061);border-radius:6px;padding:0 8px;font-size:12.5px;font-weight:600}
+.src{color:var(--lp-ink-238);font-size:12.5px}
+details.selfcheck{background:var(--lp-bg-127);color:var(--lp-line-001);border:none;border-radius:16px;padding:20px 26px;margin-bottom:26px}
+details.selfcheck summary{cursor:pointer;font-weight:700;color:var(--lp-ink-069);letter-spacing:.06em}
 details.selfcheck ul{margin:14px 0 4px 22px}
 footer{text-align:center;color:var(--muted);font-size:13px;padding:10px 0 42px}
 @media(max-width:720px){h1{font-size:25px}section{padding:24px 20px}.stat b{font-size:21px}}
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>Kimi_K2</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 
 <header class="hero">
   <div class="wrap">

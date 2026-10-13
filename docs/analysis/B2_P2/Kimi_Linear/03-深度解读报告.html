@@ -14,8 +14,7 @@
     --blue-soft: #eaf2fc;
     --line: #e3e6ea;
     --card: #ffffff;
-    --bg: #f7f8fa;
-  }
+    --bg: #f7f8fa;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-bg-058:#22304a;--lp-bg-206:#3a5178;--lp-mix-026:#ffb37a;--lp-ink-134:#2c3e57;--lp-ink-016:#8a6d3b;--lp-bg-099:#fff8e6;--lp-line-089:#ead9ae;--lp-bg-022:#fafbfc;--lp-bg-335:#fbfbfd;--lp-line-070:#c9cfda;--lp-bg-356:#fdf3f2;--lp-line-096:#eec7c3;--lp-mix-021:#c0392b;--lp-bg-066:#eef4ee;--lp-line-005:#cfe3cf;--lp-ink-156:#38513a;/* LP:TOKENS:END */}
   * { box-sizing: border-box; }
   body {
     margin: 0;
@@ -27,22 +26,22 @@
   }
   .wrap { max-width: 960px; margin: 0 auto; padding: 32px 28px 64px; }
   header.hero {
-    background: linear-gradient(135deg, #22304a 0%, #3a5178 100%);
-    color: #fff;
+    background: linear-gradient(135deg, var(--lp-bg-058) 0%, var(--lp-bg-206) 100%);
+    color: var(--card);
     border-radius: 14px;
     padding: 40px 36px;
     margin-bottom: 28px;
   }
   header.hero h1 { margin: 0 0 10px; font-size: 27px; line-height: 1.45; }
   header.hero .meta { font-size: 13.5px; opacity: .88; font-family: "JetBrains Mono", Consolas, monospace; }
-  header.hero .tagline { margin-top: 14px; font-size: 15px; opacity: .95; border-left: 3px solid #ffb37a; padding-left: 12px; }
+  header.hero .tagline { margin-top: 14px; font-size: 15px; opacity: .95; border-left: 3px solid var(--lp-mix-026); padding-left: 12px; }
   .note {
     background: var(--blue-soft);
     border-left: 4px solid var(--blue);
     padding: 12px 16px;
     border-radius: 6px;
     font-size: 14px;
-    color: #2c3e57;
+    color: var(--lp-ink-134);
     margin-bottom: 26px;
   }
   h2.sec {
@@ -68,9 +67,9 @@
   .infer {
     display: inline-block;
     font-size: 12px;
-    color: #8a6d3b;
-    background: #fff8e6;
-    border: 1px solid #ead9ae;
+    color: var(--lp-ink-016);
+    background: var(--lp-bg-099);
+    border: 1px solid var(--lp-line-089);
     border-radius: 4px;
     padding: 0 6px;
     vertical-align: 1px;
@@ -98,8 +97,8 @@
     background: var(--card);
   }
   th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; }
-  th { background: #eef1f5; font-weight: 700; }
-  tr:nth-child(even) td { background: #fafbfc; }
+  th { background: var(--lp-bg-002); font-weight: 700; }
+  tr:nth-child(even) td { background: var(--lp-bg-022); }
   ul, ol { padding-left: 26px; margin: 10px 0; }
   li { margin: 6px 0; text-align: justify; }
   .formula {
@@ -108,14 +107,14 @@
     font-size: 17px;
     margin: 14px 0;
     padding: 10px;
-    background: #fbfbfd;
-    border: 1px dashed #c9cfda;
+    background: var(--lp-bg-335);
+    border: 1px dashed var(--lp-line-070);
     border-radius: 8px;
   }
   .warnbox {
-    background: #fdf3f2;
-    border: 1px solid #eec7c3;
-    border-left: 4px solid #c0392b;
+    background: var(--lp-bg-356);
+    border: 1px solid var(--lp-line-096);
+    border-left: 4px solid var(--lp-mix-021);
     border-radius: 6px;
     padding: 12px 16px;
     margin: 14px 0;
@@ -123,17 +122,34 @@
   }
   footer.selfcheck {
     margin-top: 48px;
-    background: #eef4ee;
-    border: 1px solid #cfe3cf;
+    background: var(--lp-bg-066);
+    border: 1px solid var(--lp-line-005);
     border-radius: 10px;
     padding: 18px 22px;
     font-size: 13.5px;
-    color: #38513a;
+    color: var(--lp-ink-156);
   }
-  footer.selfcheck code { background: #fff; padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+  footer.selfcheck code { background: var(--card); padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>Kimi_Linear</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <header class="hero">

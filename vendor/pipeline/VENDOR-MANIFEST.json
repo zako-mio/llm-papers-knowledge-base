@@ -1,0 +1,91 @@
+{
+ "count": 11,
+ "files": {
+  "vendor/pipeline/check_gate_manifest.py": {
+   "aud_source": "pipeline/check_gate_manifest.py",
+   "aud_source_sha256": "aa458eeefd5c929f285cd229334945aab2b37fed644c3c876360f269cf44ab9d",
+   "byte_identical": true,
+   "bytes": 8110,
+   "sha256": "aa458eeefd5c929f285cd229334945aab2b37fed644c3c876360f269cf44ab9d"
+  },
+  "vendor/pipeline/check_site_tokens.py": {
+   "aud_source": "pipeline/check_site_tokens.py",
+   "aud_source_sha256": "9455c9106f40416ca9239a610670722ec1d464c0754f5790b841d340425798ca",
+   "byte_identical": true,
+   "bytes": 30347,
+   "sha256": "9455c9106f40416ca9239a610670722ec1d464c0754f5790b841d340425798ca"
+  },
+  "vendor/pipeline/check_workflow_contract.py": {
+   "aud_source": "pipeline/check_workflow_contract.py",
+   "aud_source_sha256": "16e86e1a6503e6bd76cfa06da78f67cf023b83531da4ab360b2245246921adae",
+   "byte_identical": true,
+   "bytes": 11354,
+   "sha256": "16e86e1a6503e6bd76cfa06da78f67cf023b83531da4ab360b2245246921adae"
+  },
+  "vendor/pipeline/derive_site_tokens.py": {
+   "aud_source": "pipeline/derive_site_tokens.py",
+   "aud_source_sha256": "bd1bd4266776daea72ba3af1c258ece2b8cdaaa01658a2f8af7140c40b8ccada",
+   "byte_identical": true,
+   "bytes": 14573,
+   "sha256": "bd1bd4266776daea72ba3af1c258ece2b8cdaaa01658a2f8af7140c40b8ccada"
+  },
+  "vendor/pipeline/profiles/llm-papers-knowledge-base.json": {
+   "aud_source": null,
+   "bytes": 20284,
+   "origin": "site",
+   "origin_note": "★ 站点自产：AUD 侧 pipeline/ 目前**没有**本站的值件/profile （本轮由站 06 标准档首次建立）⇒ 站点侧副本即当前唯一真相源；若日后 AUD 侧补建同名件，必须同批更新本清单的 aud_source 与 sha256。",
+   "sha256": "f880a93990bb8bd35686ef9dc77f855ef55932eea990b096a0fec83e3fbc92ba"
+  },
+  "vendor/pipeline/site-profile.schema.json": {
+   "aud_source": "pipeline/site-profile.schema.json",
+   "aud_source_sha256": "4a4c505b32e0e27f9817e7f0029919544f483afcd953597468a9d2571638472e",
+   "byte_identical": true,
+   "bytes": 3188,
+   "sha256": "4a4c505b32e0e27f9817e7f0029919544f483afcd953597468a9d2571638472e"
+  },
+  "vendor/pipeline/site-value-contract.schema.json": {
+   "aud_source": "pipeline/site-value-contract.schema.json",
+   "aud_source_sha256": "30a73f90290ce8d547a3c77f75c62659ad6e736d56666329351b913af74d870d",
+   "byte_identical": true,
+   "bytes": 6346,
+   "sha256": "30a73f90290ce8d547a3c77f75c62659ad6e736d56666329351b913af74d870d"
+  },
+  "vendor/pipeline/values/llm-papers-knowledge-base.json": {
+   "aud_source": null,
+   "bytes": 19125,
+   "origin": "site",
+   "origin_note": "★ 站点自产：AUD 侧 pipeline/ 目前**没有**本站的值件/profile （本轮由站 06 标准档首次建立）⇒ 站点侧副本即当前唯一真相源；若日后 AUD 侧补建同名件，必须同批更新本清单的 aud_source 与 sha256。",
+   "sha256": "f869b8dc479eaa6c3bc0b909a0f4ff4a4736c93fc81b41719bf9114c640f094a"
+  },
+  "vendor/pipeline/workflow-3job.template.yml": {
+   "aud_source": "pipeline/workflow-3job.template.yml",
+   "aud_source_sha256": "c7d6bd6d69a066d07e6ef6e0db917995cf805db541348cc8f4062b451603fb1f",
+   "byte_identical": true,
+   "bytes": 3162,
+   "sha256": "c7d6bd6d69a066d07e6ef6e0db917995cf805db541348cc8f4062b451603fb1f"
+  },
+  "vendor/pipeline/write_site_tokens.py": {
+   "aud_source": "pipeline/write_site_tokens.py",
+   "aud_source_sha256": "5d6158650baaf97ec0c51695574e138a9178f4cd863318e20f177079f376b06a",
+   "byte_identical": true,
+   "bytes": 15110,
+   "sha256": "5d6158650baaf97ec0c51695574e138a9178f4cd863318e20f177079f376b06a"
+  },
+  "vendor/tools/contrast.py": {
+   "aud_source": "tools/contrast.py",
+   "aud_source_sha256": "1b9291c935b0db1d8901f1cafcc1c29681b86061f4164496401af0b45b9e01c7",
+   "byte_identical": true,
+   "bytes": 6769,
+   "sha256": "1b9291c935b0db1d8901f1cafcc1c29681b86061f4164496401af0b45b9e01c7"
+  }
+ },
+ "not_vendored": {
+  "pipeline/README.md": "文档，站点侧不复制（口径以 AUD 侧为唯一真相源）",
+  "pipeline/profiles 与 values 的其余站点": "只复制本站一份"
+ },
+ "purpose": "★ vendor/pipeline/** 与 vendor/tools/** 是 AUD 侧共通件的**薄副本**（pipeline/README.md §四）。本清单逐文件登记 sha256，并由 gate_ci_contract.py 的 CI8 **双向**核对（盘上未登记 ⇒ FAIL；登记过期/漂移 ⇒ FAIL）。",
+ "schema": "vendor-manifest/1",
+ "site": "llm-papers-knowledge-base",
+ "unique_source_of_truth": "AUD 侧 pipeline/**（标 byte_identical=true 的项）· ★ origin=site 的两项例外见其 origin_note",
+ "vendoring_method": "按 pipeline/README.md §四 的**三步手工复制**（★ 不用 evidence/e/tools/vendor_into_site.py：它硬编码 12-factor，且 --site 期望站点仓根绝对路径 ⇒ 传相对站名会在 AUD 根误建空壳目录）。"
+}

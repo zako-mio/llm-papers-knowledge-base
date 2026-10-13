@@ -1,0 +1,255 @@
+{
+  "site": "llm-papers-knowledge-base",
+  "site_number": "06",
+  "repo": "zako-mio/llm-papers-knowledge-base",
+  "default_branch": "main",
+  "form": "inline-single-source",
+  "form_reason": "★ Q6=A 裁定：维持**形态 2「内联单源」**。实测（改动前快照 data/token-baseline.json 与 gate_tokens.py 的 G2）：139 页外链 CSS = **0**、每页内联 <style> ≥ 1 块、仓内 .css 文件 0（vendor/ 下无 CSS）⇒ 形态 2 是既有事实而非新引入。⛔ 不改为形态 1（本站无链路门控兜底的历史理由已由本轮新建的 gate_links.py 消解，但形态切换属发布面变更，不在本轮裁定内）。",
+  "publish_dir": "docs",
+  "publish_dir_shape": "subdir",
+  "value_file": "vendor/pipeline/values/llm-papers-knowledge-base.json",
+  "local_clone": "",
+  "local_clone_note": "★ 站点仓内不设本地克隆：AUD 侧 check_site_tokens.py 的 C12（克隆 HEAD 与工作树对账）依赖仓外路径，在 GitHub Actions 上不成立 ⇒ 站点侧改由 gate_tokens.py 判，骨架契约留在 AUD 侧跑。",
+  "generator_dirs": [
+    "data"
+  ],
+  "generator_commands": [
+    "python3 data/build_all.py"
+  ],
+  "build_cwd": ".",
+  "python_version": "3.12",
+  "build": {
+    "entry": "data/build_all.py",
+    "entry_note": "★ 方案 §4.2 第 3 步「显式声明谁写哪个产物、按什么顺序写」的落地件。run 时先重生成、再跑门控、最后写**确定性**的 gate-report.json。",
+    "pipeline": [
+      "data/gen_home.py",
+      "data/generate_timeline_lanes.py",
+      "data/generate_list_html.py",
+      "data/gen_analysis_index.py",
+      "data/generate_html.py",
+      "data/annotate_products.py"
+    ],
+    "pipeline_note": "★ 顺序即声明。实测（隔离复跑，逐字节比对）：gen_analysis_index / generate_list_html / generate_timeline_lanes 三件**幂等**（重跑 0 变更）；gen_home 是 Q1=B 新建（认领首页）；annotate_products 是 Q3/Q7 的唯一后处理器；generate_html 按 Q4=A **改名产出**到 build/legacy/。由 gate_ci_contract.py 的 CI5 用 ast 求值面断言本表 == build_all.PIPELINE。",
+    "inspectors": [
+      "data/batch_gate.py",
+      "data/final_gate.py",
+      "data/title_sweep.py",
+      "data/snapshot_baseline.py",
+      "data/check_links.py",
+      "data/check_token_census.py",
+      "data/check_site_tokens.py"
+    ],
+    "inspectors_note": "只读巡检/采集/薄入口，⛔ 不改产物：batch_gate（批次完整性巡检，L1 本地化后指向 docs/analysis）、final_gate（历史门控；★ 其 `assert total == 125` 是过期字面量，实测仓内 total=133 ⇒ 如实登记为本轮**不改**（改它＝改判据，超出 L1 裁定））、title_sweep（PDF 标题巡检，需 PyMuPDF + LFS）、snapshot_baseline（改动前基线采集器，一次性）、data/check_{links,token_census,site_tokens}.py（★ 方案 §5.1 点名的三条站点侧门控的**薄入口**：判据实现在仓根同名门控里，⛔ 不复制第二套实现）。",
+    "excluded_generators": [
+      "data/merge_manifests.py",
+      "data/generate_readme.py",
+      "data/convert_b3_html.py"
+    ],
+    "excluded_generators_note": "★ 「退役要留痕，⛔ 不删判据」的同类处置：⛔ 不删文件、⛔ 不改其判据，只**登记为不在重生成管线内**并给出实测理由。三件都是**改动前就已过期**的生成器，L1 本地化让它们第一次真正打到本仓（此前打的是仓外 0825 语料或根本不存在的目录）⇒ 必须显式挡在管线外，否则重跑即破坏产物。逐条实测证据见 report。",
+    "excluded_evidence": {
+      "data/merge_manifests.py": "★ 实跑把 data/papers_master.json 从 **133 篇改回 125 篇**（P3 38→25 / P2 81→62 / P1 14→38），因为它只并 e1–e5、**不读 e5_additions.json**；级联改坏 docs/list.html 与 README.md。",
+      "data/generate_readme.py": "★ 实跑会删掉 README 里手工补写的「在线浏览与视图」整节，并把 prose 里的「133 篇 / 38 篇」改回写死的「98 篇 / 21 篇」。",
+      "data/convert_b3_html.py": "★ 只复现 B3_P1 的 12/14 页；IndexShare 与 Qwen3.6-35B 两页是**手工撰写**的（多行排版 + 自带 :root），实跑会把它们覆盖成单行压缩版。"
+    },
+    "rebuild_fidelity": "★ 如实登记的复现度边界（方案 C2-N6 / 值件 known_site_defects_registered 的 C2-D3）：134 个解读页的**正文来源（上游 0825 语料）不在本仓** ⇒ 这批页面的「可复现」只到「重跑 annotate_products 后逐字节相同」这一层，⛔ 不是「从源语料可重建」。由 annotate_products 的 marker-region 幂等性与 gate_census 的 TC2/TC3 兜住。"
+  },
+  "targets": [
+    {
+      "path": "docs/index.html",
+      "mode": "marker-region",
+      "family": "home",
+      "frozen_sha256": null,
+      "note": "★ Q1=B：新建 data/gen_home.py 认领本产物（改动前**无生成器认领**）。等价性证据：`--cta legacy` 输出与 HEAD blob 473cf31f84f07262ffbac6c786cd3189201da5fe **逐字节相同**；默认输出与它只差 Q5 的那一条 href。"
+    },
+    {
+      "path": "docs/timeline.html",
+      "mode": "marker-region",
+      "family": "timeline",
+      "frozen_sha256": null,
+      "note": "★ Q4=A：唯一写者 = data/generate_timeline_lanes.py（实测其产出与 HEAD 逐字节相同，sha256 983858c6…）；原双写者 data/generate_html.py 已改名产出到 build/legacy/timeline-classic.html。另 Q8=A 在此页改栅格与容器。"
+    },
+    {
+      "path": "docs/list.html",
+      "mode": "marker-region",
+      "family": "list",
+      "frozen_sha256": null,
+      "note": "唯一写者 data/generate_list_html.py（实测幂等 0 变更）。"
+    },
+    {
+      "path": "docs/analysis/index.html",
+      "mode": "marker-region",
+      "family": "analysis-index",
+      "frozen_sha256": null,
+      "note": "唯一写者 data/gen_analysis_index.py（L1 本地化后实测幂等 0 变更）。"
+    },
+    {
+      "path": "build/legacy/timeline-classic.html",
+      "mode": "whole-file",
+      "family": "legacy",
+      "frozen_sha256": null,
+      "note": "★ Q4=A 的「改名产出」：非发布面（⛔ 不在 docs/ 下），仍可重跑、仍随仓版本化。"
+    }
+  ],
+  "targets_note": "★ G4 逐路径断言「存在」；快照面（134 个解读页 + docs/report.html）不在此表，逐条登记在 snapshot_products 里（它们**没有生成器写者**，只有 marker-region 后处理器）。",
+  "page_families": [
+    {"glob": "docs/index.html", "family": "home", "note": "1 页（Q1=B 新建生成器认领）"},
+    {"glob": "docs/timeline.html", "family": "timeline", "note": "1 页（Q4=A 唯一写者）"},
+    {"glob": "docs/list.html", "family": "list", "note": "1 页"},
+    {"glob": "docs/analysis/index.html", "family": "analysis-index", "note": "1 页"},
+    {"glob": "docs/report.html", "family": "report", "note": "1 页（历史留存的任务报告，非生成物；本轮按 Q3 等值注入纳入注解面）"},
+    {"glob": "docs/analysis/B1_P3/*/*.html", "family": "pt-P3", "note": "38 页（P3 · 必读核心）"},
+    {"glob": "docs/analysis/B2_P2/*/*.html", "family": "pt-P2", "note": "81 页（P2 · 重要）"},
+    {"glob": "docs/analysis/B3_P1/*/*.html", "family": "pt-P1", "note": "14 页（P1 · 基础补充）"},
+    {"glob": "docs/analysis/_rejected/*/*.html", "family": "rejected", "note": "1 页（未采纳）"}
+  ],
+  "page_families_note": "★ 本表**覆盖全部 139 页**（1+1+1+1+1+38+81+14+1 = 139），即门控扫描面 == 站点发布面。⛔ 表外新增页不会「默认通过」：gate_census.py 的 TC2 会把「基线外的新页」判为 FAIL。★ 族在这里只用于**定位与报告**，⛔ 不用于「族内唯一值」判据 —— 本站同族内合法存在不同取值（Q2=A 增量冻结 / Q3=A 等值注入），按 `SH5 §4.0` 第 1 条不得写那种判据。",
+  "no_root_pages": [],
+  "no_root_pages_note": "★ **空**：Q3=A 的等值注入把改动前的 54 个零令牌页全部补上了 `:root`（值＝该页原本就在用的字面值）⇒ 注解后**没有**无根页。gate_census.py 的 TC4 双向核对这一点（零令牌页数须为 0 且登记表为空）。",
+  "single_source_invariants": {
+    "timeline_writer": "generate_timeline_lanes.py",
+    "home_writer": "gen_home.py",
+    "note": "★ Q1=B 与 Q4=A 的机检落点（gate_tokens.py 的 G8/G9，用 ast 求值面扫 OUT_PATH）：首页必须有认领者；docs/timeline.html 的写者必须**恰 1 个**且与本声明一致。"
+  },
+  "generator_owned_products": {
+    "docs/index.html": "gen_home.py",
+    "docs/timeline.html": "generate_timeline_lanes.py",
+    "docs/list.html": "generate_list_html.py",
+    "docs/analysis/index.html": "gen_analysis_index.py",
+    "build/legacy/timeline-classic.html": "generate_html.py"
+  },
+  "snapshot_products": [
+    "docs/analysis/B1_P3/*/*.html",
+    "docs/analysis/B2_P2/*/*.html",
+    "docs/analysis/B3_P1/*/*.html",
+    "docs/analysis/_rejected/*/*.html",
+    "docs/report.html"
+  ],
+  "snapshot_products_note": "★ 这 135 个产物**没有任何生成器声明写入**（G9 断言这一点），只被 data/annotate_products.py 以 marker-region 方式后处理。它们「无生成器」的原因是既有的（方案 C2-N6）：正文来源不在本仓。",
+  "annotate": {
+    "generator": "data/annotate_products.py",
+    "markers": [
+      "/* LP:TOKENS:BEGIN */ … /* LP:TOKENS:END */",
+      "/* LP:NAVCSS:BEGIN */ … /* LP:NAVCSS:END */",
+      "<!-- LP:NAV:BEGIN --> … <!-- LP:NAV:END -->"
+    ],
+    "deep_glob": "docs/analysis/*/*/*.html",
+    "batch_labels": {
+      "B1_P3": "P3 · 必读核心",
+      "B2_P2": "P2 · 重要",
+      "B3_P1": "P1 · 基础补充",
+      "_rejected": "未采纳"
+    },
+    "note": "★ Q3=A（等值令牌注入）与 Q7=A（134 页统一着陆结构）的落点。标注面**成对标记 + 先剥后写** ⇒ 幂等（自检第 6/7 项实测）。"
+  },
+  "link_registry": {
+    "external_hosts": [
+      {"host": "arxiv.org", "uses": 114, "why": "论文原始出处（arXiv 摘要页）"},
+      {"host": "media.githubusercontent.com", "uses": 133, "why": "论文 PDF 的 Git LFS 直链（方案 §6 已登记：CI 内不可稳定断言 200）"},
+      {"host": "github.com", "uses": 85, "why": "代码仓/项目主页"},
+      {"host": "huggingface.co", "uses": 10, "why": "模型与数据集主页"},
+      {"host": "qwen.ai", "uses": 3, "why": "厂商官方页"},
+      {"host": "z.ai", "uses": 3, "why": "厂商官方页"},
+      {"host": "cdn.openai.com", "uses": 1, "why": "厂商官方页（静态资源）"},
+      {"host": "docs.bigmodel.cn", "uses": 1, "why": "厂商官方文档"},
+      {"host": "llama.meta.com", "uses": 1, "why": "厂商官方页"},
+      {"host": "moonshotai.github.io", "uses": 1, "why": "厂商官方博客"},
+      {"host": "openai.com", "uses": 1, "why": "厂商官方页"},
+      {"host": "qwenlm.github.io", "uses": 1, "why": "厂商官方博客"},
+      {"host": "s3-us-west-2.amazonaws.com", "uses": 1, "why": "论文托管直链"},
+      {"host": "storage.googleapis.com", "uses": 1, "why": "论文/模型托管直链"},
+      {"host": "www.anthropic.com", "uses": 1, "why": "厂商官方页"},
+      {"host": "www.minimax.io", "uses": 1, "why": "厂商官方页"},
+      {"host": "www.reddit.com", "uses": 1, "why": "社区讨论串"}
+    ],
+    "external_hosts_note": "★ fail-closed 登记表：**未登记 host ⇒ LK4 FAIL**（不是白名单式豁免，方向相反）。★ 双向：登记了却没人用 ⇒ 也 FAIL（登记过期）。本表由改动后实测反填（17 个 host / 1534 条锚）。"
+  },
+  "known_broken_links": [],
+  "known_broken_links_note": "★ **空**：改动后实测 139 页 1175 条站内锚**全部可达**（Q5=A 修掉了首页那条 `../README.md`；LK2 在自检里用同一条做负向夹具）。★ 双向：在册的必须**真的**还断着。",
+  "known_contrast_defects": [
+    {"pair": "text.tertiary #90a0b5 on surface.page #f7f8fa", "fg": "#90a0b5", "bg": "#f7f8fa", "min": 4.5, "why": "页脚自检行；实测 2.51 不达 non-body 4.5。★ Q3=A 明令本轮不改值 ⇒ 登记不改（转硬条件：Q3 的取值面解禁）"},
+    {"pair": "border.line #cbd5e1 on surface.page #f7f8fa", "fg": "#cbd5e1", "bg": "#f7f8fa", "min": 3.0, "why": "站内唯一的分隔色；实测 1.40 不达 non-text 3.0。与审计问题 2「--border 1.36:1」同源，但本站主面**没有 --border 令牌**，可断言对象是字面 hex"},
+    {"pair": "border.line #cbd5e1 on surface.raised #ffffff", "fg": "#cbd5e1", "bg": "#ffffff", "min": 3.0, "why": "同上（卡片底色档）：实测 1.48"},
+    {"pair": "ext #9a6b2f on quote-bg #fdf6e3", "fg": "#9a6b2f", "bg": "#fdf6e3", "min": 4.5, "why": "「（推断）」标记；实测 4.31，差 0.19 不达 body 4.5"}
+  ],
+  "known_contrast_defects_note": "★ 页级实测缺陷登记（自带 fg/bg/门限，由 gate_tokens.py 的 G5 **逐条用 vendor/tools/contrast.py 重算**：登记过期即 FAIL）。★ 站点级角色令牌的对比度判据在同一条里按 binding 的 5 个角色判（surface 类角色是参考背景，按 SH5 §4.0 第 1 条不判它自己）。",
+  "page_level_zero_ref": {
+    "docs/analysis/B1_P3/GRPO_DeepSeekMath/03-深度解读报告.html": ["--green"],
+    "docs/analysis/B1_P3/Kimi_K3/03-深度解读报告.html": ["--ink-soft"],
+    "docs/analysis/B1_P3/LLaMA/03-深度解读报告.html": ["--sub"],
+    "docs/analysis/B1_P3/LoRA/03-深度解读报告.html": ["--red-soft"],
+    "docs/analysis/B1_P3/RoPE_RoFormer/03-深度解读报告.html": ["--green-bg"],
+    "docs/analysis/B2_P2/ELMo/03-深度解读报告.html": ["--sub"],
+    "docs/analysis/B2_P2/GPT-2/03-深度解读报告.html": ["--gold"],
+    "docs/analysis/B2_P2/Gemini_2.5_Report/03-深度解读报告.html": ["--warn"],
+    "docs/analysis/B2_P2/Kimi_Linear/03-深度解读报告.html": ["--sub"],
+    "docs/analysis/B2_P2/MQA/03-深度解读报告.html": ["--ok"],
+    "docs/analysis/B2_P2/MiniMax-M2_Series/03-深度解读报告.html": ["--hl2"],
+    "docs/analysis/B2_P2/Mixtral/03-深度解读报告.html": ["--ok"],
+    "docs/analysis/B2_P2/REALM/03-深度解读报告.html": ["--gold"],
+    "docs/analysis/B2_P2/Seed-OSS/03-深度解读报告.html": ["--green"],
+    "docs/analysis/B2_P2/s1/03-深度解读报告.html": ["--blue"]
+  },
+  "page_level_zero_ref_note": "★ 15 页 / 15 枚**既有**零引用令牌（改动前就有，不是本批注入的）。★ 照批 H 的分层（站点级 hard / 页级 report + 登记不得过期）：本批**注入的**令牌（值注册表名 + 站点级角色名）由 gate_census.py 的 TC5 硬判「必须真被引用」；这 15 枚既有死令牌按 Q2=A（⛔ 不改值、⛔ 不删）如实登记，TC5 对登记表做**双向**核对（漏登记 ⇒ FAIL，登记过期 ⇒ FAIL）。",
+  "site_level_zero_ref": [],
+  "site_level_zero_ref_note": "★ **空**：4 枚站点级着陆令牌全部被 `.lp-crumb/.lp-back` 的规则引用（由 gate_tokens.py 的 G6 双向核对：非空即 FAIL，登记过期也 FAIL）。",
+  "gate_entry": "gate_tokens.py",
+  "gates": {
+    "manifest": "gate-manifest.json",
+    "hard_blocking": [
+      "token-consistency",
+      "contrast",
+      "empty-set-guard",
+      "artifact-existence"
+    ],
+    "hard_blocking_note": "★ 本批**未扩枚举**：`site-profile.schema.json` 的 `hard_blocking` 只有这四项（token-consistency / contrast / empty-set-guard / artifact-existence），逐条映射见 gate_strengths。",
+    "gate_strengths": {
+      "gate_tokens.py": "hard（G2/G3/G4/G7/G8/G9 + G1 blind；G5 与 G6 含 report 面）",
+      "gate_links.py": "hard（LK2–LK5 + LK1/LK7 blind；LK6 仅报告）",
+      "gate_census.py": "hard（TC2–TC5 + TC1 blind；TC6 仅报告）",
+      "gate_ci_contract.py": "hard（CI2–CI6 + CI1 blind；CI7 仅报告）",
+      "check_gate_manifest.py": "hard（清单自身的守门人）"
+    },
+    "mode_now": "enforce",
+    "mode_now_reason": "★ 与批 H 四站的差别：本站**是本轮第一次接入门控**，但判据面已用「改动前基线 + 等值注入」把假 FAIL 面消掉（未达标的既有取值走**登记 + report 强度**，而不是靠报告模式整体降级）⇒ 直接 enforce。",
+    "mode_now_transition": "转硬无需再转（已是 enforce）；★ 若后续 Q3 的取值面解禁，known_contrast_defects 里的两条应随之清零，否则 G5 会判「登记过期」。",
+    "commands": [
+      "python3 gate_tokens.py --site-root . --manifest gate-manifest.json --mode enforce",
+      "python3 gate_links.py --site-root .",
+      "python3 gate_census.py --site-root .",
+      "python3 gate_ci_contract.py --site-root .",
+      "python3 vendor/pipeline/check_gate_manifest.py --manifest gate-manifest.json --profile build/profile.json"
+    ],
+    "commands_note": "★ 站点侧只跑这五条（与 .github/workflows/pages.yml 的 Gate 步**逐条一致**，由 gate_ci_contract.py 的 CI3 双向断言）。**不**在站点 CI 里调 `vendor/pipeline/check_site_tokens.py`：它的 C12 要读本地克隆与 `~/opencode/projects/fe-starter-kit`，在 Actions 上必然 FAIL（判据成立但环境不成立）⇒ 骨架级契约留在 AUD 侧跑。"
+  },
+  "ci": {
+    "workflow": ".github/workflows/pages.yml",
+    "shape": "既有 workflow 就地扩展（⛔ 不新建 CI）",
+    "step_order": "Rebuild (build_all.py --skip-gates) < Gate（5 条门控）< Publish (upload-pages-artifact / deploy-pages)",
+    "writeback_master": "★ N/A：本站 CI **没有回写 master 的步骤**（ADR-003 的发布形态未收敛：产物不入库、CI 只上传 artifact）⇒ §4.1 的「回写 master 之前」等价物是**发布步**。⛔ 不新建回写步（那会改发布形态，属常设排除项）。由 gate_ci_contract.py 的 CI2 机械断言该顺序，并在其输出里显式声明这个 N/A。",
+    "pyyaml": "Gate 步首行 `python3 -m pip install pyyaml`：gate_ci_contract.py 只认**有效 YAML** 口径，⛔ 无降级解析路径（降级解析开发中实测会误读块结构与 job 边界）。"
+  },
+  "packages": {
+    "rollout_stage": "第 3 轮（批 I）· 站 06 标准档",
+    "rulings_consumed": [
+      "Q1=B（新建首页生成器并纳入管线）",
+      "Q2=A（增量冻结）",
+      "Q3=A（等值令牌注入）",
+      "Q4=A（timeline 唯一写者 + 另一生成器改名产出）",
+      "Q5=A（首页 404 CTA 改指 report.html）",
+      "Q6=A（维持形态 2）",
+      "Q7=A（134 页统一「返回深度解读总览」+ 面包屑）",
+      "Q8=A（容器 overflow-x:auto + 栅格改量测）",
+      "L1=A（7 处绝对路径本地化）"
+    ]
+  },
+  "not_covered": [
+    "★ 未在真实 GitHub Actions 上跑过：本机无 actionlint，也不触网跑 Actions ⇒ 只有「有效 YAML 静态步骤序 + 管线/登记表双向」判据。",
+    "★ 像素层视觉回归不在站点仓内：本批由 AUD 侧 P2=A 的像素层能力承担（evidence/i/pixels/）。站内只做到「等值注入 ⇒ 计算值不变」的代数等价与 DOM/CSS 文本层断言。",
+    "★ 无障碍/SEO 实缺按 P3=B 以报告模式登记（另立一轮修）：站内门控**不含** skip link / :focus-visible / description / og / canonical / favicon 判据 —— 本轮的 4 道门控聚焦令牌面、链路面、普查冻结面与 CI 契约面。",
+    "★ 134 个解读页的**语义**收敛未做（Q2=A 明确推迟到「按页面族分批」）：命名层是值注册表 `--lp-{bg|ink|line|mix}-NNN`（858 值），不是语义角色。",
+    "★ 单位体系迁移（px → rem/ch）未做（方案问题 7 的理想档）。",
+    "★ 静态搜索索引未做（方案问题 19 的理想档）。",
+    "★ 134 页正文的来源语料未纳入仓库（C2-D3）：重建保真度只到「后处理器幂等」层。",
+    "★ data/final_gate.py 的 `assert total == 125` 是过期字面量（实测 133），本轮**不改**（改判据超出 L1 裁定）⇒ 该历史门控当前必然红，且它**不在**本轮门控集内、CI 不调用它。"
+  ]
+}

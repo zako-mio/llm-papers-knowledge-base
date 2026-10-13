@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Self-Instruct 深度解读报告</title>
 <style>
-:root{--ink:#1a2332;--sub:#5a6b82;--accent:#0f6b5c;--accent2:#b45309;--hl:#fef3c7;--line:#e3e9f0;--bg:#f7f9fb;--card:#ffffff;}
+:root{--ink:#1a2332;--sub:#5a6b82;--accent:#0f6b5c;--accent2:#b45309;--hl:#fef3c7;--line:#e3e9f0;--bg:#f7f9fb;--card:#ffffff;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-bg-112:#0d3b34;--lp-bg-161:#14544a;--lp-bg-184:#1d6e60;--lp-ink-024:#123f38;--lp-ink-075:#0c3a33;--lp-ink-028:#7c4a03;--lp-bg-067:#eef4f2;--lp-bg-323:#fafcfb;--lp-bg-250:#eff7f4;--lp-bg-023:#fdf6ec;/* LP:TOKENS:END */}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:"Source Han Serif SC","Noto Serif CJK SC","Songti SC",Georgia,serif;color:var(--ink);background:var(--bg);line-height:1.85;font-size:16px;}
 .wrap{max-width:880px;margin:0 auto;padding:0 24px 80px;}
-header.hero{background:linear-gradient(135deg,#0d3b34 0%,#14544a 55%,#1d6e60 100%);color:#fff;padding:64px 24px 48px;text-align:center;}
+header.hero{background:linear-gradient(135deg,var(--lp-bg-112) 0%,var(--lp-bg-161) 55%,var(--lp-bg-184) 100%);color:var(--card);padding:64px 24px 48px;text-align:center;}
 header.hero .tag{display:inline-block;font-size:13px;letter-spacing:.22em;border:1px solid rgba(255,255,255,.45);border-radius:999px;padding:4px 18px;margin-bottom:20px;font-family:"Helvetica Neue",Arial,sans-serif;}
 header.hero h1{font-size:30px;font-weight:700;line-height:1.45;letter-spacing:.02em;}
 header.hero .en{font-size:15px;opacity:.85;margin-top:12px;font-family:Georgia,serif;font-style:italic;}
@@ -17,28 +17,45 @@ header.hero .meta{margin-top:22px;font-size:13.5px;opacity:.88;font-family:"Helv
 main{margin-top:-28px;}
 .card{background:var(--card);border-radius:14px;box-shadow:0 2px 14px rgba(20,40,60,.07);padding:36px 42px;margin-bottom:26px;}
 h2.sec{font-size:21px;color:var(--accent);border-left:5px solid var(--accent);padding-left:14px;margin-bottom:20px;font-weight:700;}
-h3{font-size:17px;margin:26px 0 10px;color:#123f38;}
+h3{font-size:17px;margin:26px 0 10px;color:var(--lp-ink-024);}
 p{margin:10px 0;text-align:justify;}
-strong{color:#0c3a33;}
-.num{background:var(--hl);color:#7c4a03;font-weight:700;padding:1px 6px;border-radius:4px;font-family:"Helvetica Neue",Arial,sans-serif;font-size:95%;}
+strong{color:var(--lp-ink-075);}
+.num{background:var(--hl);color:var(--lp-ink-028);font-weight:700;padding:1px 6px;border-radius:4px;font-family:"Helvetica Neue",Arial,sans-serif;font-size:95%;}
 table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14.5px;}
-th{background:#eef4f2;color:#123f38;padding:9px 10px;border:1px solid var(--line);text-align:left;font-weight:700;}
+th{background:var(--lp-bg-067);color:var(--lp-ink-024);padding:9px 10px;border:1px solid var(--line);text-align:left;font-weight:700;}
 td{padding:8px 10px;border:1px solid var(--line);}
-tr:nth-child(even) td{background:#fafcfb;}
-.callout{background:#eff7f4;border-left:4px solid var(--accent);border-radius:0 8px 8px 0;padding:14px 18px;margin:18px 0;font-size:15px;}
+tr:nth-child(even) td{background:var(--lp-bg-323);}
+.callout{background:var(--lp-bg-250);border-left:4px solid var(--accent);border-radius:0 8px 8px 0;padding:14px 18px;margin:18px 0;font-size:15px;}
 .callout b{color:var(--accent);}
-.warn{background:#fdf6ec;border-left:4px solid var(--accent2);padding:14px 18px;border-radius:0 8px 8px 0;margin:18px 0;font-size:15px;}
+.warn{background:var(--lp-bg-023);border-left:4px solid var(--accent2);padding:14px 18px;border-radius:0 8px 8px 0;margin:18px 0;font-size:15px;}
 .warn b{color:var(--accent2);}
 ul,ol{margin:8px 0 8px 26px;}
 li{margin:6px 0;text-align:justify;}
 .toc{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;}
-.toc span{background:#eef4f2;color:#123f38;border-radius:8px;padding:6px 14px;font-size:13.5px;font-family:"Helvetica Neue",Arial,sans-serif;}
+.toc span{background:var(--lp-bg-067);color:var(--lp-ink-024);border-radius:8px;padding:6px 14px;font-size:13.5px;font-family:"Helvetica Neue",Arial,sans-serif;}
 .srcnote{font-size:12.5px;color:var(--sub);font-family:"Helvetica Neue",Arial,sans-serif;}
 .audit{font-size:13.5px;color:var(--sub);border-top:1px dashed var(--line);margin-top:22px;padding-top:14px;font-family:"SFMono-Regular",Consolas,"Helvetica Neue",monospace;}
 footer{text-align:center;color:var(--sub);font-size:13px;padding:10px 0 30px;}
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>Self-Instruct</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <header class="hero">
 <div class="tag">LLM 关键节点论文 · B2 批次 · 深度解读</div>
 <h1>Self-Instruct：用自我生成的指令对齐语言模型</h1>

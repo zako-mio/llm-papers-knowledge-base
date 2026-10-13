@@ -9,8 +9,7 @@
   --ink:#1a2332; --sub:#4a5568; --faint:#8895a7;
   --accent:#c2410c; --accent-soft:#fff1e6;
   --blue:#1d4ed8; --blue-soft:#eef4ff;
-  --line:#e3e8ef; --bg:#fafbfc; --card:#ffffff;
-}
+  --line:#e3e8ef; --bg:#fafbfc; --card:#ffffff;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-bg-251:#f0ede8;--lp-bg-332:#fbfaf8;--lp-bg-363:#fdf8f3;--lp-bg-328:#fbf3ea;--lp-line-094:#ecd9c3;--lp-ink-025:#15803d;/* LP:TOKENS:END */}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{
   font-family:"Source Han Serif SC","Noto Serif SC","Songti SC","SimSun",Georgia,serif;
@@ -51,22 +50,39 @@ blockquote{
 }
 blockquote p{margin:0;}
 table{width:100%;border-collapse:collapse;margin:18px 0 22px;font-size:.92rem;font-family:"Noto Sans SC",sans-serif;}
-th{background:#f0ede8;text-align:left;padding:9px 12px;border:1px solid var(--line);font-weight:700;}
+th{background:var(--lp-bg-251);text-align:left;padding:9px 12px;border:1px solid var(--line);font-weight:700;}
 td{padding:8px 12px;border:1px solid var(--line);vertical-align:top;}
-tr:nth-child(even) td{background:#fbfaf8;}
+tr:nth-child(even) td{background:var(--lp-bg-332);}
 .note{font-size:.86rem;color:var(--faint);font-family:"Noto Sans SC",sans-serif;}
-.summary-card{background:linear-gradient(135deg,#fdf8f3,#fbf3ea);border:1px solid #ecd9c3;border-radius:14px;padding:26px 30px;margin-bottom:44px;}
+.summary-card{background:linear-gradient(135deg,var(--lp-bg-363),var(--lp-bg-328));border:1px solid var(--lp-line-094);border-radius:14px;padding:26px 30px;margin-bottom:44px;}
 .summary-card h2{font-family:"Noto Sans SC",sans-serif;font-size:.85rem;letter-spacing:.3em;color:var(--accent);margin-bottom:12px;}
 .selfcheck{margin-top:56px;border-top:3px double var(--line);padding-top:28px;font-family:"Noto Sans SC",sans-serif;font-size:.86rem;color:var(--sub);}
 .selfcheck h2{font-size:.95rem;letter-spacing:.2em;margin-bottom:14px;color:var(--ink);}
 .selfcheck ul{list-style:none;}
 .selfcheck li{padding:4px 0;}
-.selfcheck li::before{content:"✓";color:#15803d;font-weight:700;margin-right:10px;}
+.selfcheck li::before{content:"✓";color:var(--lp-ink-025);font-weight:700;margin-right:10px;}
 footer.endmark{text-align:center;margin-top:48px;color:var(--faint);font-family:"Noto Sans SC",sans-serif;font-size:.8rem;letter-spacing:.4em;}
 @media print{ body{font-size:11pt;} .wrap{padding:0;} }
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>CLIP</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <header class="hero">

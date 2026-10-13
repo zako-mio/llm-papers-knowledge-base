@@ -8,8 +8,7 @@
   :root{
     --ink:#1a2332; --sub:#5a6a80; --accent:#0f6bd7; --accent2:#c2410c;
     --gold:#b45309; --line:#dde4ee; --bg:#f6f8fb; --card:#ffffff;
-    --hl:#0f6bd7; --warn:#b91c1c;
-  }
+    --hl:#0f6bd7; --warn:#b91c1c;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-bg-040:#0d1b33;--lp-bg-052:#123a6b;--lp-ink-250:#9cc4ef;--lp-ink-278:#c9dcf5;--lp-ink-301:#e8f1fc;--lp-bg-063:#dbeafe;--lp-bg-242:#eef5fe;--lp-bg-036:#fdf6ee;--lp-ink-187:#6b4a12;--lp-bg-285:#f4f7fc;--lp-ink-290:#d7e6f9;--lp-ink-220:#7db8ff;/* LP:TOKENS:END */}
   *{margin:0;padding:0;box-sizing:border-box;}
   body{
     font-family:"Source Han Serif SC","Noto Serif SC","Songti SC",serif;
@@ -18,15 +17,15 @@
   }
   .wrap{max-width:920px;margin:0 auto;padding:0 28px 90px;}
   header.hero{
-    background:linear-gradient(135deg,#0d1b33 0%,#123a6b 55%,#0f6bd7 130%);
-    color:#fff;padding:64px 28px 46px;margin-bottom:36px;
+    background:linear-gradient(135deg,var(--lp-bg-040) 0%,var(--lp-bg-052) 55%,var(--accent) 130%);
+    color:var(--card);padding:64px 28px 46px;margin-bottom:36px;
   }
   .hero-inner{max-width:920px;margin:0 auto;}
-  .kicker{font-family:"Helvetica Neue",Arial,sans-serif;font-size:.78rem;letter-spacing:.35em;text-transform:uppercase;color:#9cc4ef;margin-bottom:14px;}
+  .kicker{font-family:"Helvetica Neue",Arial,sans-serif;font-size:.78rem;letter-spacing:.35em;text-transform:uppercase;color:var(--lp-ink-250);margin-bottom:14px;}
   h1.title{font-size:2.15rem;font-weight:700;line-height:1.35;margin-bottom:12px;}
-  .subtitle{font-size:1rem;color:#c9dcf5;font-weight:400;margin-bottom:22px;font-style:italic;}
+  .subtitle{font-size:1rem;color:var(--lp-ink-278);font-weight:400;margin-bottom:22px;font-style:italic;}
   .meta-row{display:flex;flex-wrap:wrap;gap:10px;font-family:"Helvetica Neue",Arial,sans-serif;font-size:.8rem;}
-  .chip{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:4px 14px;color:#e8f1fc;}
+  .chip{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:4px 14px;color:var(--lp-ink-301);}
   nav.toc{
     background:var(--card);border:1px solid var(--line);border-radius:10px;
     padding:22px 28px;margin-bottom:40px;font-family:"Helvetica Neue",Arial,sans-serif;
@@ -45,36 +44,36 @@
     padding-left:16px;border-left:5px solid var(--accent);
   }
   .ch-en{font-family:"Helvetica Neue",Arial,sans-serif;font-size:.75rem;letter-spacing:.18em;color:var(--sub);margin-bottom:24px;padding-left:21px;text-transform:uppercase;}
-  h3{font-size:1.08rem;font-weight:700;margin:30px 0 12px;color:#14304f;}
+  h3{font-size:1.08rem;font-weight:700;margin:30px 0 12px;color:var(--lp-ink-002);}
   p{margin-bottom:14px;text-align:justify;}
   strong.num{
     color:var(--hl);font-weight:700;font-family:"Helvetica Neue","Source Han Sans SC",sans-serif;
     font-variant-numeric:tabular-nums;padding:0 1px;
   }
-  em.term{font-style:normal;font-weight:700;color:#14304f;background:linear-gradient(transparent 62%,#dbeafe 62%);}
+  em.term{font-style:normal;font-weight:700;color:var(--lp-ink-002);background:linear-gradient(transparent 62%,var(--lp-bg-063) 62%);}
   .flag{color:var(--warn);font-weight:700;}
   .inference{color:var(--accent2);}
   blockquote.sum{
-    margin:26px 0 4px;padding:16px 22px;background:#eef5fe;border-left:4px solid var(--accent);
+    margin:26px 0 4px;padding:16px 22px;background:var(--lp-bg-242);border-left:4px solid var(--accent);
     border-radius:0 8px 8px 0;font-size:.95rem;
   }
   blockquote.sum b{color:var(--accent);}
   blockquote.note{
-    margin:18px 0;padding:14px 20px;background:#fdf6ee;border-left:4px solid var(--gold);
-    border-radius:0 8px 8px 0;font-size:.92rem;color:#6b4a12;
+    margin:18px 0;padding:14px 20px;background:var(--lp-bg-036);border-left:4px solid var(--gold);
+    border-radius:0 8px 8px 0;font-size:.92rem;color:var(--lp-ink-187);
   }
   table{width:100%;border-collapse:collapse;margin:18px 0 22px;font-size:.9rem;font-family:"Helvetica Neue","Source Han Sans SC",sans-serif;}
-  th{background:#123a6b;color:#fff;padding:9px 12px;text-align:left;font-weight:600;white-space:nowrap;}
+  th{background:var(--lp-bg-052);color:var(--card);padding:9px 12px;text-align:left;font-weight:600;white-space:nowrap;}
   td{padding:8px 12px;border-bottom:1px solid var(--line);}
-  tr:nth-child(even) td{background:#f4f7fc;}
+  tr:nth-child(even) td{background:var(--lp-bg-285);}
   td.best{color:var(--accent);font-weight:700;}
   td.regr{color:var(--warn);font-weight:700;}
   pre.pipeline{
-    background:#0d1b33;color:#d7e6f9;border-radius:10px;padding:24px 26px;
+    background:var(--lp-bg-040);color:var(--lp-ink-290);border-radius:10px;padding:24px 26px;
     font-family:"SF Mono",Consolas,monospace;font-size:.83rem;line-height:1.75;
     overflow-x:auto;margin:18px 0 22px;
   }
-  pre.pipeline .em{color:#7db8ff;font-weight:700;}
+  pre.pipeline .em{color:var(--lp-ink-220);font-weight:700;}
   ul.tight{margin:0 0 16px 22px;}
   ul.tight li{margin-bottom:9px;text-align:justify;}
   ol.steps{margin:0 0 16px 24px;}
@@ -89,12 +88,29 @@
     body{font-size:15.5px;}
   }
   @media print{
-    body{background:#fff;}
+    body{background:var(--card);}
     section.chapter{box-shadow:none;break-inside:avoid-page;}
   }
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>MiniMax-M1</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 
 <header class="hero">
   <div class="hero-inner">

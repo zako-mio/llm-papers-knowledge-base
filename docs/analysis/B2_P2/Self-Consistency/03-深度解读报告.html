@@ -7,14 +7,13 @@
 <style>
   :root{
     --ink:#1a2332; --sub:#5a6b82; --accent:#0f4c81; --accent-soft:#e8f1f8;
-    --gold:#b8860b; --hl-bg:#fff3cd; --line:#dde5ee; --bg:#fafbfd; --card:#ffffff;
-  }
+    --gold:#b8860b; --hl-bg:#fff3cd; --line:#dde5ee; --bg:#fafbfd; --card:#ffffff;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-bg-174:#1a5f9e;--lp-bg-200:#2d74b5;--lp-bg-080:#f2f7ec;--lp-line-042:#6a9955;--lp-ink-208:#7a5900;--lp-bg-028:#eef2f7;--lp-ink-237:#8b2252;--lp-bg-292:#f5f8fb;--lp-ink-064:#b02a2a;--lp-mix-021:#c0392b;--lp-bg-354:#fdf3f0;/* LP:TOKENS:END */}
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:"Source Han Serif SC","Noto Serif CJK SC","Songti SC",serif;color:var(--ink);
        background:var(--bg);line-height:1.85;font-size:16px}
   .wrap{max-width:960px;margin:0 auto;padding:32px 28px 64px}
 
-  header.hero{background:linear-gradient(135deg,#0f4c81 0%,#1a5f9e 60%,#2d74b5 100%);color:#fff;
+  header.hero{background:linear-gradient(135deg,var(--accent) 0%,var(--lp-bg-174) 60%,var(--lp-bg-200) 100%);color:var(--card);
        border-radius:14px;padding:44px 40px;margin-bottom:36px;box-shadow:0 6px 24px rgba(15,76,129,.25)}
   .hero .kicker{font-size:.85rem;letter-spacing:.35em;text-transform:uppercase;opacity:.85;font-family:sans-serif}
   .hero h1{font-size:1.72rem;line-height:1.45;margin:14px 0 10px;font-weight:700}
@@ -33,31 +32,48 @@
 
   .card{background:var(--card);border:1px solid var(--line);border-radius:10px;
      padding:20px 24px;margin:16px 0;box-shadow:0 2px 8px rgba(0,0,0,.04)}
-  .takeaway{background:#f2f7ec;border-left:4px solid #6a9955;border-radius:0 8px 8px 0;
+  .takeaway{background:var(--lp-bg-080);border-left:4px solid var(--lp-line-042);border-radius:0 8px 8px 0;
      padding:14px 18px;margin:18px 0;font-weight:600}
   .hl{background:var(--hl-bg);padding:1px 5px;border-radius:4px;font-weight:700;
-     font-family:Georgia,serif;color:#7a5900}
+     font-family:Georgia,serif;color:var(--lp-ink-208)}
   .term{color:var(--accent);font-weight:700}
-  code{background:#eef2f7;border:1px solid var(--line);border-radius:4px;padding:1px 6px;
-     font-size:.9em;font-family:"JetBrains Mono",Consolas,monospace;color:#8b2252}
+  code{background:var(--lp-bg-028);border:1px solid var(--line);border-radius:4px;padding:1px 6px;
+     font-size:.9em;font-family:"JetBrains Mono",Consolas,monospace;color:var(--lp-ink-237)}
 
-  table{width:100%;border-collapse:collapse;margin:16px 0;background:#fff;font-size:.93rem}
-  th{background:var(--accent);color:#fff;padding:9px 12px;text-align:left;font-weight:600}
+  table{width:100%;border-collapse:collapse;margin:16px 0;background:var(--card);font-size:.93rem}
+  th{background:var(--accent);color:var(--card);padding:9px 12px;text-align:left;font-weight:600}
   td{padding:8px 12px;border-bottom:1px solid var(--line)}
-  tr:nth-child(even) td{background:#f5f8fb}
-  td.up{color:#b02a2a;font-weight:700}
+  tr:nth-child(even) td{background:var(--lp-bg-292)}
+  td.up{color:var(--lp-ink-064);font-weight:700}
 
   ol,ul{margin:10px 0 10px 26px}
   li{margin:7px 0;text-align:justify}
-  .concern{border-left:3px solid #c0392b;background:#fdf3f0;border-radius:0 8px 8px 0;
+  .concern{border-left:3px solid var(--lp-mix-021);background:var(--lp-bg-354);border-radius:0 8px 8px 0;
      padding:13px 17px;margin:13px 0}
-  .concern b.tag{color:#c0392b}
+  .concern b.tag{color:var(--lp-mix-021)}
 
   footer{margin-top:52px;padding-top:18px;border-top:1px dashed var(--line);
      color:var(--sub);font-size:.85rem;font-family:sans-serif;text-align:center}
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>Self-Consistency</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <header class="hero">

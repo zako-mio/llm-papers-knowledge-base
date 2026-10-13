@@ -13,8 +13,7 @@
     --gold: #b8860b;
     --line: #dde4ec;
     --bg: #f6f8fb;
-    --card: #ffffff;
-  }
+    --card: #ffffff;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-mix-005:#0b3d6b;--lp-bg-188:#1e8449;--lp-bg-215:#b03a2e;--lp-bg-011:#fafcfe;--lp-bg-078:#f2f5f9;--lp-line-017:#b9c8da;--lp-bg-029:#eef3ee;--lp-line-008:#cfe0cf;--lp-ink-157:#38553a;--lp-ink-142:#2e5c33;/* LP:TOKENS:END */}
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -25,8 +24,8 @@
   }
   .page { max-width: 960px; margin: 0 auto; padding: 24px 20px 60px; }
   header.hero {
-    background: linear-gradient(135deg, #0b3d6b 0%, #0b5cad 100%);
-    color: #fff;
+    background: linear-gradient(135deg, var(--lp-mix-005) 0%, var(--accent) 100%);
+    color: var(--card);
     border-radius: 14px;
     padding: 42px 40px 34px;
     margin-bottom: 28px;
@@ -61,24 +60,24 @@
   p { margin-bottom: 12px; text-align: justify; }
   ul, ol { margin: 0 0 14px 22px; }
   li { margin-bottom: 7px; text-align: justify; }
-  strong { color: #0b3d6b; }
+  strong { color: var(--lp-mix-005); }
   .num {
     font-family: Georgia, "Times New Roman", serif;
     font-weight: 700;
-    color: #fff;
+    color: var(--card);
     background: var(--accent);
     border-radius: 5px;
     padding: 1px 7px 2px;
     white-space: nowrap;
     font-size: 95%;
   }
-  .num.up { background: #1e8449; }
-  .num.warn { background: #b03a2e; }
+  .num.up { background: var(--lp-bg-188); }
+  .num.warn { background: var(--lp-bg-215); }
   em.term { font-style: normal; color: var(--gold); font-weight: 600; }
   table { width: 100%; border-collapse: collapse; margin: 14px 0 18px; font-size: 14.5px; }
   th, td { border: 1px solid var(--line); padding: 9px 11px; text-align: center; }
-  th { background: var(--accent-soft); color: #0b3d6b; font-weight: 700; }
-  tr:nth-child(even) td { background: #fafcfe; }
+  th { background: var(--accent-soft); color: var(--lp-mix-005); font-weight: 700; }
+  tr:nth-child(even) td { background: var(--lp-bg-011); }
   td.left { text-align: left; }
   .callout {
     background: var(--accent-soft);
@@ -90,8 +89,8 @@
   .callout b { color: var(--accent); }
   .formula {
     font-family: "Cambria Math", Georgia, serif;
-    background: #f2f5f9;
-    border: 1px dashed #b9c8da;
+    background: var(--lp-bg-078);
+    border: 1px dashed var(--lp-line-017);
     border-radius: 8px;
     padding: 12px 18px;
     margin: 12px 0;
@@ -99,17 +98,34 @@
     font-size: 15.5px;
   }
   footer.selfcheck {
-    background: #eef3ee;
-    border: 1px solid #cfe0cf;
+    background: var(--lp-bg-029);
+    border: 1px solid var(--lp-line-008);
     border-radius: 10px;
     padding: 18px 24px;
     font-size: 13px;
-    color: #38553a;
+    color: var(--lp-ink-157);
   }
-  footer.selfcheck h2 { font-size: 15px; margin-bottom: 8px; color: #2e5c33; }
+  footer.selfcheck h2 { font-size: 15px; margin-bottom: 8px; color: var(--lp-ink-142); }
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>ELMo</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="page">
 
 <header class="hero">

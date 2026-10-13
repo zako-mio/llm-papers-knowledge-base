@@ -1,7 +1,11 @@
 import os, re, sys, json, glob
 sys.stdout.reconfigure(encoding="utf-8")
-BASE = "/home/zako-mio/opencode/archive/Mission-file/2026-08/0825-LLM关键节点论文全集"
-B3 = os.path.join(BASE, "analysis", "B3_P1")
+# ★ L1 本地化（批 I · 裁定 L1=A）：⛔ 不再写死作者机绝对路径；由文件位置推导仓根。
+#   ★ 实测更正：原指向的上游语料目录里**根本没有 `analysis/` 子目录**（0825 语料实测无该目录）
+#   ⇒ 该生成器在改动前**必然 FileNotFoundError**（不是「能跑但结果不同」）。本地化同时把
+#   输入面改到仓内 `docs/analysis/B3_P1`（那里 00/01/03 三件齐备）。
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+B3 = os.path.join(BASE, "docs", "analysis", "B3_P1")
 CSS = """
 *{box-sizing:border-box}
 body{font-family:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;background:#f7f8fa;color:#1f2430;line-height:1.8;margin:0}

@@ -14,7 +14,12 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 DATA_DIR = Path(__file__).resolve().parent
 BASE_DIR = DATA_DIR.parent
-OUT_PATH = BASE_DIR / 'docs' / 'timeline.html'
+# ★ Q4=A 裁定（双写收口）：「声明唯一写者、另一个生成器改名产出」。
+#   实测（改动前）：本件与 generate_timeline_lanes.py 的 OUT_PATH **指向同一个 docs/timeline.html**，
+#   而**只有** generate_timeline_lanes.py 的产出与线上/仓内现状逐字节相同（实测 sha256
+#   `983858c60aaf…`）⇒ 唯一写者 = generate_timeline_lanes.py；本件**改名产出**为
+#   `build/legacy/timeline-classic.html`（非发布面，仍可重跑、仍被本仓版本化）。
+OUT_PATH = BASE_DIR / 'build' / 'legacy' / 'timeline-classic.html'
 
 master = json.loads((DATA_DIR / 'papers_master.json').read_text(encoding='utf-8'))
 narratives = json.loads((DATA_DIR / 'era_narratives.json').read_text(encoding='utf-8'))
@@ -286,6 +291,7 @@ doc = (
     + header_html + '\n' + nav_html + '\n' + route_html + '\n' + main_html
     + '\n' + footer_html + f'\n<script>{JS}</script>\n</body>\n</html>\n')
 
+OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
 OUT_PATH.write_text(doc, encoding='utf-8')
 print(f'[WRITE] {OUT_PATH}')
 

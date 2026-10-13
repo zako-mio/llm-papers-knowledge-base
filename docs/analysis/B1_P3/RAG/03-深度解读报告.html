@@ -8,8 +8,7 @@
   :root{
     --ink:#1f2430; --sub:#5a6472; --paper:#fbfaf7; --card:#ffffff;
     --accent:#b4451f; --accent-bg:#fdf0e8; --blue:#1f5c8b; --blue-bg:#eaf2f8;
-    --line:#e4ded2; --gold:#9a6a00; --gold-bg:#fff7df; --green:#2c6e49;
-  }
+    --line:#e4ded2; --gold:#9a6a00; --gold-bg:#fff7df; --green:#2c6e49;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-ink-180:#5c4a12;--lp-bg-032:#f2f0ea;--lp-ink-161:#3d3a33;--lp-bg-311:#f8f6f0;--lp-line-057:#b8b2a4;/* LP:TOKENS:END */}
   *{box-sizing:border-box;}
   body{margin:0;background:var(--paper);color:var(--ink);
     font-family:"Source Han Sans SC","Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif;
@@ -21,7 +20,7 @@
   .meta{color:var(--sub);font-size:13.5px;line-height:1.7;}
   .meta b{color:var(--ink);}
   .datasrc{background:var(--gold-bg);border-left:4px solid var(--gold);
-    padding:10px 16px;font-size:13.5px;color:#5c4a12;border-radius:0 6px 6px 0;margin:18px 0 0;}
+    padding:10px 16px;font-size:13.5px;color:var(--lp-ink-180);border-radius:0 6px 6px 0;margin:18px 0 0;}
   h2{font-family:"Source Han Serif SC","Noto Serif CJK SC",serif;font-size:23px;color:var(--accent);
     border-left:5px solid var(--accent);padding-left:14px;margin:52px 0 18px;line-height:1.4;}
   h3{font-size:17.5px;color:var(--blue);margin:34px 0 10px;padding-bottom:6px;border-bottom:1px dashed var(--line);}
@@ -31,12 +30,12 @@
   .term{color:var(--blue);font-weight:600;}
   .en{font-style:italic;}
   code,.formula{font-family:"JetBrains Mono","Cascadia Code",Consolas,monospace;font-size:.92em;
-    background:#f2f0ea;padding:2px 6px;border-radius:4px;color:#3d3a33;}
+    background:var(--lp-bg-032);padding:2px 6px;border-radius:4px;color:var(--lp-ink-161);}
   .formula{display:block;text-align:center;padding:10px 14px;margin:12px auto;overflow-x:auto;}
   table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;background:var(--card);}
-  th{background:var(--blue);color:#fff;padding:9px 10px;text-align:left;font-weight:600;}
+  th{background:var(--blue);color:var(--card);padding:9px 10px;text-align:left;font-weight:600;}
   td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
-  tr:nth-child(even) td{background:#f8f6f0;}
+  tr:nth-child(even) td{background:var(--lp-bg-311);}
   td.best{color:var(--accent);font-weight:700;}
   .callout{background:var(--blue-bg);border-left:4px solid var(--blue);padding:12px 18px;
     margin:20px 0;border-radius:0 6px 6px 0;font-size:15px;}
@@ -45,13 +44,30 @@
     padding:20px 26px;border-radius:6px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.05);}
   ol li,p li{margin:7px 0;}
   ul{padding-left:26px;margin:10px 0;}
-  .footer-check{margin-top:56px;padding:16px 20px;border:1px dashed #b8b2a4;border-radius:6px;
+  .footer-check{margin-top:56px;padding:16px 20px;border:1px dashed var(--lp-line-057);border-radius:6px;
     font-size:12.5px;color:var(--sub);line-height:1.8;}
   .footer-check b{color:var(--green);}
   @media (max-width:640px){.wrap{padding:20px 16px 48px;}h1{font-size:23px;}h2{font-size:19px;}}
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>RAG</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <header class="hero">

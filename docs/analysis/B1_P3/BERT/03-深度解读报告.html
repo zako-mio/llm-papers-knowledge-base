@@ -7,21 +7,20 @@
 <style>
 :root{
   --ink:#1f2933; --sub:#52606d; --accent:#1a5fb4; --accent2:#c0392b;
-  --bg:#f7f9fc; --card:#ffffff; --line:#d9e2ec; --gold:#b7791f;
-}
+  --bg:#f7f9fc; --card:#ffffff; --line:#d9e2ec; --gold:#b7791f;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-bg-053:#123a6d;--lp-bg-205:#2f80c3;--lp-bg-001:#fdf6e3;--lp-ink-195:#6b5618;--lp-ink-112:#204a87;--lp-ink-041:#111111;--lp-line-023:#0e2f5a;--lp-bg-265:#f2f6fb;--lp-bg-344:#fdf0ee;--lp-bg-068:#eef4fb;--lp-ink-136:#2c4a6e;--lp-bg-253:#f0faf4;--lp-line-032:#2f9e63;--lp-ink-114:#20603c;--lp-bg-007:#fafbfd;--lp-ink-227:#829ab1;/* LP:TOKENS:END */}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:"Source Han Sans SC","Noto Sans CJK SC","Microsoft YaHei","PingFang SC",sans-serif;
   background:var(--bg);color:var(--ink);line-height:1.85;font-size:16px;}
 .wrap{max-width:960px;margin:0 auto;padding:32px 28px 64px;}
-header.hero{background:linear-gradient(135deg,#123a6d 0%,#1a5fb4 60%,#2f80c3 100%);
-  color:#fff;border-radius:14px;padding:44px 40px;margin-bottom:28px;}
+header.hero{background:linear-gradient(135deg,var(--lp-bg-053) 0%,var(--accent) 60%,var(--lp-bg-205) 100%);
+  color:var(--card);border-radius:14px;padding:44px 40px;margin-bottom:28px;}
 header.hero h1{font-size:27px;line-height:1.5;font-weight:700;letter-spacing:.5px;}
 header.hero .en{font-size:15px;opacity:.85;margin-top:10px;font-style:italic;}
 .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;}
 .meta span{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);
   border-radius:20px;padding:3px 14px;font-size:13px;}
-.datasource{background:#fdf6e3;border-left:4px solid var(--gold);border-radius:6px;
-  padding:12px 18px;font-size:13.5px;color:#6b5618;margin-bottom:26px;}
+.datasource{background:var(--lp-bg-001);border-left:4px solid var(--gold);border-radius:6px;
+  padding:12px 18px;font-size:13.5px;color:var(--lp-ink-195);margin-bottom:26px;}
 nav.toc{background:var(--card);border:1px solid var(--line);border-radius:10px;
   padding:18px 24px;margin-bottom:30px;font-size:14.5px;}
 nav.toc b{color:var(--accent);}
@@ -32,32 +31,49 @@ section{background:var(--card);border:1px solid var(--line);border-radius:12px;
   padding:34px 38px;margin-bottom:26px;}
 h2{font-size:21px;color:var(--accent);border-bottom:2px solid var(--accent);
   padding-bottom:10px;margin-bottom:20px;letter-spacing:.5px;}
-h3{font-size:17px;color:#204a87;margin:26px 0 12px;}
+h3{font-size:17px;color:var(--lp-ink-112);margin:26px 0 12px;}
 h3:first-of-type{margin-top:0;}
 p{margin:10px 0;text-align:justify;}
 ul,ol{margin:10px 0 10px 24px;}
 li{margin:6px 0;text-align:justify;}
-strong{color:#111;}
+strong{color:var(--lp-ink-041);}
 .num{color:var(--accent2);font-weight:700;font-variant-numeric:tabular-nums;}
 table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;}
-th{background:#123a6d;color:#fff;padding:9px 10px;text-align:center;font-weight:600;
-  border:1px solid #0e2f5a;}
+th{background:var(--lp-bg-053);color:var(--card);padding:9px 10px;text-align:center;font-weight:600;
+  border:1px solid var(--lp-line-023);}
 td{padding:8px 10px;border:1px solid var(--line);text-align:center;color:var(--sub);}
-tr:nth-child(even) td{background:#f2f6fb;}
-td.hl,td.best{color:var(--accent2);font-weight:700;background:#fdf0ee !important;}
+tr:nth-child(even) td{background:var(--lp-bg-265);}
+td.hl,td.best{color:var(--accent2);font-weight:700;background:var(--lp-bg-344) !important;}
 caption{caption-side:top;font-size:13px;color:var(--sub);padding-bottom:6px;font-weight:600;}
-.note{background:#eef4fb;border-left:4px solid var(--accent);border-radius:6px;
-  padding:12px 18px;font-size:14px;margin:14px 0;color:#2c4a6e;}
-.oneline{background:#f0faf4;border-left:4px solid #2f9e63;border-radius:6px;
-  padding:14px 18px;margin-top:22px;font-size:15px;color:#20603c;}
+.note{background:var(--lp-bg-068);border-left:4px solid var(--accent);border-radius:6px;
+  padding:12px 18px;font-size:14px;margin:14px 0;color:var(--lp-ink-136);}
+.oneline{background:var(--lp-bg-253);border-left:4px solid var(--lp-line-032);border-radius:6px;
+  padding:14px 18px;margin-top:22px;font-size:15px;color:var(--lp-ink-114);}
 blockquote{border-left:4px solid var(--line);padding:8px 18px;margin:14px 0;
-  color:var(--sub);font-size:14.5px;background:#fafbfd;border-radius:0 6px 6px 0;}
-footer{ text-align:center;color:#829ab1;font-size:13px;padding:18px 0 6px;}
+  color:var(--sub);font-size:14.5px;background:var(--lp-bg-007);border-radius:0 6px 6px 0;}
+footer{ text-align:center;color:var(--lp-ink-227);font-size:13px;padding:18px 0 6px;}
 @media(max-width:720px){section{padding:22px 18px;}header.hero{padding:30px 22px;}
  table{display:block;overflow-x:auto;}}
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>BERT</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <header class="hero">

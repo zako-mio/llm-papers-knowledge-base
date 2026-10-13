@@ -1,0 +1,85 @@
+# ADR-003 三 job 契约（build → gate → deploy）· 批 D 共通件模板
+#
+# ★ 本件是**模板**，由 pipeline/check_workflow_contract.py --render 按站点 profile 展开为实例。
+#   占位符形如「双下划线 + 大写名 + 双下划线」；渲染后**不得**残留任何占位符。
+# ★ 三条约束同时成立（ADR-003 条款五）：
+#     ① deploy 的 needs 必须指向 gate（⛔ 不得让 deploy 只依赖 build）；
+#     ② 门控必须在**部署产物上传之前**运行；
+#     ③ deploy 阶段不得有任何写回仓的通道（无 contents: write / git push / git commit）。
+# ★ 条款四：.nojekyll 由 **build** job 产出（谁产出发布目录，谁负责 .nojekyll），不由人工提交。
+# ★ 条款三：发布目录按站显式参数化（__PUBLISH_DIR__），⛔ 不在契约里统一目录名。
+# ★ 条款六：门控脚本必须仓内版本化、用相对路径读本站产物，不得依赖工作站绝对路径或仓外输入。
+name: "Pages · build → gate → deploy（ADR-003 三 job 契约）"
+on:
+  push:
+    branches: [__DEFAULT_BRANCH__]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pages-__SITE__
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "__PYTHON__"
+      - name: 生成发布目录（本站生成器）
+        working-directory: __BUILD_CWD__
+        run: |
+          __GENERATOR_COMMANDS__
+      - name: 产出 .nojekyll（ADR-003 条款四）
+        run: touch "__PUBLISH_DIR__/.nojekyll"
+      - name: 上传构建产物（此时**尚未**部署）
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-__SITE__
+          path: __PUBLISH_DIR__
+          include-hidden-files: true
+  gate:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout（门控脚本随仓版本化，ADR-003 条款六）
+        uses: actions/checkout@v4
+      - name: setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "__PYTHON__"
+      - name: 取回刚构建出的发布目录
+        uses: actions/download-artifact@v4
+        with:
+          name: site-__SITE__
+          path: __PUBLISH_DIR__
+      - name: 门控（硬阻断集；任一 FAIL 即让本 job 失败）
+        run: |
+          __GATE_COMMANDS__
+  deploy:
+    needs: gate
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 取回已过门控的发布目录
+        uses: actions/download-artifact@v4
+        with:
+          name: site-__SITE__
+          path: __PUBLISH_DIR__
+      - name: configure pages
+        uses: actions/configure-pages@v5
+      - name: 上传 Pages 产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: __PUBLISH_DIR__
+      - name: 部署
+        id: deployment
+        uses: actions/deploy-pages@v4

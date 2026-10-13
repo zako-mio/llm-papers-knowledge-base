@@ -1,0 +1,107 @@
+{
+ "determinism_note": "★ 确定性件：⛔ 无墙钟时间戳、⛔ 无作者机绝对路径。tree_digest 排除本报告自身（否则自指：写报告改树 ⇒ 下次摘要必变）。",
+ "failed": [],
+ "gates": [
+  {
+   "cmd": "python3 gate_tokens.py --site-root . --manifest gate-manifest.json --mode enforce",
+   "exit": 0,
+   "gate": "gate-tokens",
+   "summary": "=== 站点侧令牌门控：10 项判据，0 FAIL（blind 0 / hard 0；mode=enforce）==="
+  },
+  {
+   "cmd": "python3 gate_links.py --site-root .",
+   "exit": 0,
+   "gate": "gate-links",
+   "summary": "=== 链路门控：7 项判据，0 FAIL ==="
+  },
+  {
+   "cmd": "python3 gate_census.py --site-root .",
+   "exit": 0,
+   "gate": "gate-census",
+   "summary": "=== 令牌普查/增量冻结门控：6 项判据，0 FAIL ==="
+  },
+  {
+   "cmd": "python3 gate_ci_contract.py --site-root .",
+   "exit": 0,
+   "gate": "gate-ci-contract",
+   "summary": "=== CI 步骤序/管线登记门控：8 项判据，0 FAIL ==="
+  },
+  {
+   "cmd": "python3 vendor/pipeline/check_gate_manifest.py --manifest gate-manifest.json --profile build/profile.json",
+   "exit": 0,
+   "gate": "manifest-check",
+   "summary": "=== 门控清单双向校验：6 项判据，0 FAIL ==="
+  }
+ ],
+ "generated_by": "data/build_all.py",
+ "pipeline": [
+  {
+   "cmd": "python3 data/gen_home.py",
+   "exit": 0,
+   "step": "gen_home",
+   "tail": [
+    "首页已生成：/home/zako-mio/opencode/archive/Mission-file/2026-10/1011-GitHub-Pages前端设计审计/evidence/i/work/llm-papers-knowledge-base/docs/index.html（3563 B；133 个节点 / P3×38 P2×81 P1×14 / 9 条技术线；cta=report）"
+   ],
+   "target": "docs/index.html"
+  },
+  {
+   "cmd": "python3 data/generate_timeline_lanes.py",
+   "exit": 0,
+   "step": "timeline",
+   "tail": [
+    "已生成 /home/zako-mio/opencode/archive/Mission-file/2026-10/1011-GitHub-Pages前端设计审计/evidence/i/work/llm-papers-knowledge-base/docs/timeline.html",
+    "篇数: 133 | 时间分段: 18 | 技术线: 9 | 关系线: 283"
+   ],
+   "target": "docs/timeline.html"
+  },
+  {
+   "cmd": "python3 data/generate_list_html.py",
+   "exit": 0,
+   "step": "list",
+   "tail": [
+    "已生成 /home/zako-mio/opencode/archive/Mission-file/2026-10/1011-GitHub-Pages前端设计审计/evidence/i/work/llm-papers-knowledge-base/docs/list.html",
+    "篇数: 133 | P3: 38 P2: 81 P1: 14"
+   ],
+   "target": "docs/list.html"
+  },
+  {
+   "cmd": "python3 data/gen_analysis_index.py",
+   "exit": 0,
+   "step": "analysis-index",
+   "tail": [
+    "index.html written: 27665 bytes, 133 entries linked"
+   ],
+   "target": "docs/analysis/index.html"
+  },
+  {
+   "cmd": "python3 data/generate_html.py",
+   "exit": 0,
+   "step": "legacy-timeline",
+   "tail": [
+    "  [PASS] \"paper-card\" 出现 138 次 (要求>=98)",
+    "  [PASS] \"era-block\" 出现 5 次 (要求==5)",
+    "  [PASS] 五个时代 narrative 段落均非空且存在",
+    "  [PASS] 文件大小 204.8 KB (上限 300KB)",
+    "  卡片数实测: 138, P3路线 38 条, verified 100 / cited 33",
+    "[GATE] ALL PASS"
+   ],
+   "target": "build/legacy/timeline-classic.html"
+  },
+  {
+   "cmd": "python3 data/annotate_products.py --apply",
+   "exit": 0,
+   "step": "annotate",
+   "tail": [
+    "扫描 139 页 · 本次变更 4 页 · 注入令牌 2297 枚 · 加着陆结构 134 页 · 未声明值 0 个",
+    "=== annotate_products：OK ==="
+   ],
+   "target": "docs/**/*.html（139 页）"
+  }
+ ],
+ "result": "PASS",
+ "schema": "llm-papers-gate-report/1",
+ "site": "llm-papers-knowledge-base",
+ "source_head": "a6bb5ce8b6a2f4020e5c813f5f524e5cccb3b6b9",
+ "tree_digest": "4f361d3eb7c7d2eec093a1fbdd154af28d0dde903ee262d5307de7da6b0a58c9",
+ "tree_digest_files": 565
+}

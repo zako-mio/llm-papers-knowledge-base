@@ -7,48 +7,64 @@
 <style>
 :root{
   --ink:#1a2332; --sub:#5a6b82; --accent:#c2571a; --accent-bg:#fdf3ea;
-  --line:#e3e8ef; --card:#f7f9fc; --num:#b3341f; --ok:#1a7a4a;
-}
+  --line:#e3e8ef; --card:#f7f9fc; --num:#b3341f; --ok:#1a7a4a;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-bg-035:#fbfcfd;--lp-ink-169:#4a3a2e;--lp-ink-123:#243247;--lp-ink-003:#3a4a63;--lp-bg-324:#fbe3d8;--lp-ink-096:#14477a;--lp-bg-058:#22304a;--lp-ink-001:#ffffff;--lp-bg-186:#1e2633;--lp-ink-293:#dbe4f0;--lp-ink-261:#a05a00;--lp-ink-210:#7a5ba8;--lp-bg-272:#f2faf5;--lp-line-078:#cfe8da;--lp-ink-155:#33584a;/* LP:TOKENS:END */}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:"Source Han Serif SC","Noto Serif SC","Songti SC",Georgia,serif;
-  color:var(--ink);background:#fbfcfd;line-height:1.85;font-size:16px;}
+  color:var(--ink);background:var(--lp-bg-035);line-height:1.85;font-size:16px;}
 .wrap{max-width:860px;margin:0 auto;padding:48px 28px 64px;}
 header.hero{border-bottom:3px double var(--line);padding-bottom:26px;margin-bottom:34px;}
 h1{font-size:27px;line-height:1.45;font-weight:700;margin-bottom:14px;}
 .meta{font-size:13.5px;color:var(--sub);line-height:1.9;}
 .meta b{color:var(--accent);}
 .note{background:var(--accent-bg);border-left:4px solid var(--accent);
-  padding:14px 18px;font-size:14px;border-radius:0 6px 6px 0;margin:18px 0;color:#4a3a2e;}
+  padding:14px 18px;font-size:14px;border-radius:0 6px 6px 0;margin:18px 0;color:var(--lp-ink-169);}
 h2{font-size:21px;margin:44px 0 18px;padding-left:12px;border-left:5px solid var(--accent);line-height:1.5;}
-h3{font-size:17.5px;margin:28px 0 12px;color:#243247;}
-h4{font-size:15.5px;margin:20px 0 8px;color:#3a4a63;}
+h3{font-size:17.5px;margin:28px 0 12px;color:var(--lp-ink-123);}
+h4{font-size:15.5px;margin:20px 0 8px;color:var(--lp-ink-003);}
 p{margin:10px 0;text-align:justify;}
-.hl{color:var(--num);font-weight:700;background:linear-gradient(transparent 62%,#fbe3d8 62%);}
-.term{color:#14477a;font-weight:600;}
+.hl{color:var(--num);font-weight:700;background:linear-gradient(transparent 62%,var(--lp-bg-324) 62%);}
+.term{color:var(--lp-ink-096);font-weight:600;}
 table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;}
-th{background:#22304a;color:#fff;padding:9px 11px;text-align:left;font-weight:600;}
+th{background:var(--lp-bg-058);color:var(--lp-ink-001);padding:9px 11px;text-align:left;font-weight:600;}
 td{padding:8px 11px;border-bottom:1px solid var(--line);vertical-align:top;}
 tr:nth-child(even) td{background:var(--card);}
 blockquote.summary{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--ok);
   padding:13px 18px;margin:20px 0;border-radius:0 6px 6px 0;font-size:15px;}
 blockquote.summary::before{content:"◆ 一句话小结";display:block;font-size:12.5px;
   color:var(--ok);font-weight:700;letter-spacing:1px;margin-bottom:5px;}
-pre.tree{background:#1e2633;color:#dbe4f0;padding:18px 20px;border-radius:8px;
+pre.tree{background:var(--lp-bg-186);color:var(--lp-ink-293);padding:18px 20px;border-radius:8px;
   font-family:"JetBrains Mono","Cascadia Code",Consolas,monospace;font-size:13px;
   line-height:1.75;overflow-x:auto;margin:16px 0;}
 ul.plain{margin:8px 0 8px 22px;}
 ul.plain li{margin:7px 0;text-align:justify;}
 ol.plain{margin:8px 0 8px 26px;}
 ol.plain li{margin:9px 0;text-align:justify;}
-.warn{color:#a05a00;font-weight:600;}
-.infer{color:#7a5ba8;}
+.warn{color:var(--lp-ink-261);font-weight:600;}
+.infer{color:var(--lp-ink-210);}
 footer{margin-top:52px;padding-top:20px;border-top:1px solid var(--line);
   font-size:13px;color:var(--sub);}
-.selfcheck{background:#f2faf5;border:1px solid #cfe8da;border-radius:8px;
-  padding:14px 18px;font-size:12.5px;color:#33584a;margin-top:18px;font-family:Consolas,monospace;line-height:1.8;}
+.selfcheck{background:var(--lp-bg-272);border:1px solid var(--lp-line-078);border-radius:8px;
+  padding:14px 18px;font-size:12.5px;color:var(--lp-ink-155);margin-top:18px;font-family:Consolas,monospace;line-height:1.8;}
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>Forge_RL_Framework</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <header class="hero">

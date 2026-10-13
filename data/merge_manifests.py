@@ -1,6 +1,9 @@
 import json, os, sys
 sys.stdout.reconfigure(encoding='utf-8')
-base = "/home/zako-mio/opencode/archive/Mission-file/2026-08/0825-LLM关键节点论文全集/data"
+# ★ L1 本地化（批 I · 裁定 L1=A）：⛔ 不再写死作者机绝对路径；由文件位置推导仓根。
+#   ⚠ 本件读 e1–e5.json 并**就地覆写** data/papers_master.json；其产物已与仓内逐字节一致
+#   （实测 sha256 相同），故本地化后重跑为幂等。
+base = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 eras = ["e1.json", "e2.json", "e3.json", "e4.json", "e5.json"]
 master, seen, problems = [], {}, []
 for f in eras:

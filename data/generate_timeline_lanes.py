@@ -301,8 +301,14 @@ a{{color:var(--acc);text-decoration:none}}a:hover{{text-decoration:underline}}
 .sb b{{color:var(--tx)}}.sb.p3c b{{color:var(--gold)}}.sb.p2c b{{color:#7fa3c9}}.sb.p1c b{{color:#9aa7b5}}
 
 /* ===== 转置布局：左=时间纵轴 sticky left，顶=技术线横轴 sticky top ===== */
-.timeline-wrap{{position:relative;margin:20px auto 0;max-width:1700px;padding:0 14px 40px;overflow:visible}}
-.tl-grid{{display:grid;grid-template-columns:120px repeat({len(LANE_KEYS)},minmax(150px,1fr));grid-template-rows:88px {grid_template_rows};min-width:max-content;position:relative}}
+/* ★ Q8=A（栅格溢出，C2-N2）：① 容器 overflow:visible → overflow-x:auto（治**传导**）；
+   ② .tl-grid 的 min-width:max-content → min-width:0（治**主因**）。改动前实测：主因是
+   栅格内容被 .node{{width:100%}} 撑到 1849px（不是审计原话里的 1168px），`max-content`
+   令栅格**按内容宽**取宽；改为 0 后栅格**按容器量测**取宽、列轨道由引擎按 minmax(150px,1fr)
+   分配，超出部分落在 .timeline-wrap 的横向滚动区内 ⇒ 整页不再横向溢出。
+   ★ 只做①不做②＝审计原话的修法，实测已证伪（Q8 裁定原文）。 */
+.timeline-wrap{{position:relative;margin:20px auto 0;max-width:1700px;padding:0 14px 40px;overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch}}
+.tl-grid{{display:grid;grid-template-columns:120px repeat({len(LANE_KEYS)},minmax(150px,1fr));grid-template-rows:88px {grid_template_rows};min-width:0;position:relative}}
 /* 左上角空白 + 技术线头部行 (sticky top) */
 .corner{{grid-row:1;grid-column:1;background:#0d1219;position:sticky;top:0;left:0;z-index:20;border:1px solid var(--bd);display:flex;align-items:center;justify-content:center}}
 .lane-head-cell{{grid-row:1;position:sticky;top:0;z-index:15;background:#0d1219;border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;padding:6px}}

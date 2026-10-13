@@ -7,8 +7,7 @@
 <style>
   :root{
     --ink:#1f2430; --muted:#5b6472; --bg:#f6f7fa; --card:#ffffff;
-    --accent:#0f62fe; --accent2:#b45309; --line:#e3e7ee; --soft:#eef4ff;
-  }
+    --accent:#0f62fe; --accent2:#b45309; --line:#e3e7ee; --soft:#eef4ff;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-mix-028:#0d2b66;--lp-ink-042:#12233f;--lp-bg-007:#fafbfd;--lp-bg-340:#fde9c8;--lp-ink-233:#8a4fd3;--lp-ink-127:#25355c;--lp-bg-027:#eef1f6;--lp-bg-264:#f2f5fb;--lp-bg-045:#101828;--lp-line-001:#cbd5e1;--lp-ink-057:#7dd3fc;/* LP:TOKENS:END */}
   *{box-sizing:border-box; margin:0; padding:0;}
   body{
     font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
@@ -16,8 +15,8 @@
   }
   .wrap{max-width:920px; margin:0 auto; padding:48px 28px 80px;}
   header.hero{
-    background:linear-gradient(135deg,#0d2b66 0%,#0f62fe 100%);
-    color:#fff; border-radius:16px; padding:44px 40px; margin-bottom:36px;
+    background:linear-gradient(135deg,var(--lp-mix-028) 0%,var(--accent) 100%);
+    color:var(--card); border-radius:16px; padding:44px 40px; margin-bottom:36px;
   }
   header.hero h1{font-size:30px; line-height:1.4; margin-bottom:14px;}
   header.hero .meta{font-size:13.5px; opacity:.92; display:flex; flex-wrap:wrap; gap:8px 22px;}
@@ -36,37 +35,37 @@
   }
   section.card > h2{
     font-size:23px; padding-bottom:10px; margin-bottom:20px;
-    border-bottom:2px solid var(--soft); color:#12233f;
+    border-bottom:2px solid var(--soft); color:var(--lp-ink-042);
   }
-  section.card h3{font-size:17.5px; margin:24px 0 10px; color:#0d2b66;}
+  section.card h3{font-size:17.5px; margin:24px 0 10px; color:var(--lp-mix-028);}
   section.card p{margin-bottom:12px; text-align:justify;}
   ul,ol{margin:0 0 14px 22px;}
   li{margin-bottom:8px;}
   table{width:100%; border-collapse:collapse; margin:14px 0 18px; font-size:14.5px;}
   th,td{border:1px solid var(--line); padding:8px 12px; text-align:left;}
-  th{background:var(--soft); color:#12233f; white-space:nowrap;}
-  tr:nth-child(even) td{background:#fafbfd;}
+  th{background:var(--soft); color:var(--lp-ink-042); white-space:nowrap;}
+  tr:nth-child(even) td{background:var(--lp-bg-007);}
   .hl{
     color:var(--accent2); font-weight:700; font-variant-numeric:tabular-nums;
-    background:linear-gradient(transparent 68%, #fde9c8 0%);
+    background:linear-gradient(transparent 68%, var(--lp-bg-340) 0%);
     padding:0 1px;
   }
   .hl-blue{color:var(--accent); font-weight:700;}
-  .infer{color:#8a4fd3; font-size:.95em;}
+  .infer{color:var(--lp-ink-233); font-size:.95em;}
   blockquote{
     background:var(--soft); border-radius:10px; padding:14px 18px;
-    margin:16px 0; font-size:15px; color:#25355c;
+    margin:16px 0; font-size:15px; color:var(--lp-ink-127);
   }
   code,.formula{
     font-family:"JetBrains Mono",Consolas,monospace; font-size:.93em;
-    background:#eef1f6; border-radius:5px; padding:1px 6px;
+    background:var(--lp-bg-027); border-radius:5px; padding:1px 6px;
   }
-  .formula{display:block; text-align:center; padding:10px; margin:12px 0; background:#f2f5fb;}
+  .formula{display:block; text-align:center; padding:10px; margin:12px 0; background:var(--lp-bg-264);}
   footer.check{
-    background:#101828; color:#cbd5e1; border-radius:14px; padding:24px 30px;
+    background:var(--lp-bg-045); color:var(--lp-line-001); border-radius:14px; padding:24px 30px;
     font-size:13.5px; line-height:2;
   }
-  footer.check b{color:#7dd3fc;}
+  footer.check b{color:var(--lp-ink-057);}
   .toc{
     display:flex; flex-wrap:wrap; gap:10px; margin-bottom:36px;
   }
@@ -75,9 +74,26 @@
     background:var(--card); border:1px solid var(--line); border-radius:999px; padding:6px 14px;
   }
   @media (max-width:640px){ .wrap{padding:24px 14px 60px;} section.card{padding:22px 18px;} header.hero{padding:30px 22px;} }
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>YaRN</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <header class="hero">

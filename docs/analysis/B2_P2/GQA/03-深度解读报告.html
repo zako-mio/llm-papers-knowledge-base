@@ -5,45 +5,62 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GQA 深度解读报告</title>
 <style>
-  :root { --ink:#1f2430; --muted:#5b6472; --accent:#0f62fe; --accent-soft:#e8f0fe; --line:#d9dee7; --bg:#f7f8fa; --card:#ffffff; --warn:#b45309; }
+  :root { --ink:#1f2430; --muted:#5b6472; --accent:#0f62fe; --accent-soft:#e8f0fe; --line:#d9dee7; --bg:#f7f8fa; --card:#ffffff; --warn:#b45309;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-mix-002:#0b1f4b;--lp-bg-144:#123a8f;--lp-ink-280:#cdd9f5;--lp-ink-048:#15306e;--lp-ink-038:#0a49c7;--lp-bg-239:#eef3fc;--lp-bg-007:#fafbfd;--lp-bg-227:#eaf3ff;--lp-bg-081:#f2f7ff;--lp-bg-306:#f7f9fd;--lp-bg-031:#f0fdf4;--lp-line-018:#bbf7d0;--lp-ink-098:#14532d;--lp-ink-101:#166534;/* LP:TOKENS:END */}
   * { box-sizing:border-box; margin:0; padding:0; }
   body { font-family:"Source Han Serif SC","Noto Serif SC","Songti SC",Georgia,serif; color:var(--ink); background:var(--bg); line-height:1.85; font-size:16px; }
   .wrap { max-width:900px; margin:0 auto; padding:32px 28px 64px; }
-  header.hero { background:linear-gradient(135deg,#0b1f4b 0%,#123a8f 60%,#0f62fe 100%); color:#fff; border-radius:14px; padding:44px 40px; margin-bottom:36px; }
+  header.hero { background:linear-gradient(135deg,var(--lp-mix-002) 0%,var(--lp-bg-144) 60%,var(--accent) 100%); color:var(--card); border-radius:14px; padding:44px 40px; margin-bottom:36px; }
   header.hero .tag { display:inline-block; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.35); border-radius:999px; padding:2px 14px; font-size:13px; letter-spacing:.08em; margin-bottom:16px; font-family:"PingFang SC","Microsoft YaHei",sans-serif; }
   header.hero h1 { font-size:30px; line-height:1.45; font-weight:700; margin-bottom:12px; }
-  header.hero .sub { color:#cdd9f5; font-size:14.5px; font-family:"PingFang SC","Microsoft YaHei",sans-serif; }
+  header.hero .sub { color:var(--lp-ink-280); font-size:14.5px; font-family:"PingFang SC","Microsoft YaHei",sans-serif; }
   .datasource { background:var(--card); border-left:4px solid var(--accent); border-radius:0 10px 10px 0; padding:14px 20px; margin-bottom:36px; color:var(--muted); font-size:14px; box-shadow:0 1px 4px rgba(15,22,41,.06); font-family:"PingFang SC","Microsoft YaHei",sans-serif; }
   section.card { background:var(--card); border-radius:12px; padding:34px 38px; margin-bottom:28px; box-shadow:0 2px 10px rgba(15,22,41,.06); border:1px solid var(--line); }
-  h2 { font-size:23px; color:#0b1f4b; margin-bottom:18px; padding-bottom:10px; border-bottom:2px solid var(--accent-soft); }
-  h2 .no { display:inline-block; background:var(--accent); color:#fff; border-radius:8px; font-size:15px; padding:1px 11px; margin-right:10px; vertical-align:3px; font-family:"PingFang SC","Microsoft YaHei",sans-serif; }
-  h3 { font-size:17.5px; color:#15306e; margin:26px 0 10px; }
+  h2 { font-size:23px; color:var(--lp-mix-002); margin-bottom:18px; padding-bottom:10px; border-bottom:2px solid var(--accent-soft); }
+  h2 .no { display:inline-block; background:var(--accent); color:var(--card); border-radius:8px; font-size:15px; padding:1px 11px; margin-right:10px; vertical-align:3px; font-family:"PingFang SC","Microsoft YaHei",sans-serif; }
+  h3 { font-size:17.5px; color:var(--lp-ink-048); margin:26px 0 10px; }
   p { margin:10px 0; text-align:justify; }
-  strong { color:#0b1f4b; }
+  strong { color:var(--lp-mix-002); }
   .num { color:var(--accent); font-weight:700; font-variant-numeric:tabular-nums; padding:0 2px; }
-  .num-big { background:var(--accent-soft); color:#0a49c7; font-weight:700; border-radius:6px; padding:1px 7px; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .num-big { background:var(--accent-soft); color:var(--lp-ink-038); font-weight:700; border-radius:6px; padding:1px 7px; white-space:nowrap; font-variant-numeric:tabular-nums; }
   .infer { color:var(--warn); font-weight:600; }
   table { width:100%; border-collapse:collapse; margin:16px 0 8px; font-size:14.5px; font-family:"PingFang SC","Microsoft YaHei",sans-serif; }
-  th { background:#eef3fc; color:#0b1f4b; font-weight:600; }
+  th { background:var(--lp-bg-239); color:var(--lp-mix-002); font-weight:600; }
   th,td { border:1px solid var(--line); padding:8px 10px; text-align:center; }
-  tbody tr:nth-child(even){ background:#fafbfd; }
-  tr.hl td { background:#eaf3ff; font-weight:700; color:#0a49c7; }
+  tbody tr:nth-child(even){ background:var(--lp-bg-007); }
+  tr.hl td { background:var(--lp-bg-227); font-weight:700; color:var(--lp-ink-038); }
   td.l,th.l { text-align:left; }
-  blockquote.sum { margin:24px 0 4px; background:#f2f7ff; border-left:4px solid var(--accent); border-radius:0 10px 10px 0; padding:14px 20px; color:#15306e; }
+  blockquote.sum { margin:24px 0 4px; background:var(--lp-bg-081); border-left:4px solid var(--accent); border-radius:0 10px 10px 0; padding:14px 20px; color:var(--lp-ink-048); }
   blockquote.sum b { color:var(--accent); }
   ul,ol { margin:10px 0 10px 26px; }
   li { margin:6px 0; text-align:justify; }
   .meta-grid { display:flex; flex-wrap:wrap; gap:12px; margin-top:14px; }
-  .meta-item { flex:1 1 180px; background:#f7f9fd; border:1px solid var(--line); border-radius:10px; padding:12px 16px; }
+  .meta-item { flex:1 1 180px; background:var(--lp-bg-306); border:1px solid var(--line); border-radius:10px; padding:12px 16px; }
   .meta-item .k { font-size:12.5px; color:var(--muted); font-family:"PingFang SC","Microsoft YaHei",sans-serif; letter-spacing:.05em; }
-  .meta-item .v { font-size:15px; font-weight:700; color:#0b1f4b; margin-top:2px; }
+  .meta-item .v { font-size:15px; font-weight:700; color:var(--lp-mix-002); margin-top:2px; }
   footer { text-align:center; color:var(--muted); font-size:13px; margin-top:30px; font-family:"PingFang SC","Microsoft YaHei",sans-serif; }
-  .selfcheck { background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:16px 22px; font-family:"PingFang SC","Microsoft YaHei",sans-serif; font-size:13.5px; color:#14532d; }
-  .selfcheck h4 { font-size:14.5px; margin-bottom:8px; color:#166534; }
+  .selfcheck { background:var(--lp-bg-031); border:1px solid var(--lp-line-018); border-radius:10px; padding:16px 22px; font-family:"PingFang SC","Microsoft YaHei",sans-serif; font-size:13.5px; color:var(--lp-ink-098); }
+  .selfcheck h4 { font-size:14.5px; margin-bottom:8px; color:var(--lp-ink-101); }
   .selfcheck ul { margin-left:20px; }
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>GQA</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <header class="hero">

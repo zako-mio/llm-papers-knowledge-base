@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>现代大语言模型发展史 · 知识库</title>
-<style>
-*{box-sizing:border-box}body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#0f1420;color:#e6e9f0;margin:0;line-height:1.7}
+<style>:root{/* LP:TOKENS:BEGIN */--lp-bg-024:#0f1420;--lp-ink-018:#e6e9f0;--lp-ink-011:#7cb3ff;--lp-mix-022:#c084fc;--lp-ink-030:#8fa0b8;--lp-bg-019:#161d2e;--lp-line-028:#2a3650;--lp-ink-032:#aeb9cc;--lp-line-006:#24304a;--lp-line-034:#3b5a8a;--lp-bg-025:#1a2233;/* LP:TOKENS:END */}
+*{box-sizing:border-box}body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--lp-bg-024);color:var(--lp-ink-018);margin:0;line-height:1.7}
 .wrap{max-width:1000px;margin:0 auto;padding:56px 22px 90px}
-h1{font-size:32px;margin:0;background:linear-gradient(90deg,#7cb3ff,#c084fc);-webkit-background-clip:text;background-clip:text;color:transparent}
-.sub{color:#8fa0b8;font-size:15px;margin-top:10px}
-.badges{margin-top:22px} .badge{display:inline-block;background:#161d2e;border:1px solid #2a3650;border-radius:20px;padding:5px 14px;font-size:13px;margin:3px 7px 3px 0;color:#aeb9cc}
-.badge b{color:#e6e9f0}
+h1{font-size:32px;margin:0;background:linear-gradient(90deg,var(--lp-ink-011),var(--lp-mix-022));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--lp-ink-030);font-size:15px;margin-top:10px}
+.badges{margin-top:22px} .badge{display:inline-block;background:var(--lp-bg-019);border:1px solid var(--lp-line-028);border-radius:20px;padding:5px 14px;font-size:13px;margin:3px 7px 3px 0;color:var(--lp-ink-032)}
+.badge b{color:var(--lp-ink-018)}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;margin-top:34px}
-.card{background:#161d2e;border:1px solid #24304a;border-radius:14px;padding:22px;text-decoration:none;color:inherit;transition:transform .15s,border-color .15s}
-.card:hover{transform:translateY(-3px);border-color:#3b5a8a}
-.card .ic{font-size:26px} .card h2{font-size:19px;margin:12px 0 6px;color:#7cb3ff} .card p{font-size:13px;color:#8fa0b8;margin:0;line-height:1.6}
-.note{background:#1a2233;border-radius:12px;padding:16px 20px;font-size:13px;color:#aeb9cc;margin-top:36px}
-.note b{color:#e6e9f0}
-a{color:#7cb3ff}
+.card{background:var(--lp-bg-019);border:1px solid var(--lp-line-006);border-radius:14px;padding:22px;text-decoration:none;color:inherit;transition:transform .15s,border-color .15s}
+.card:hover{transform:translateY(-3px);border-color:var(--lp-line-034)}
+.card .ic{font-size:26px} .card h2{font-size:19px;margin:12px 0 6px;color:var(--lp-ink-011)} .card p{font-size:13px;color:var(--lp-ink-030);margin:0;line-height:1.6}
+.note{background:var(--lp-bg-025);border-radius:12px;padding:16px 20px;font-size:13px;color:var(--lp-ink-032);margin-top:36px}
+.note b{color:var(--lp-ink-018)}
+a{color:var(--lp-ink-011)}
 </style></head><body><div class="wrap">
 <h1>现代大语言模型发展史 · 知识库</h1>
 <p class="sub">从《Attention Is All You Need》(2017) 到 GLM-5.3-Flash / DeepSeek-V4 / Kimi K3 (2026) —— 关键节点论文全集 + 全量深度解读 + 多技术线泳道图</p>
@@ -28,7 +28,7 @@ a{color:#7cb3ff}
 <a class="card" href="timeline.html"><div class="ic">🛤️</div><h2>多技术线泳道图</h2><p>横向泳道式展示 <b>9 条技术线</b>（架构/预训练/对齐/推理/长上下文/多模态/Agent/工程/开源）并行发展，节点按时间轴排列，P3 高亮，交叉节点标多线，悬停/点击/关系连线高亮交互。**展示发展史主线的主视图。**</p></a>
 <a class="card" href="list.html"><div class="ic">📋</div><h2>卡片列表视图</h2><p>按时代分组的逐篇卡片，可筛选时代/优先级，查看完整标题/机构/贡献/背景档案，与泳道图一键互切，便于逐篇检索。</p></a>
 <a class="card" href="analysis/index.html"><div class="ic">📚</div><h2>深度解读总览</h2><p>133 篇六层深度解读（问题定位→概念内核→方法拆解→证据链→批判→启示），点击进入各篇 HTML 阅读版</p></a>
-<a class="card" href="../README.md"><div class="ic">📁</div><h2>论文库 README</h2><p>全量索引（133 篇论文表 + 五时代综述 + 技术线说明 + 信源口径）、命名规则、Git LFS 克隆与数据获取说明</p></a>
+<a class="card" href="report.html"><div class="ic">📁</div><h2>论文库 README</h2><p>全量索引（133 篇论文表 + 五时代综述 + 技术线说明 + 信源口径）、命名规则、Git LFS 克隆与数据获取说明</p></a>
 </div>
 <div class="note"><b>克隆说明：</b>本仓库论文 PDF 使用 <b>Git LFS</b> 托管，克隆需先安装 <code>git-lfs</code> 并执行 <code>git lfs pull</code> 才能拉取 PDF。<b>在线下载：</b>在泳道图/列表图或任意深度解读页的「PDF下载」链接（media.githubusercontent.com 直链）可直接获取完整论文；纯解读与索引文件（HTML/MD）无需 LFS，可直接浏览本 Pages 站点。</div>
 </div></body></html>

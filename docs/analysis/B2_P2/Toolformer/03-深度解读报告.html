@@ -14,8 +14,7 @@
     --gold-soft: #fdf3e3;
     --line: #d9e2ec;
     --bg: #f7f9fb;
-    --card: #ffffff;
-  }
+    --card: #ffffff;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-mix-005:#0b3d6b;--lp-bg-147:#1273c4;--lp-ink-043:#123c63;--lp-bg-021:#eef4fa;--lp-bg-012:#fbfcfe;--lp-mix-050:#f2f6fa;--lp-bg-066:#eef4ee;--lp-line-008:#cfe0cf;--lp-mix-043:#3c7a44;--lp-ink-137:#2c5e34;/* LP:TOKENS:END */}
   * { box-sizing: border-box; }
   body {
     margin: 0;
@@ -27,8 +26,8 @@
   }
   .page { max-width: 900px; margin: 0 auto; padding: 32px 24px 64px; }
   header.hero {
-    background: linear-gradient(135deg, #0b3d6b 0%, #0b5cad 60%, #1273c4 100%);
-    color: #fff;
+    background: linear-gradient(135deg, var(--lp-mix-005) 0%, var(--accent) 60%, var(--lp-bg-147) 100%);
+    color: var(--card);
     border-radius: 14px;
     padding: 40px 36px 32px;
     margin-bottom: 28px;
@@ -63,7 +62,7 @@
   p { margin: 10px 0; text-align: justify; }
   ul, ol { padding-left: 24px; margin: 8px 0; }
   li { margin: 5px 0; text-align: justify; }
-  strong { color: #123c63; }
+  strong { color: var(--lp-ink-043); }
   .num {
     color: var(--gold); font-weight: 700; font-variant-numeric: tabular-nums;
     background: var(--gold-soft); border-radius: 4px; padding: 0 4px;
@@ -81,40 +80,57 @@
   .callout.summary b.tag { color: var(--gold); }
   table {
     width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14.5px;
-    background: #fff;
+    background: var(--card);
   }
   th {
-    background: #eef4fa; color: #123c63; text-align: left;
+    background: var(--lp-bg-021); color: var(--lp-ink-043); text-align: left;
     padding: 9px 12px; border: 1px solid var(--line);
   }
   td { padding: 8px 12px; border: 1px solid var(--line); vertical-align: top; }
-  tr:nth-child(even) td { background: #fbfcfe; }
+  tr:nth-child(even) td { background: var(--lp-bg-012); }
   code {
     font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em;
-    background: #eef1f5; border-radius: 4px; padding: 1px 6px; color: #0b3d6b;
+    background: var(--lp-bg-002); border-radius: 4px; padding: 1px 6px; color: var(--lp-mix-005);
   }
   .formula {
     display: block; text-align: center; font-family: Georgia, "Times New Roman", serif;
-    background: #f2f6fa; border: 1px dashed var(--line); border-radius: 8px;
+    background: var(--lp-mix-050); border: 1px dashed var(--line); border-radius: 8px;
     padding: 12px 10px; margin: 14px auto; font-size: 15.5px; overflow-x: auto;
     white-space: nowrap;
   }
   footer.check {
-    background: #eef4ee; border: 1px solid #cfe0cf; border-radius: 12px;
+    background: var(--lp-bg-066); border: 1px solid var(--lp-line-008); border-radius: 12px;
     padding: 20px 24px; margin-top: 30px;
   }
-  footer.check h2 { border-left-color: #3c7a44; color: #2c5e34; font-size: 18px; }
+  footer.check h2 { border-left-color: var(--lp-mix-043); color: var(--lp-ink-137); font-size: 18px; }
   footer.check ul { list-style: none; padding-left: 4px; }
-  footer.check li::before { content: "✓ "; color: #3c7a44; font-weight: 700; }
+  footer.check li::before { content: "✓ "; color: var(--lp-mix-043); font-weight: 700; }
   .footnote { color: var(--muted); font-size: 13px; margin-top: 20px; text-align: center; }
   @media (max-width: 640px) {
     nav.toc ol { columns: 1; }
     section.card { padding: 20px 18px; }
     .formula { white-space: normal; }
   }
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>Toolformer</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="page">
 
 <header class="hero">

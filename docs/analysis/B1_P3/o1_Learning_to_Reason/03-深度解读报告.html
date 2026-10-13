@@ -8,8 +8,7 @@
   :root{
     --ink:#1a2332; --sub:#4a5568; --accent:#0f4c81; --accent2:#c0392b;
     --gold:#b7791f; --bg:#f7f5f0; --card:#ffffff; --line:#e2ddd3;
-    --hl:#fff3cd; --code:#2d3748;
-  }
+    --hl:#fff3cd; --code:#2d3748;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-bg-120:#0f2a43;--lp-bg-176:#1a6bab;--lp-bg-338:#fde2de;--lp-bg-021:#eef4fa;--lp-bg-085:#f7fafc;--lp-line-079:#d3e2f0;--lp-bg-014:#fbfaf7;--lp-bg-378:#fffaf0;--lp-bg-072:#f0ede6;--lp-bg-235:#eef2ee;--lp-line-008:#cfe0cf;--lp-ink-160:#3a5a3a;--lp-bg-221:#ddeadd;/* LP:TOKENS:END */}
   *{margin:0;padding:0;box-sizing:border-box;}
   body{
     font-family:"Source Han Serif SC","Noto Serif SC","Songti SC",serif;
@@ -18,8 +17,8 @@
   }
   .wrap{max-width:920px;margin:0 auto;padding:0 28px;}
   header.hero{
-    background:linear-gradient(135deg,#0f2a43 0%,#0f4c81 60%,#1a6bab 100%);
-    color:#fff;padding:64px 0 48px;margin-bottom:36px;
+    background:linear-gradient(135deg,var(--lp-bg-120) 0%,var(--accent) 60%,var(--lp-bg-176) 100%);
+    color:var(--card);padding:64px 0 48px;margin-bottom:36px;
   }
   header.hero h1{font-size:30px;line-height:1.45;font-weight:700;letter-spacing:.5px;}
   header.hero .subtitle{font-size:15px;opacity:.85;margin-top:14px;font-family:"Noto Sans SC",sans-serif;}
@@ -42,15 +41,15 @@
     font-family:"Georgia",serif;font-weight:700;color:var(--accent);
     background:var(--hl);padding:1px 5px;border-radius:4px;white-space:nowrap;
   }
-  .num-hot{background:#fde2de;color:var(--accent2);}
+  .num-hot{background:var(--lp-bg-338);color:var(--accent2);}
   .src-card{
     background:var(--card);border:1px solid var(--line);border-left:4px solid var(--gold);
     border-radius:6px;padding:16px 20px;margin:18px 0;font-size:13.5px;color:var(--sub);
     font-family:"Noto Sans SC",sans-serif;
   }
   .digest{
-    background:linear-gradient(180deg,#eef4fa,#f7fafc);
-    border:1px solid #d3e2f0;border-radius:10px;padding:24px 26px;margin-bottom:10px;
+    background:linear-gradient(180deg,var(--lp-bg-021),var(--lp-bg-085));
+    border:1px solid var(--lp-line-079);border-radius:10px;padding:24px 26px;margin-bottom:10px;
   }
   .digest p{font-size:15.5px;}
   table{
@@ -58,17 +57,17 @@
     background:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.06);
   }
   th{
-    background:var(--accent);color:#fff;padding:9px 12px;text-align:left;
+    background:var(--accent);color:var(--card);padding:9px 12px;text-align:left;
     font-family:"Noto Sans SC",sans-serif;font-weight:600;white-space:nowrap;
   }
   td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
-  tr:nth-child(even) td{background:#fbfaf7;}
+  tr:nth-child(even) td{background:var(--lp-bg-014);}
   .note{
-    background:#fffaf0;border:1px dashed var(--gold);border-radius:6px;
+    background:var(--lp-bg-378);border:1px dashed var(--gold);border-radius:6px;
     padding:12px 18px;margin:14px 0;font-size:14px;
   }
   .oneline{
-    margin-top:26px;padding:14px 20px;background:#f0ede6;
+    margin-top:26px;padding:14px 20px;background:var(--lp-bg-072);
     border-radius:8px;border-left:4px solid var(--accent2);
     font-size:15px;
   }
@@ -78,20 +77,37 @@
   ol.tight{margin:10px 0 10px 26px;}
   ol.tight li{margin:8px 0;text-align:justify;}
   footer.selfcheck{
-    margin-top:56px;padding:20px 24px;background:#eef2ee;border:1px solid #cfe0cf;
-    border-radius:8px;font-size:13px;color:#3a5a3a;
+    margin-top:56px;padding:20px 24px;background:var(--lp-bg-235);border:1px solid var(--lp-line-008);
+    border-radius:8px;font-size:13px;color:var(--lp-ink-160);
     font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;
   }
   footer.selfcheck code{
-    background:#ddeadd;padding:1px 6px;border-radius:3px;color:var(--code);font-size:12px;
+    background:var(--lp-bg-221);padding:1px 6px;border-radius:3px;color:var(--code);font-size:12px;
   }
   .concl{
     background:var(--card);border:1px solid var(--line);border-top:4px solid var(--accent);
     border-radius:8px;padding:24px 26px;margin-top:20px;
   }
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>o1_Learning_to_Reason</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 
 <header class="hero">
   <div class="wrap">

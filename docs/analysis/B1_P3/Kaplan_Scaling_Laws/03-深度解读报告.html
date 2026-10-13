@@ -14,8 +14,7 @@
     --gold-soft: #fdf3e3;
     --line: #dcdfe6;
     --bg: #f7f8fa;
-    --card: #ffffff;
-  }
+    --card: #ffffff;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-mix-007:#123a63;--lp-bg-202:#2e86d8;--lp-ink-102:#17324f;--lp-ink-083:#10233c;--lp-ink-100:#16324e;--lp-bg-030:#eef3f9;--lp-ink-094:#14304e;--lp-bg-007:#fafbfd;--lp-bg-073:#f0f2f5;--lp-ink-209:#7a5a12;--lp-bg-266:#f2f7f2;--lp-line-005:#cfe3cf;--lp-ink-153:#33502f;--lp-ink-141:#2e5c2a;/* LP:TOKENS:END */}
   * { box-sizing: border-box; }
   body {
     margin: 0; padding: 0;
@@ -25,8 +24,8 @@
   }
   .page { max-width: 900px; margin: 0 auto; padding: 40px 28px 60px; }
   header.hero {
-    background: linear-gradient(135deg, #123a63 0%, #0f5aa8 60%, #2e86d8 100%);
-    color: #fff; border-radius: 14px; padding: 36px 36px 30px; margin-bottom: 28px;
+    background: linear-gradient(135deg, var(--lp-mix-007) 0%, var(--accent) 60%, var(--lp-bg-202) 100%);
+    color: var(--card); border-radius: 14px; padding: 36px 36px 30px; margin-bottom: 28px;
   }
   header.hero h1 { margin: 0 0 10px; font-size: 26px; line-height: 1.45; letter-spacing: .5px; }
   header.hero .sub { font-size: 14px; opacity: .92; }
@@ -44,11 +43,11 @@
   nav.toc a:hover { color: var(--accent); }
   section { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 26px 32px; margin-bottom: 26px; }
   h2 { font-size: 20px; color: var(--accent); border-bottom: 2px solid var(--accent-soft); padding-bottom: 8px; margin: 4px 0 18px; }
-  h3 { font-size: 16.5px; margin: 26px 0 10px; color: #17324f; }
+  h3 { font-size: 16.5px; margin: 26px 0 10px; color: var(--lp-ink-102); }
   p { margin: 10px 0; text-align: justify; }
   ul, ol { padding-left: 26px; margin: 10px 0; }
   li { margin: 6px 0; text-align: justify; }
-  strong { color: #10233c; }
+  strong { color: var(--lp-ink-083); }
   .num {
     font-family: "SF Mono", Consolas, monospace; font-size: .93em;
     background: var(--gold-soft); color: var(--gold);
@@ -57,34 +56,51 @@
   .kw { color: var(--accent); font-weight: 700; }
   blockquote {
     margin: 16px 0; padding: 10px 18px; background: var(--accent-soft);
-    border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; color: #16324e;
+    border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; color: var(--lp-ink-100);
   }
   table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; }
-  th { background: #eef3f9; color: #14304e; text-align: left; }
+  th { background: var(--lp-bg-030); color: var(--lp-ink-094); text-align: left; }
   th, td { border: 1px solid var(--line); padding: 8px 12px; vertical-align: top; }
-  tr:nth-child(even) td { background: #fafbfd; }
+  tr:nth-child(even) td { background: var(--lp-bg-007); }
   code, pre {
     font-family: "SF Mono", Consolas, Menlo, monospace; font-size: .9em;
-    background: #f0f2f5; border-radius: 4px;
+    background: var(--lp-bg-073); border-radius: 4px;
   }
   code { padding: 1px 5px; }
   pre { padding: 12px 16px; overflow-x: auto; line-height: 1.6; }
-  .infer { color: #7a5a12; }
+  .infer { color: var(--lp-ink-209); }
   .callout {
     margin-top: 22px; padding: 12px 18px; border-radius: 8px;
-    background: linear-gradient(90deg, var(--accent-soft), #ffffff);
+    background: linear-gradient(90deg, var(--accent-soft), var(--card));
     border: 1px dashed var(--accent);
   }
   .callout b.tag { color: var(--accent); }
   .selfcheck {
-    background: #f2f7f2; border: 1px solid #cfe3cf; border-radius: 10px; padding: 18px 24px;
-    font-size: 13px; color: #33502f; margin-top: 30px;
+    background: var(--lp-bg-266); border: 1px solid var(--lp-line-005); border-radius: 10px; padding: 18px 24px;
+    font-size: 13px; color: var(--lp-ink-153); margin-top: 30px;
   }
-  .selfcheck h2 { font-size: 15px; color: #2e5c2a; border-bottom: 1px solid #cfe3cf; margin-top: 0; }
+  .selfcheck h2 { font-size: 15px; color: var(--lp-ink-141); border-bottom: 1px solid var(--lp-line-005); margin-top: 0; }
   .footer-note { text-align: center; color: var(--muted); font-size: 12.5px; margin-top: 26px; }
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>Kaplan_Scaling_Laws</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="page">
 
 <header class="hero">

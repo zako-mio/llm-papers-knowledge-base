@@ -1,5 +1,14 @@
 name: Deploy GitHub Pages
 
+# ★★ 批 I · 站 06 标准档：本 workflow 被**就地扩展**（⛔ 不新建 CI、⛔ 不改发布形态 / ADR-003）。
+# 位置硬约束（CONTINUE-PROMPT-G §4.1）：门控必须落在「**重生成之后 / 回写 master 之前**」。
+#   · 放在重生成**之前** ⇒ 判的是上一版产物；
+#   · 放在回写**之后**   ⇒ 坏产物已经进 master。
+# ★ 本站 CI **没有回写 master 的步骤**（ADR-003 的发布形态未被收敛：产物不入库，CI 只上传
+#   artifact）⇒「回写」的等价物是**发布步**（upload-pages-artifact / deploy-pages）。
+#   本件因此把门控放在 `Rebuild` 之后、`upload-pages-artifact` 之前，并由
+#   `gate_ci_contract.py` 的 CI2 机械断言 `Rebuild < Gate < Publish`（该件同时**显式声明**
+#   「回写 master」在本站 N/A，⛔ 不新建回写步）。
 on:
   push:
     branches: [main]
@@ -22,6 +31,16 @@ jobs:
         with:
           lfs: true
       - uses: actions/configure-pages@v5
+      - name: Rebuild (regenerate all products)
+        run: python3 data/build_all.py --skip-gates
+      - name: Gate (design gates; after rebuild, before publish)
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check pyyaml
+          python3 gate_tokens.py --site-root . --manifest gate-manifest.json --mode enforce
+          python3 gate_links.py --site-root .
+          python3 gate_census.py --site-root .
+          python3 gate_ci_contract.py --site-root .
+          python3 vendor/pipeline/check_gate_manifest.py --manifest gate-manifest.json --profile build/profile.json
       - name: Upload docs as Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

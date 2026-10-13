@@ -9,8 +9,7 @@
     --ink:#1a2332; --muted:#5b6b7f; --line:#dde4ec; --bg:#f7f9fb;
     --accent:#0f62fe; --accent-soft:#e8f0fe; --gold:#b7791f; --gold-soft:#fdf3e3;
     --warn:#c0392b; --warn-soft:#fdeeec; --green:#1e7d43; --green-soft:#e9f6ee;
-    --card:#ffffff;
-  }
+    --card:#ffffff;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-ink-040:#0d3a8c;--lp-bg-007:#fafbfd;--lp-ink-056:#5a4632;/* LP:TOKENS:END */}
   *{box-sizing:border-box;margin:0;padding:0}
   body{
     font-family:"Source Han Serif SC","Noto Serif SC","Songti SC",Georgia,"Times New Roman",serif;
@@ -45,7 +44,7 @@
     font-size:1.32rem;font-weight:700;margin-bottom:20px;padding-left:14px;
     border-left:5px solid var(--accent);line-height:1.5;
   }
-  h3{font-family:"Noto Sans SC",sans-serif;font-size:1rem;font-weight:700;margin:22px 0 10px;color:#0d3a8c}
+  h3{font-family:"Noto Sans SC",sans-serif;font-size:1rem;font-weight:700;margin:22px 0 10px;color:var(--lp-ink-040)}
   p{margin-bottom:14px;text-align:justify}
   ul.plain,ol.steps{margin:0 0 16px 22px}
   ul.plain li,ol.steps li{margin-bottom:8px;text-align:justify}
@@ -53,9 +52,9 @@
     width:100%;border-collapse:collapse;margin:14px 0 20px;
     font-family:"Noto Sans SC",sans-serif;font-size:.86rem;
   }
-  th{background:var(--accent-soft);color:#0d3a8c;font-weight:600;text-align:left}
+  th{background:var(--accent-soft);color:var(--lp-ink-040);font-weight:600;text-align:left}
   th,td{padding:8px 12px;border:1px solid var(--line);vertical-align:top}
-  tbody tr:nth-child(even){background:#fafbfd}
+  tbody tr:nth-child(even){background:var(--lp-bg-007)}
   td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
   span.num{
     font-family:"JetBrains Mono","SFMono-Regular",Consolas,monospace;
@@ -69,7 +68,7 @@
   blockquote{
     border-left:4px solid var(--gold);background:var(--gold-soft);
     padding:14px 18px;margin:0 0 22px;border-radius:0 8px 8px 0;
-    font-size:.92rem;color:#5a4632;
+    font-size:.92rem;color:var(--lp-ink-056);
   }
   blockquote p{margin-bottom:6px}
   .callout{
@@ -87,12 +86,29 @@
   footer.check ul{list-style:none;margin-left:0}
   footer.check li::before{content:"✓ ";color:var(--green);font-weight:700}
   @media print{
-    body{background:#fff} main section{border:none;padding:0;break-inside:avoid-page}
+    body{background:var(--card)} main section{border:none;padding:0;break-inside:avoid-page}
     nav.toc{display:none}
   }
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>Seed2.0</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <header class="hero">

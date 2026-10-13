@@ -1,24 +1,41 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GLM-5.3 深度解读报告（文本旗舰 · 后训练驱动迭代） · 深度解读</title><style>
+<title>GLM-5.3 深度解读报告（文本旗舰 · 后训练驱动迭代） · 深度解读</title><style>:root{/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-bg-005:#f7f8fa;--lp-ink-005:#1f2430;--lp-ink-003:#3a4a63;--lp-bg-003:#eef3fa;--lp-line-002:#4a90d9;--lp-ink-006:#2c3e50;--lp-line-001:#cbd5e1;--lp-bg-006:#e8eef6;--lp-bg-004:#f4f7fb;--lp-ink-004:#b45309;--lp-ink-008:#9a6b2f;--lp-bg-001:#fdf6e3;--lp-ink-007:#90a0b5;--lp-line-003:#dde3ea;/* LP:TOKENS:END */}
 *{box-sizing:border-box}
-body{font-family:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;background:#f7f8fa;color:#1f2430;line-height:1.8;margin:0}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;background:var(--lp-bg-005);color:var(--lp-ink-005);line-height:1.8;margin:0}
 .wrap{max-width:900px;margin:0 auto;padding:36px 20px 80px}
-h1{font-size:25px;border-bottom:3px solid #2b6cb0;padding-bottom:10px;color:#14304f}
-h2{font-size:19px;margin-top:34px;color:#2b6cb0;border-left:5px solid #2b6cb0;padding-left:10px}
-h3{font-size:16px;color:#3a4a63;margin-top:22px}
+h1{font-size:25px;border-bottom:3px solid var(--lp-mix-001);padding-bottom:10px;color:var(--lp-ink-002)}
+h2{font-size:19px;margin-top:34px;color:var(--lp-mix-001);border-left:5px solid var(--lp-mix-001);padding-left:10px}
+h3{font-size:16px;color:var(--lp-ink-003);margin-top:22px}
 p{margin:10px 0;}
-blockquote{background:#eef3fa;border-left:4px solid #4a90d9;margin:12px 0;padding:10px 16px;color:#2c3e50}
+blockquote{background:var(--lp-bg-003);border-left:4px solid var(--lp-line-002);margin:12px 0;padding:10px 16px;color:var(--lp-ink-006)}
 table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px}
-th,td{border:1px solid #cbd5e1;padding:7px 10px;text-align:left;vertical-align:top}
-th{background:#e8eef6}
-tr:nth-child(even){background:#f4f7fb}
-.num{color:#b45309;font-weight:700;font-family:ui-monospace,Consolas,monospace}
-.infer{color:#9a6b2f;font-style:italic;background:#fdf6e3;padding:0 3px;border-radius:3px}
-code{background:#eef1f5;padding:1px 5px;border-radius:4px;font-size:13px}
-hr{border:none;border-top:1px dashed #cbd5e1;margin:26px 0}
-.selfcheck{font-size:11px;color:#90a0b5;margin-top:40px;border-top:1px solid #dde3ea;padding-top:12px;font-family:ui-monospace,monospace}
-</style></head><body><div class="wrap">
+th,td{border:1px solid var(--lp-line-001);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--lp-bg-006)}
+tr:nth-child(even){background:var(--lp-bg-004)}
+.num{color:var(--lp-ink-004);font-weight:700;font-family:ui-monospace,Consolas,monospace}
+.infer{color:var(--lp-ink-008);font-style:italic;background:var(--lp-bg-001);padding:0 3px;border-radius:3px}
+code{background:var(--lp-bg-002);padding:1px 5px;border-radius:4px;font-size:13px}
+hr{border:none;border-top:1px dashed var(--lp-line-001);margin:26px 0}
+.selfcheck{font-size:11px;color:var(--lp-ink-007);margin-top:40px;border-top:1px solid var(--lp-line-003);padding-top:12px;font-family:ui-monospace,monospace}
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
+</style></head><body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P2 · 重要</span><span class="lp-sep" aria-hidden="true">›</span><span>GLM-5.3</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END --><div class="wrap">
 <h1>GLM-<span class="num">5.3</span> 深度解读报告（文本旗舰 · 后训练驱动迭代）</h1>
 <blockquote> 节点 slug：<code>GLM-<span class="num">5.3</span></code></blockquote>
 <blockquote> 模型：智谱 / Zhipu AI / Z.ai 文本旗舰</blockquote>

@@ -15,14 +15,13 @@
     --line: #dde4ec;
     --card: #f7f9fc;
     --warn-bg: #fdecea;
-    --warn-ink: #8c2f24;
-  }
+    --warn-ink: #8c2f24;/* LP:TOKENS:BEGIN */--lp-nav-bg:#eef1f5;--lp-nav-line:#7c8aa0;--lp-nav-ink:#14304f;--lp-nav-accent:#2b6cb0;--lp-bg-012:#fbfcfe;--lp-ink-001:#ffffff;--lp-bg-027:#eef1f6;--lp-bg-007:#fafbfd;--lp-line-102:#f3c3bc;/* LP:TOKENS:END */}
   * { box-sizing: border-box; }
   body {
     margin: 0;
     font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
     color: var(--ink);
-    background: #fbfcfe;
+    background: var(--lp-bg-012);
     line-height: 1.85;
     font-size: 16px;
   }
@@ -30,13 +29,13 @@
   header.hero {
     border-left: 6px solid var(--accent);
     padding: 18px 24px;
-    background: linear-gradient(135deg, var(--accent-soft), #ffffff);
+    background: linear-gradient(135deg, var(--accent-soft), var(--lp-ink-001));
     border-radius: 0 12px 12px 0;
     margin-bottom: 40px;
   }
   h1 { font-size: 30px; margin: 0 0 10px; line-height: 1.35; }
   .meta { color: var(--muted); font-size: 14px; }
-  .meta code { background: #eef1f6; padding: 1px 7px; border-radius: 5px; font-size: 13px; }
+  .meta code { background: var(--lp-bg-027); padding: 1px 7px; border-radius: 5px; font-size: 13px; }
   h2 {
     font-size: 22px; margin: 52px 0 18px; padding-bottom: 10px;
     border-bottom: 2px solid var(--line); color: var(--accent);
@@ -60,7 +59,7 @@
   th { background: var(--accent-soft); color: var(--ink); font-weight: 600; }
   th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: center; }
   td:first-child { text-align: left; }
-  tr:nth-child(even) td { background: #fafbfd; }
+  tr:nth-child(even) td { background: var(--lp-bg-007); }
   ul, ol { padding-left: 26px; margin: 12px 0; }
   li { margin: 7px 0; text-align: justify; }
   .card {
@@ -69,13 +68,13 @@
   }
   .card-title { font-weight: 700; color: var(--accent); margin-bottom: 6px; }
   .warn {
-    background: var(--warn-bg); border: 1px solid #f3c3bc;
+    background: var(--warn-bg); border: 1px solid var(--lp-line-102);
     border-radius: 10px; padding: 16px 20px; margin: 16px 0;
   }
   .warn-title { font-weight: 700; color: var(--warn-ink); }
   .kpi-grid { display: flex; flex-wrap: wrap; gap: 14px; margin: 20px 0; }
   .kpi {
-    flex: 1 1 180px; background: #ffffff; border: 1px solid var(--line);
+    flex: 1 1 180px; background: var(--lp-ink-001); border: 1px solid var(--line);
     border-top: 4px solid var(--accent); border-radius: 10px;
     padding: 14px 16px; text-align: center;
   }
@@ -85,9 +84,26 @@
     margin-top: 56px; padding-top: 18px; border-top: 1px dashed var(--line);
     color: var(--muted); font-size: 13px; text-align: center;
   }
+/* LP:NAVCSS:BEGIN */
+.lp-crumb{font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--lp-nav-ink);
+  background:var(--lp-nav-bg);border:1px solid var(--lp-nav-line);border-radius:8px;
+  padding:8px 12px;margin:0 0 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lp-crumb a{color:var(--lp-nav-accent);text-decoration:none}
+.lp-crumb a:hover{text-decoration:underline}
+.lp-crumb a:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+.lp-crumb .lp-sep{color:var(--lp-nav-line)}
+.lp-back{display:inline-block;margin:0 0 18px;font:13px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--lp-nav-accent);text-decoration:none;border-bottom:1px solid var(--lp-nav-line)}
+.lp-back:hover{text-decoration:underline}
+.lp-back:focus-visible{outline:2px solid var(--lp-nav-accent);outline-offset:2px}
+/* LP:NAVCSS:END */
 </style>
 </head>
 <body>
+<!-- LP:NAV:BEGIN -->
+<nav class="lp-crumb" aria-label="面包屑导航"><a href="../../index.html">深度解读总览</a><span class="lp-sep" aria-hidden="true">›</span><span>P3 · 必读核心</span><span class="lp-sep" aria-hidden="true">›</span><span>DeepSeek-V4</span></nav>
+<a class="lp-back" href="../../index.html">← 返回深度解读总览</a>
+<!-- LP:NAV:END -->
 <div class="wrap">
 
 <header class="hero">
