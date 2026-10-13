@@ -76,9 +76,16 @@ EXCLUDE_FROM_DIGEST = (REPORT,)
 DIGEST_SKIP_DIRS = {".git", "__pycache__", "node_modules", ".venv"}
 
 
+def sanitize(text, repo):
+    """★ 确定性件的前提：⛔ 不把作者机绝对路径写进报告（逐条规范化，⛔ 不靠人眼检查）。"""
+    text = text.replace(repo, "<repo>")
+    text = re.sub(r"/home/[^/\s\"']+", "<home>", text)
+    return text
+
+
 def run_step(cwd, argv):
     p = subprocess.run(argv, cwd=cwd, capture_output=True, text=True)
-    out = (p.stdout or "") + (p.stderr or "")
+    out = sanitize((p.stdout or "") + (p.stderr or ""), cwd)
     tail = [ln for ln in out.strip().split("\n") if ln.strip()][-6:]
     return p.returncode, tail
 

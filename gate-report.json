@@ -40,7 +40,7 @@
    "exit": 0,
    "step": "gen_home",
    "tail": [
-    "首页已生成：/home/zako-mio/opencode/archive/Mission-file/2026-10/1011-GitHub-Pages前端设计审计/evidence/i/work/llm-papers-knowledge-base/docs/index.html（3563 B；133 个节点 / P3×38 P2×81 P1×14 / 9 条技术线；cta=report）"
+    "首页已生成：<repo>/docs/index.html（3563 B；133 个节点 / P3×38 P2×81 P1×14 / 9 条技术线；cta=report）"
    ],
    "target": "docs/index.html"
   },
@@ -49,7 +49,7 @@
    "exit": 0,
    "step": "timeline",
    "tail": [
-    "已生成 /home/zako-mio/opencode/archive/Mission-file/2026-10/1011-GitHub-Pages前端设计审计/evidence/i/work/llm-papers-knowledge-base/docs/timeline.html",
+    "已生成 <repo>/docs/timeline.html",
     "篇数: 133 | 时间分段: 18 | 技术线: 9 | 关系线: 283"
    ],
    "target": "docs/timeline.html"
@@ -59,7 +59,7 @@
    "exit": 0,
    "step": "list",
    "tail": [
-    "已生成 /home/zako-mio/opencode/archive/Mission-file/2026-10/1011-GitHub-Pages前端设计审计/evidence/i/work/llm-papers-knowledge-base/docs/list.html",
+    "已生成 <repo>/docs/list.html",
     "篇数: 133 | P3: 38 P2: 81 P1: 14"
    ],
    "target": "docs/list.html"
@@ -101,7 +101,7 @@
  "result": "PASS",
  "schema": "llm-papers-gate-report/1",
  "site": "llm-papers-knowledge-base",
- "source_head": "a6bb5ce8b6a2f4020e5c813f5f524e5cccb3b6b9",
- "tree_digest": "4f361d3eb7c7d2eec093a1fbdd154af28d0dde903ee262d5307de7da6b0a58c9",
+ "source_head": "2d55229b011f91ea9d25dbcda9b79e1a40059927",
+ "tree_digest": "f6730da38c3992660fa1a995d2d1905650d5d50834bc7045045b7bb27a1c9844",
  "tree_digest_files": 565
 }
